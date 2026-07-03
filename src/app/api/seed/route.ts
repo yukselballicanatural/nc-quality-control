@@ -10,8 +10,8 @@ const USERS = [
 ]
 
 export async function GET() {
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://rfgrjujihbombbfyiqgj.supabase.co'
 
   const headers = {
     'Content-Type': 'application/json',

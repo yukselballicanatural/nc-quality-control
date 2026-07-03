@@ -6,8 +6,10 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  experimental: {
-    serverComponentsExternalPackages: ['@supabase/supabase-js'],
+  // Public Supabase keys embedded — safe to commit (anon key has RLS protection)
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL: 'https://rfgrjujihbombbfyiqgj.supabase.co',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: 'sb_publishable_o-6BeASaOQ6z0lbHkPcWMA_jS4pR7iE',
   },
   async headers() {
     return [
