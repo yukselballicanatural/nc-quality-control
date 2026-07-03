@@ -1,6 +1,8 @@
+export const dynamic = 'force-dynamic'
+
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 import type {
   RecentEval,
   ConsultantStat,
@@ -12,12 +14,12 @@ import type {
   StageDist,
   WeeklyTrend,
 } from '@/components/dashboard/DashboardContent'
+import type { ChannelType, ConversationResult, EvaluationStatus } from '@/types/supabase'
 
-const DashboardContent = dynamic(
+const DashboardContent = nextDynamic(
   () => import('@/components/dashboard/DashboardContent').then(m => m.DashboardContent),
   { ssr: false }
 )
-import type { ChannelType, ConversationResult, EvaluationStatus } from '@/types/supabase'
 
 const STAGE_LABELS_TR: Record<string, string> = {
   fresh_lead:              'Fresh Lead',

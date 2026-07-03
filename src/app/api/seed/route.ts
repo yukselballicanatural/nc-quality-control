@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 const USERS = [
   { email: 'kalite@naturalclinic.com',       password: 'NaturalQC2025!', full_name: 'Kalite Ekibi',  role: 'quality_team' },
   { email: 'takim.lideri@naturalclinic.com', password: 'NaturalQC2025!', full_name: 'Takım Lideri',  role: 'team_leader'  },
