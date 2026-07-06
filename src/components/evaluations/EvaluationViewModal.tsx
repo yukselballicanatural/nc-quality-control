@@ -617,16 +617,17 @@ export function EvaluationViewModal({ evalId, evaluation, loading, canEdit, onCl
             className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm"
           />
 
-          {/* Centering wrapper — extra vertical padding so it never touches the OS taskbar */}
-          <div className="fixed inset-0 z-[70] flex items-center justify-center px-3 py-6 sm:px-5 sm:py-8">
+          {/* Scroll container — modal her zaman ortada, taşarsa scroll */}
+          <div className="fixed inset-0 z-[70] overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
             <motion.div
               key="panel"
               initial={{ opacity: 0, scale: 0.95, y: 20, filter: 'blur(4px)' }}
               animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
               exit={{ opacity: 0, scale: 0.96, y: 8, filter: 'blur(2px)' }}
               transition={{ type: 'spring', stiffness: 380, damping: 32, mass: 0.85 }}
-              className="relative w-full max-w-2xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl shadow-black/15 flex flex-col overflow-hidden"
-              style={{ maxHeight: 'calc(100vh - 80px)' }}
+              className="relative w-full max-w-2xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl shadow-black/15 flex flex-col overflow-hidden my-auto"
+              style={{ maxHeight: 'calc(100dvh - 80px)' }}
             >
               {/* Header */}
               <div className="flex-shrink-0 flex items-center justify-between px-4 py-3.5 sm:px-6 sm:py-4 border-b border-gray-100">
@@ -677,6 +678,7 @@ export function EvaluationViewModal({ evalId, evaluation, loading, canEdit, onCl
                 )}
               </div>
             </motion.div>
+            </div>
           </div>
         </>
       )}
