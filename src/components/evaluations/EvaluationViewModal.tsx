@@ -619,7 +619,7 @@ export function EvaluationViewModal({ evalId, evaluation, loading, canEdit, onCl
 
           {/* Scroll container — modal her zaman ortada, taşarsa scroll */}
           <div className="fixed inset-0 z-[70] overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
+            <div className="flex min-h-screen items-center justify-center p-4 sm:p-8">
             <motion.div
               key="panel"
               initial={{ opacity: 0, scale: 0.95, y: 20, filter: 'blur(4px)' }}
