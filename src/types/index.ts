@@ -35,6 +35,10 @@ export interface EvaluationWithRelations {
   criteria_scores: import('./supabase').CriteriaScoreRow[]
   channel_checks: import('./supabase').ChannelCheck[]
   critical_errors: import('./supabase').CriticalError[]
+  stage_answers: Record<string, unknown> | null
+  offer_answers: Record<string, unknown> | null
+  deal_answers: Record<string, unknown> | null
+  second_visit_answers: Record<string, unknown> | null
   sales_understood_motivation: string | null
   sales_eased_decision: string | null
   sales_opportunity_used: string | null

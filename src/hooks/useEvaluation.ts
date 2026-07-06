@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useFormStore } from '@/stores/formStore'
 import { calculateFinalScore } from '@/lib/scoring'
 import type { ChannelType, CriteriaScore, EvaluationStatus } from '@/types/supabase'
+import { EXTENDED_STAGES, SECOND_VISIT_STAGE } from '@/types/supabase'
 
 export function useEvaluation() {
   const router = useRouter()
@@ -21,6 +22,10 @@ export function useEvaluation() {
       const {
         evaluationId,
         step1,
+        stageAnswers,
+        offerAnswers,
+        dealAnswers,
+        secondVisitAnswers,
         criteriaScores,
         channelChecks,
         criticalErrors,
@@ -32,6 +37,10 @@ export function useEvaluation() {
         getStageScore,
         setEvaluationId,
       } = useFormStore.getState()
+
+      const isExtendedStage    = EXTENDED_STAGES.includes(step1.stage as typeof EXTENDED_STAGES[number])
+      const isDealStage        = step1.stage === 'deal'
+      const isSecondVisitStage = step1.stage === SECOND_VISIT_STAGE
 
       // Minimum required fields (DB constraints)
       if (
@@ -79,6 +88,10 @@ export function useEvaluation() {
         dev_consultant_plan: step6.consultantPlan || null,
         dev_recheck_date: step6.recheckDate || null,
         updated_at: new Date().toISOString(),
+        stage_answers:        step1.stage && !isDealStage && !isSecondVisitStage ? stageAnswers as unknown as Record<string, unknown> : null,
+        offer_answers:        isExtendedStage ? offerAnswers as unknown as Record<string, unknown> : null,
+        deal_answers:         isDealStage ? dealAnswers as unknown as Record<string, unknown> : null,
+        second_visit_answers: isSecondVisitStage ? secondVisitAnswers as unknown as Record<string, unknown> : null,
       }
 
       let evalId = evaluationId

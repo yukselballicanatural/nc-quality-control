@@ -139,6 +139,10 @@ export interface Database {
           dev_team_leader_comment: string | null
           dev_consultant_plan: string | null
           dev_recheck_date: string | null
+          stage_answers: Record<string, unknown> | null
+          offer_answers: Record<string, unknown> | null
+          deal_answers: Record<string, unknown> | null
+          second_visit_answers: Record<string, unknown> | null
           created_at: string
           updated_at: string
         }
@@ -172,6 +176,10 @@ export interface Database {
           dev_team_leader_comment?: string | null
           dev_consultant_plan?: string | null
           dev_recheck_date?: string | null
+          stage_answers?: Record<string, unknown> | null
+          offer_answers?: Record<string, unknown> | null
+          deal_answers?: Record<string, unknown> | null
+          second_visit_answers?: Record<string, unknown> | null
           created_at?: string
           updated_at?: string
         }
@@ -205,6 +213,10 @@ export interface Database {
           dev_team_leader_comment?: string | null
           dev_consultant_plan?: string | null
           dev_recheck_date?: string | null
+          stage_answers?: Record<string, unknown> | null
+          offer_answers?: Record<string, unknown> | null
+          deal_answers?: Record<string, unknown> | null
+          second_visit_answers?: Record<string, unknown> | null
           created_at?: string
           updated_at?: string
         }
