@@ -89,6 +89,10 @@ export function FormStepper({
   const initialized = useRef(false)
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [currentStep])
+
+  useEffect(() => {
     if (initialized.current) return
     initialized.current = true
     if (initialEvaluation) {
