@@ -350,6 +350,39 @@ export interface Database {
           },
         ]
       }
+      training_exams: {
+        Row: {
+          id: string
+          evaluator_id: string
+          consultant_id: string
+          level: 'junior' | 'senior'
+          criteria_scores: { criteriaNumber: number; score: number }[]
+          total_score: number
+          passed: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          evaluator_id: string
+          consultant_id: string
+          level: 'junior' | 'senior'
+          criteria_scores: { criteriaNumber: number; score: number }[]
+          total_score: number
+          passed: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          evaluator_id?: string
+          consultant_id?: string
+          level?: 'junior' | 'senior'
+          criteria_scores?: { criteriaNumber: number; score: number }[]
+          total_score?: number
+          passed?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -379,3 +412,4 @@ export type Evaluation = Database['public']['Tables']['evaluations']['Row']
 export type CriteriaScoreRow = Database['public']['Tables']['criteria_scores']['Row']
 export type ChannelCheck = Database['public']['Tables']['channel_checks']['Row']
 export type CriticalError = Database['public']['Tables']['critical_errors']['Row']
+export type TrainingExam = Database['public']['Tables']['training_exams']['Row']

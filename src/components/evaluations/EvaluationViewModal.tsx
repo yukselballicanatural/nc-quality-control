@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, Pencil, Loader2, MessageSquare, Phone, Check, AlertTriangle, Layers,
@@ -589,6 +590,9 @@ interface Props {
 
 export function EvaluationViewModal({ evalId, evaluation, loading, canEdit, onClose }: Props) {
   const { lang } = useLanguage()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     if (!evalId) return
@@ -598,90 +602,112 @@ export function EvaluationViewModal({ evalId, evaluation, loading, canEdit, onCl
   }, [evalId, onClose])
 
   useEffect(() => {
-    document.body.style.overflow = evalId ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
+    document.documentElement.style.overflow = evalId ? 'hidden' : ''
+    return () => { document.documentElement.style.overflow = '' }
   }, [evalId])
 
-  return (
+  if (!mounted || !evalId) return null
+
+  return createPortal(
     <AnimatePresence>
       {evalId && (
-        <>
-          {/* Backdrop */}
+        /* Single overlay element: backdrop + centering in one fixed box */
+        <motion.div
+          key="overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          onClick={onClose}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+            background: 'rgba(0,0,0,0.45)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+            boxSizing: 'border-box',
+          }}
+        >
+          {/* Modal card — stopPropagation prevents overlay click from closing */}
           <motion.div
-            key="backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            onClick={onClose}
-            className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm"
-          />
-
-          {/* Scroll container — modal her zaman ortada, taşarsa scroll */}
-          <div className="fixed inset-0 z-[70] overflow-y-auto">
-            <div className="flex min-h-screen items-center justify-center p-4 sm:p-8">
-            <motion.div
-              key="panel"
-              initial={{ opacity: 0, scale: 0.95, y: 20, filter: 'blur(4px)' }}
-              animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
-              exit={{ opacity: 0, scale: 0.96, y: 8, filter: 'blur(2px)' }}
-              transition={{ type: 'spring', stiffness: 380, damping: 32, mass: 0.85 }}
-              className="relative w-full max-w-2xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl shadow-black/15 flex flex-col overflow-hidden my-auto"
-              style={{ maxHeight: 'calc(100dvh - 80px)' }}
-            >
-              {/* Header */}
-              <div className="flex-shrink-0 flex items-center justify-between px-4 py-3.5 sm:px-6 sm:py-4 border-b border-gray-100">
-                <div className="min-w-0 flex-1 mr-3">
-                  <p className="text-sm sm:text-base font-bold text-gray-900 truncate">
-                    {lang === 'tr' ? 'Değerlendirme Detayı' : 'Evaluation Detail'}
+            key="card"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 32, mass: 0.85 }}
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: '672px',
+              maxHeight: 'calc(100vh - 32px)',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              background: 'white',
+              borderRadius: '20px',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+            }}
+          >
+            {/* Header */}
+            <div className="flex-shrink-0 flex items-center justify-between px-4 py-3.5 sm:px-6 sm:py-4 border-b border-gray-100">
+              <div className="min-w-0 flex-1 mr-3">
+                <p className="text-sm sm:text-base font-bold text-gray-900 truncate">
+                  {lang === 'tr' ? 'Değerlendirme Detayı' : 'Evaluation Detail'}
+                </p>
+                {evaluation && (
+                  <p className="text-xs text-gray-400 mt-0.5 truncate">
+                    {evaluation.customer_name} · {evaluation.conversation_date}
                   </p>
-                  {evaluation && (
-                    <p className="text-xs text-gray-400 mt-0.5 truncate">
-                      {evaluation.customer_name} · {evaluation.conversation_date}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  {canEdit && evalId && (
-                    <Link
-                      href={`/evaluations/${evalId}`}
-                      onClick={onClose}
-                      className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-2 text-xs font-semibold text-[#1B4332] bg-[#1B4332]/8 hover:bg-[#1B4332]/15 rounded-xl transition-colors"
-                    >
-                      <Pencil className="w-3.5 h-3.5 flex-shrink-0" />
-                      <span className="hidden sm:inline">{lang === 'tr' ? 'Düzenle' : 'Edit'}</span>
-                    </Link>
-                  )}
-                  <button
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                {canEdit && evalId && (
+                  <Link
+                    href={`/evaluations/${evalId}`}
                     onClick={onClose}
-                    className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                    className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-2 text-xs font-semibold text-[#1B4332] bg-[#1B4332]/8 hover:bg-[#1B4332]/15 rounded-xl transition-colors"
                   >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Body */}
-              <div className="flex-1 overflow-y-auto overscroll-contain">
-                {loading && (
-                  <div className="flex flex-col items-center justify-center h-64 gap-3">
-                    <Loader2 className="w-7 h-7 text-[#1B4332] animate-spin" />
-                    <p className="text-sm text-gray-400">
-                      {lang === 'tr' ? 'Yükleniyor...' : 'Loading...'}
-                    </p>
-                  </div>
+                    <Pencil className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span className="hidden sm:inline">{lang === 'tr' ? 'Düzenle' : 'Edit'}</span>
+                  </Link>
                 )}
-                {!loading && evaluation && (
-                  <div className="pt-4 sm:pt-5">
-                    <ModalBody ev={evaluation} />
-                  </div>
-                )}
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-            </motion.div>
             </div>
-          </div>
-        </>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto overscroll-contain">
+              {loading && (
+                <div className="flex flex-col items-center justify-center h-64 gap-3">
+                  <Loader2 className="w-7 h-7 text-[#1B4332] animate-spin" />
+                  <p className="text-sm text-gray-400">
+                    {lang === 'tr' ? 'Yükleniyor...' : 'Loading...'}
+                  </p>
+                </div>
+              )}
+              {!loading && evaluation && (
+                <div className="pt-4 sm:pt-5">
+                  <ModalBody ev={evaluation} />
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }

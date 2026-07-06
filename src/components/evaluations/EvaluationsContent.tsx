@@ -409,7 +409,7 @@ export function EvaluationsContent({
                     </button>
                   </th>
 
-                  <th className="text-left px-4 py-3 font-medium text-gray-500 whitespace-nowrap">
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 whitespace-nowrap hidden sm:table-cell">
                     {t.evaluations.channel}
                   </th>
 
@@ -427,7 +427,7 @@ export function EvaluationsContent({
                   <th className="text-left px-4 py-3 font-medium text-gray-500 whitespace-nowrap hidden md:table-cell">
                     {t.evaluations.result}
                   </th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500 whitespace-nowrap">
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 whitespace-nowrap hidden sm:table-cell">
                     {t.evaluations.status}
                   </th>
                   <th className="text-right px-4 py-3 font-medium text-gray-500 whitespace-nowrap">
@@ -462,7 +462,7 @@ export function EvaluationsContent({
                         {ev.customer_name}
                       </td>
 
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap hidden sm:table-cell">
                         <div className="flex items-center gap-1.5">
                           {ev.channel === 'whatsapp' ? (
                             <MessageSquare className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
@@ -496,7 +496,7 @@ export function EvaluationsContent({
                         </span>
                       </td>
 
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap hidden sm:table-cell">
                         <span
                           className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${
                             STATUS_STYLES[ev.status]

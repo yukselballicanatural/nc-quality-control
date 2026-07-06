@@ -19,9 +19,8 @@ const config: Config = {
       },
       keyframes: {
         fadeUp: {
-          "0%": { opacity: "0", transform: "translateY(10px)", filter: "blur(2px)" },
-          "60%": { filter: "blur(0px)" },
-          "100%": { opacity: "1", transform: "translateY(0)", filter: "blur(0)" },
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
         fadeIn: {
           "0%": { opacity: "0" },

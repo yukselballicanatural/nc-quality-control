@@ -273,7 +273,7 @@ export function StepOfferQuestions() {
 
       {/* ── Q17 — Follow-Up Count ────────────────────────── */}
       <QuestionCard index={17} title={oq.q17} answered={offerAnswers.q17FollowUpWeek !== -1} delay={0.23}>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {([
             { v: 3 as const, pts: 5,  variant: 'success'  as const },
             { v: 2 as const, pts: 3,  variant: 'default'  as const },

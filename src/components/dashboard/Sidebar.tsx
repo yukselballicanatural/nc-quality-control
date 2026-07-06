@@ -16,6 +16,7 @@ import {
   Bell,
   CheckCircle2,
   CalendarClock,
+  GraduationCap,
 } from 'lucide-react'
 import { createClient as createBrowserClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -95,6 +96,12 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
       allowedRoles: ['quality_team', 'team_leader'] as UserRole[],
     },
     {
+      href: '/training-exam',
+      icon: GraduationCap,
+      label: t.nav.trainingExam,
+      allowedRoles: ['quality_team', 'team_leader'] as UserRole[],
+    },
+    {
       href: '/reports',
       icon: BarChart3,
       label: t.nav.reports,
@@ -128,6 +135,7 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
     if (pathname.startsWith('/recheck')) return t.recheck.pageTitle
     if (pathname.startsWith('/reports')) return t.reports.pageTitle
     if (pathname.startsWith('/settings')) return t.settings.pageTitle
+    if (pathname.startsWith('/training-exam')) return t.trainingExam.pageTitle
     return 'Natural Clinic QC'
   }
 

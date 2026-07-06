@@ -275,7 +275,7 @@ export function StepStageQuestions() {
           answered={stageAnswers[key] !== -1}
           delay={idx * 0.04}
         >
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {score4Opts.map(opt => (
               <AnswerBtn
                 key={opt.value}
@@ -329,7 +329,7 @@ export function StepStageQuestions() {
         answered={stageAnswers.q10FollowUp !== -1}
         delay={0.42}
       >
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {score10Opts.map(opt => (
             <AnswerBtn
               key={opt.value}

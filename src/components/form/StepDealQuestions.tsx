@@ -233,7 +233,7 @@ export function StepDealQuestions() {
 
       {/* ── Q4 — Professional Follow-Up ──────────────────── */}
       <QuestionCard index={4} title={dq.q4} answered={dealAnswers.q4FollowUp !== -1} delay={0.17}>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {([
             { v: 3 as const, p: 25, variant: 'success'  as const },
             { v: 2 as const, p: 15, variant: 'default'  as const },
