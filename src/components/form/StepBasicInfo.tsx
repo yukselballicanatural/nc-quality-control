@@ -15,6 +15,8 @@ export interface StepBasicInfoProps {
   teams: { id: string; name: string }[]
 }
 
+const TODAY = new Date().toISOString().slice(0, 10)
+
 const inputCls =
   'w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/15 focus:border-[#1B4332] transition-all hover:border-gray-300'
 const labelCls = 'block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2'
@@ -235,6 +237,7 @@ export function StepBasicInfo({ evaluatorId, consultants, teamLeaders, teams }: 
           <DatePicker
             value={step1.controlDate}
             onChange={v => updateStep1({ controlDate: v })}
+            maxDate={TODAY}
           />
         </div>
       </div>

@@ -17,9 +17,10 @@ interface DatePickerProps {
   onChange: (value: string) => void
   placeholder?: string
   minDate?: string // 'yyyy-MM-dd' — bu tarihten öncesi seçilemez
+  maxDate?: string // 'yyyy-MM-dd' — bu tarihten sonrası seçilemez
 }
 
-export function DatePicker({ value, onChange, placeholder, minDate }: DatePickerProps) {
+export function DatePicker({ value, onChange, placeholder, minDate, maxDate }: DatePickerProps) {
   const { lang } = useLanguage()
   const locale = lang === 'tr' ? tr : enUS
   const [open, setOpen] = useState(false)
@@ -145,7 +146,7 @@ export function DatePicker({ value, onChange, placeholder, minDate }: DatePicker
                 const selected = !!selectedDate && isSameDay(day, selectedDate)
                 const today = isToday(day)
                 const dayStr = format(day, 'yyyy-MM-dd')
-                const disabled = !!minDate && dayStr < minDate
+                const disabled = (!!minDate && dayStr < minDate) || (!!maxDate && dayStr > maxDate)
                 return (
                   <div key={i} className="flex items-center justify-center">
                     <button
