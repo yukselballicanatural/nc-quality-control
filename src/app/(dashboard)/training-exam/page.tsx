@@ -1,28 +1,26 @@
 export const dynamic = 'force-dynamic'
 
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { TrainingExamForm } from '@/components/training-exam/TrainingExamForm'
+import nextDynamic from 'next/dynamic'
+import { canTakeTrainingExam } from '@/lib/access-control'
+import { getCurrentProfile } from '@/lib/current-profile'
+
+const TrainingExamForm = nextDynamic(
+  () => import('@/components/training-exam/TrainingExamForm').then(m => m.TrainingExamForm),
+  { ssr: false }
+)
 
 export default async function TrainingExamPage() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
+  const { user, profile, supabase } = await getCurrentProfile()
   if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
 
   if (!profile) redirect('/login')
 
-  if (profile.role === 'consultant' || profile.role === 'manager') {
+  if (!canTakeTrainingExam(profile)) {
     redirect('/dashboard')
   }
 
-  const { data: consultants } = await supabase
+  const consultantsResult = await supabase
     .from('profiles')
     .select('id, full_name')
     .eq('role', 'consultant')
@@ -31,8 +29,9 @@ export default async function TrainingExamPage() {
 
   return (
     <TrainingExamForm
-      consultants={consultants ?? []}
+      consultants={consultantsResult.data ?? []}
       evaluatorId={profile.id}
+      evaluatorName={profile.full_name}
     />
   )
 }

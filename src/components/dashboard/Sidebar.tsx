@@ -17,12 +17,15 @@ import {
   CheckCircle2,
   CalendarClock,
   GraduationCap,
+  Award,
+  FileClock,
 } from 'lucide-react'
 import { createClient as createBrowserClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { LucideIcon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n'
+import { canSeeAdminLogs, isRestrictedQualityUser } from '@/lib/access-control'
 import type { Profile } from '@/types'
 import type { UserRole } from '@/types/supabase'
 
@@ -49,13 +52,21 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0]
     const supabase = createBrowserClient()
-    supabase
+    let query = supabase
       .from('evaluations')
       .select('id', { count: 'exact', head: true })
       .not('dev_recheck_date', 'is', null)
       .lte('dev_recheck_date', today)
+
+    if (isRestrictedQualityUser(profile)) {
+      query = query.eq('evaluator_id', profile.id)
+    } else if (profile.role === 'team_leader' && profile.team_id) {
+      query = query.eq('team_id', profile.team_id)
+    }
+
+    query
       .then(({ count }) => setRecheckUrgentCount(count ?? 0))
-  }, [])
+  }, [profile])
 
   useEffect(() => {
     if (localStorage.getItem('nc_welcome') === '1') {
@@ -81,7 +92,7 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
       href: '/evaluations/new',
       icon: FilePlus,
       label: t.nav.newEvaluation,
-      allowedRoles: ['quality_team', 'team_leader'] as UserRole[],
+      allowedRoles: ['quality_team', 'team_leader', 'manager'] as UserRole[],
     },
     {
       href: '/evaluations',
@@ -93,13 +104,19 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
       href: '/recheck',
       icon: CalendarClock,
       label: t.nav.recheck,
-      allowedRoles: ['quality_team', 'team_leader'] as UserRole[],
+      allowedRoles: ['quality_team', 'team_leader', 'manager'] as UserRole[],
     },
     {
       href: '/training-exam',
       icon: GraduationCap,
       label: t.nav.trainingExam,
-      allowedRoles: ['quality_team', 'team_leader'] as UserRole[],
+      allowedRoles: ['quality_team', 'team_leader', 'manager'] as UserRole[],
+    },
+    {
+      href: '/training-exam-results',
+      icon: Award,
+      label: t.nav.trainingExamResults,
+      allowedRoles: ['quality_team', 'team_leader', 'manager'] as UserRole[],
     },
     {
       href: '/reports',
@@ -113,9 +130,23 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
       label: t.nav.settings,
       allowedRoles: ['quality_team', 'team_leader', 'manager', 'consultant'] as UserRole[],
     },
+    {
+      href: '/logs',
+      icon: FileClock,
+      label: lang === 'tr' ? 'Loglar' : 'Logs',
+      allowedRoles: ['manager'] as UserRole[],
+    },
   ]
 
-  const navItems = allNavItems.filter(item => item.allowedRoles.includes(profile.role))
+  const navItems = allNavItems.filter(item => {
+    if (item.href === '/logs') return canSeeAdminLogs(profile)
+    return item.allowedRoles.includes(profile.role)
+  })
+  const navPrefetchKey = navItems.map(item => item.href).join('|')
+
+  useEffect(() => {
+    navItems.forEach(item => router.prefetch(item.href))
+  }, [navPrefetchKey, router])
 
   function isActive(href: string) {
     if (href === '/dashboard') return pathname === '/dashboard'
@@ -125,6 +156,8 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
         (pathname.startsWith('/evaluations/') && !pathname.startsWith('/evaluations/new'))
       )
     }
+    if (href === '/training-exam') return pathname === '/training-exam'
+    if (href === '/training-exam-results') return pathname.startsWith('/training-exam-results')
     return pathname.startsWith(href)
   }
 
@@ -133,15 +166,22 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
     if (pathname.startsWith('/evaluations/new')) return t.form.newEvaluation
     if (pathname.startsWith('/evaluations')) return t.evaluations.pageTitle
     if (pathname.startsWith('/recheck')) return t.recheck.pageTitle
+    if (pathname.startsWith('/training-exam-results')) return t.trainingExamResults.pageTitle
+    if (pathname.startsWith('/training-exam')) return t.trainingExam.pageTitle
     if (pathname.startsWith('/reports')) return t.reports.pageTitle
     if (pathname.startsWith('/settings')) return t.settings.pageTitle
-    if (pathname.startsWith('/training-exam')) return t.trainingExam.pageTitle
+    if (pathname.startsWith('/logs')) return lang === 'tr' ? 'Loglar' : 'Logs'
     return 'Natural Clinic QC'
   }
 
   async function handleLogout() {
     try {
       const supabase = createClient()
+      await fetch('/api/audit-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'logout', entityType: 'auth' }),
+      }).catch(() => null)
       await supabase.auth.signOut()
       router.push('/login')
     } catch (err) {

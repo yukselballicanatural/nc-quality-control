@@ -1,15 +1,17 @@
 'use client'
 
 import { useState, useEffect, useTransition, useMemo, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Search, X, Plus, ChevronLeft, ChevronRight, Eye, Pencil, Trash2,
   MessageSquare, Phone, ChevronsUpDown, ChevronUp, ChevronDown,
+  CheckCircle2,
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import { getScoreLevel } from '@/lib/scoring'
-import type { UserRole, ConversationResult, EvaluationStatus } from '@/types/supabase'
+import type { UserRole, ChannelType, ConversationResult, EvaluationStatus } from '@/types/supabase'
 import type { EvaluationListItem, EvaluationWithRelations } from '@/types'
 import { EvaluationViewModal } from './EvaluationViewModal'
 
@@ -17,6 +19,12 @@ import { EvaluationViewModal } from './EvaluationViewModal'
 
 type SortKey = 'date' | 'consultant' | 'customer' | 'score'
 type SortDir = 'asc' | 'desc'
+
+type ProfileOption = {
+  id: string
+  full_name: string | null
+  email?: string | null
+}
 
 interface Props {
   evaluations: EvaluationListItem[]
@@ -28,12 +36,16 @@ interface Props {
   filterChannel: string
   filterStatus: string
   filterResult: string
+  filterEvaluator: string
   filterStartDate: string
   filterEndDate: string
   searchQuery: string
+  evaluatorOptions: ProfileOption[]
   sortBy: string
   sortDir: string
 }
+
+const DELETE_SUCCESS_STORAGE_KEY = 'evaluations-delete-success'
 
 // ─── Tailwind-safe badge maps ─────────────────────────────────────
 
@@ -64,6 +76,37 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
     : <ChevronDown className="w-3.5 h-3.5 text-[#1B4332] inline ml-1" />
 }
 
+function getChannels(ev: EvaluationListItem): ChannelType[] {
+  const channels = new Set<ChannelType>()
+  channels.add(ev.channel)
+  ;(ev.channel_checks ?? []).forEach(check => channels.add(check.channel))
+  return Array.from(channels)
+}
+
+function ChannelBadges({ channels, labels }: { channels: ChannelType[]; labels: { whatsapp: string; call: string } }) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {channels.map(channel => {
+        const isWhatsapp = channel === 'whatsapp'
+        const Icon = isWhatsapp ? MessageSquare : Phone
+        return (
+          <span
+            key={channel}
+            className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium ${
+              isWhatsapp
+                ? 'bg-emerald-50 text-emerald-700'
+                : 'bg-blue-50 text-blue-700'
+            }`}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            {isWhatsapp ? labels.whatsapp : labels.call}
+          </span>
+        )
+      })}
+    </div>
+  )
+}
+
 // ─── Component ────────────────────────────────────────────────────
 
 export function EvaluationsContent({
@@ -76,9 +119,11 @@ export function EvaluationsContent({
   filterChannel,
   filterStatus,
   filterResult,
+  filterEvaluator,
   filterStartDate,
   filterEndDate,
   searchQuery,
+  evaluatorOptions,
   sortBy: serverSortBy,
   sortDir: serverSortDir,
 }: Props) {
@@ -99,15 +144,31 @@ export function EvaluationsContent({
   const [viewLoading, setViewLoading] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
+  const [deleteSuccess, setDeleteSuccess] = useState('')
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(() => new Set())
 
-  const canEdit   = role === 'quality_team' || role === 'team_leader'
+  const canEdit   = role === 'quality_team' || role === 'team_leader' || role === 'manager'
   const canDelete = role === 'quality_team' || role === 'manager'
   const showConsultant = role !== 'consultant'
+  const showEvaluator = role !== 'consultant'
 
   // Keep local search in sync when URL changes
   useEffect(() => {
     setLocalSearch(searchQuery)
   }, [searchQuery])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const storedMessage = window.sessionStorage.getItem(DELETE_SUCCESS_STORAGE_KEY)
+    if (!storedMessage) return
+
+    setDeleteSuccess(storedMessage)
+    window.sessionStorage.removeItem(DELETE_SUCCESS_STORAGE_KEY)
+
+    const timer = window.setTimeout(() => setDeleteSuccess(''), 2500)
+    return () => window.clearTimeout(timer)
+  }, [])
 
   // Debounce search → update URL after 400 ms
   useEffect(() => {
@@ -128,6 +189,7 @@ export function EvaluationsContent({
       channel: filterChannel,
       status: filterStatus,
       result: filterResult,
+      evaluator: filterEvaluator,
       startDate: filterStartDate,
       endDate: filterEndDate,
       sortBy: serverSortBy,
@@ -196,14 +258,15 @@ export function EvaluationsContent({
   // ── Client-side sorted list ────────────────────────────────────
 
   const sortedEvaluations = useMemo(() => {
-    if (clientSortKey !== 'consultant') return evaluations
-    return [...evaluations].sort((a, b) => {
+    const visibleEvaluations = evaluations.filter(evaluation => !deletedIds.has(evaluation.id))
+    if (clientSortKey !== 'consultant') return visibleEvaluations
+    return [...visibleEvaluations].sort((a, b) => {
       const na = (a.consultant?.full_name ?? '').toLowerCase()
       const nb = (b.consultant?.full_name ?? '').toLowerCase()
       const cmp = na.localeCompare(nb, 'tr')
       return clientSortDir === 'asc' ? cmp : -cmp
     })
-  }, [evaluations, clientSortKey, clientSortDir])
+  }, [evaluations, deletedIds, clientSortKey, clientSortDir])
 
   // ── View modal ─────────────────────────────────────────────────
 
@@ -228,12 +291,29 @@ export function EvaluationsContent({
 
   async function handleDelete(id: string) {
     setDeleteLoading(true)
+    setDeleteError('')
     try {
       const res = await fetch(`/api/evaluations/${id}`, { method: 'DELETE' })
-      if (res.ok) {
-        setDeletingId(null)
-        startTransition(() => { router.refresh() })
+      if (!res.ok) {
+        const body = await res.json().catch(() => null) as { error?: string } | null
+        throw new Error(body?.error || 'Delete failed')
       }
+      setDeletingId(null)
+      setDeletedIds(prev => new Set(prev).add(id))
+      const successMessage = lang === 'tr' ? 'Değerlendirme silindi.' : 'Evaluation deleted.'
+      setDeleteSuccess(successMessage)
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem(DELETE_SUCCESS_STORAGE_KEY, successMessage)
+      }
+      setTimeout(() => setDeleteSuccess(''), 2500)
+      startTransition(() => { router.refresh() })
+    } catch (error) {
+      console.error('Evaluation delete error:', error)
+      setDeleteError(
+        lang === 'tr'
+          ? 'Değerlendirme silinemedi. Yetki veya bağlantı problemi olabilir.'
+          : 'Evaluation could not be deleted. There may be a permission or connection issue.'
+      )
     } finally {
       setDeleteLoading(false)
     }
@@ -242,11 +322,89 @@ export function EvaluationsContent({
   // ── Derived ────────────────────────────────────────────────────
 
   const hasFilters =
-    localSearch || filterChannel || filterStatus || filterResult || filterStartDate || filterEndDate
+    localSearch || filterChannel || filterStatus || filterResult || filterEvaluator || filterStartDate || filterEndDate
   const totalPages = Math.ceil(totalCount / pageSize)
+  const deleteEvaluation = deletingId
+    ? evaluations.find(evaluation => evaluation.id === deletingId) ?? null
+    : null
 
   return (
     <div className="space-y-4">
+      {deleteEvaluation && typeof document !== 'undefined' && createPortal(
+        (
+        <div className="fixed inset-0 z-[100] bg-black/40">
+          <div className="fixed left-1/2 top-1/2 w-[calc(100vw-2rem)] max-w-md max-h-[calc(100dvh-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="p-5">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-500">
+                  <Trash2 className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-base font-bold text-gray-950">
+                    {lang === 'tr' ? 'Değerlendirme silinsin mi?' : 'Delete evaluation?'}
+                  </h2>
+                  <p className="mt-1 text-sm leading-6 text-gray-500">
+                    {lang === 'tr'
+                      ? 'Bu işlem geri alınamaz. Seçili değerlendirme sistemden kalıcı olarak silinecek.'
+                      : 'This cannot be undone. The selected evaluation will be permanently removed.'}
+                  </p>
+                  <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
+                    <div className="truncate text-sm font-semibold text-gray-900">
+                      {deleteEvaluation.consultant?.full_name ?? deleteEvaluation.customer_name}
+                    </div>
+                    <div className="mt-0.5 text-xs text-gray-400">
+                      {deleteEvaluation.customer_name} · {deleteEvaluation.final_score}/100 · {deleteEvaluation.conversation_date}
+                    </div>
+                  </div>
+                  {deleteError && (
+                    <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
+                      {deleteError}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setDeletingId(null)
+                  setDeleteError('')
+                }}
+                disabled={deleteLoading}
+                className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50"
+              >
+                {lang === 'tr' ? 'Vazgeç' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(deleteEvaluation.id)}
+                disabled={deleteLoading}
+                className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+              >
+                <Trash2 className="h-4 w-4" />
+                {deleteLoading ? (lang === 'tr' ? 'Siliniyor...' : 'Deleting...') : (lang === 'tr' ? 'Evet, sil' : 'Yes, delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+        ),
+        document.body
+      )}
+
+      {deleteSuccess && (
+        <div className="fixed bottom-6 right-6 z-[110] flex items-center gap-3 rounded-2xl bg-[#1B4332] px-5 py-3.5 text-sm font-semibold text-white shadow-2xl shadow-[#1B4332]/30">
+          <CheckCircle2 className="h-5 w-5 text-[#52B788]" />
+          {deleteSuccess}
+        </div>
+      )}
+
+      {deleteError && (
+        <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+          {deleteError}
+        </div>
+      )}
+
       {/* View modal */}
       <EvaluationViewModal
         evalId={viewId}
@@ -339,6 +497,21 @@ export function EvaluationsContent({
             ))}
           </select>
 
+          {showEvaluator && (
+            <select
+              value={filterEvaluator}
+              onChange={e => updateFilter('evaluator', e.target.value)}
+              className={selectClass}
+            >
+              <option value="">{lang === 'tr' ? 'Değerlendirene göre filtrele' : 'Filter by evaluator'}</option>
+                  {evaluatorOptions.map(evaluator => (
+                <option key={evaluator.id} value={evaluator.id}>
+                  {evaluator.full_name || evaluator.email || 'Natural Clinic'}
+                </option>
+              ))}
+            </select>
+          )}
+
           <div className="flex flex-wrap items-center gap-1.5">
             <input
               type="date"
@@ -430,6 +603,11 @@ export function EvaluationsContent({
                   <th className="text-left px-4 py-3 font-medium text-gray-500 whitespace-nowrap hidden sm:table-cell">
                     {t.evaluations.status}
                   </th>
+                  {showEvaluator && (
+                    <th className="text-left px-4 py-3 font-medium text-gray-500 whitespace-nowrap">
+                      {t.evaluations.evaluator}
+                    </th>
+                  )}
                   <th className="text-right px-4 py-3 font-medium text-gray-500 whitespace-nowrap">
                     {t.evaluations.actions}
                   </th>
@@ -463,16 +641,7 @@ export function EvaluationsContent({
                       </td>
 
                       <td className="px-4 py-3 whitespace-nowrap hidden sm:table-cell">
-                        <div className="flex items-center gap-1.5">
-                          {ev.channel === 'whatsapp' ? (
-                            <MessageSquare className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
-                          ) : (
-                            <Phone className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                          )}
-                          <span className="text-gray-600 text-xs">
-                            {ev.channel === 'whatsapp' ? 'WhatsApp' : t.channel.call}
-                          </span>
-                        </div>
+                        <ChannelBadges channels={getChannels(ev)} labels={t.channel} />
                       </td>
 
                       <td className="px-4 py-3 text-right whitespace-nowrap">
@@ -506,9 +675,17 @@ export function EvaluationsContent({
                         </span>
                       </td>
 
+                      {showEvaluator && (
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="font-medium text-gray-700">
+                            {ev.evaluator?.full_name || ev.evaluator?.email || 'Natural Clinic'}
+                          </span>
+                        </td>
+                      )}
+
                       {/* Actions */}
                       <td className="px-3 py-3 text-right whitespace-nowrap">
-                        {isDeleting ? (
+                        {false ? (
                           <div className="inline-flex flex-col sm:flex-row items-end sm:items-center gap-1 sm:gap-1.5">
                             <span className="text-[11px] text-gray-500">
                               {lang === 'tr' ? 'Silinsin mi?' : 'Delete?'}
@@ -557,7 +734,10 @@ export function EvaluationsContent({
                             {/* Delete */}
                             {canDelete && (
                               <button
-                                onClick={() => setDeletingId(ev.id)}
+                                onClick={() => {
+                                  setDeletingId(ev.id)
+                                  setDeleteError('')
+                                }}
                                 className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
                                 title={lang === 'tr' ? 'Sil' : 'Delete'}
                               >

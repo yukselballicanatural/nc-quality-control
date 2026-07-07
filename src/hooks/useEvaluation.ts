@@ -96,6 +96,8 @@ export function useEvaluation() {
 
       let evalId = evaluationId
 
+      const wasEditing = Boolean(evaluationId)
+
       if (evaluationId) {
         const { error } = await supabase
           .from('evaluations')
@@ -122,7 +124,7 @@ export function useEvaluation() {
         supabase.from('critical_errors').delete().eq('evaluation_id', evalId),
       ])
 
-      const childInserts: Promise<void>[] = []
+      const childInserts: PromiseLike<void>[] = []
 
       const criteriaRows = Object.values(criteriaScores).map(e => ({
         evaluation_id: evalId!,
@@ -143,12 +145,14 @@ export function useEvaluation() {
       }
 
       if (step1.channels.length > 0) {
-        const checkRows = Object.values(channelChecks).map(c => ({
-          evaluation_id: evalId!,
-          channel: (step1.channels[0] ?? 'whatsapp') as ChannelType,
-          question_number: c.questionNumber,
-          answer: c.answer,
-        }))
+        const checkRows = step1.channels.flatMap(ch =>
+          Object.values(channelChecks).map(c => ({
+            evaluation_id: evalId!,
+            channel: ch as ChannelType,
+            question_number: c.questionNumber,
+            answer: c.answer,
+          }))
+        )
         if (checkRows.length > 0) {
           childInserts.push(
             supabase
@@ -178,6 +182,21 @@ export function useEvaluation() {
       }
 
       await Promise.all(childInserts)
+
+      await fetch('/api/audit-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: wasEditing ? 'evaluation_updated' : 'evaluation_created',
+          entityType: 'evaluation',
+          entityId: evalId,
+          metadata: {
+            status,
+            score: finalScore,
+            consultant_id: step1.consultantId,
+          },
+        }),
+      }).catch(() => null)
 
       return evalId
     } catch (err) {

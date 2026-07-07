@@ -1,33 +1,29 @@
 export const dynamic = 'force-dynamic'
 
 import { redirect, notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { FormStepper } from '@/components/form/FormStepper'
+import nextDynamic from 'next/dynamic'
+import { canCreateEvaluation, isRestrictedQualityUser } from '@/lib/access-control'
+import { getCurrentProfile } from '@/lib/current-profile'
 import type { EvaluationWithRelations } from '@/types'
+
+const FormStepper = nextDynamic(
+  () => import('@/components/form/FormStepper').then(m => m.FormStepper),
+  { ssr: false }
+)
 
 export default async function EditEvaluationPage({
   params,
 }: {
   params: { id: string }
 }) {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, profile, supabase } = await getCurrentProfile()
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
   if (!profile) redirect('/login')
 
-  // Consultants cannot edit evaluations
-  if (profile.role === 'consultant' || profile.role === 'manager') {
+  // Only roles that can create evaluations can edit them.
+  if (!canCreateEvaluation(profile)) {
     redirect('/dashboard')
   }
 
@@ -56,6 +52,10 @@ export default async function EditEvaluationPage({
     redirect('/evaluations')
   }
 
+  if (isRestrictedQualityUser(profile) && ev.evaluator_id !== profile.id) {
+    redirect('/evaluations')
+  }
+
   const evaluation = ev as unknown as EvaluationWithRelations
 
   // Fetch dropdown data in parallel
@@ -79,6 +79,7 @@ export default async function EditEvaluationPage({
     <FormStepper
       role={profile.role}
       evaluatorId={profile.id}
+      evaluatorName={profile.full_name}
       consultants={consultantsResult.data ?? []}
       teamLeaders={teamLeadersResult.data ?? []}
       teams={teamsResult.data ?? []}

@@ -75,7 +75,7 @@ export interface Database {
           email: string
           role?: UserRole
           team_id?: string | null
-          team_leader_id?: string | null
+          team_leader_id: string | null
           is_active?: boolean
           created_at?: string
           updated_at?: string
@@ -354,7 +354,9 @@ export interface Database {
         Row: {
           id: string
           evaluator_id: string
-          consultant_id: string
+          consultant_id: string | null
+          consultant_name?: string | null
+          team_leader_id?: string | null
           level: 'junior' | 'senior'
           criteria_scores: { criteriaNumber: number; score: number }[]
           total_score: number
@@ -364,7 +366,9 @@ export interface Database {
         Insert: {
           id?: string
           evaluator_id: string
-          consultant_id: string
+          consultant_id?: string | null
+          consultant_name?: string | null
+          team_leader_id?: string | null
           level: 'junior' | 'senior'
           criteria_scores: { criteriaNumber: number; score: number }[]
           total_score: number
@@ -374,11 +378,46 @@ export interface Database {
         Update: {
           id?: string
           evaluator_id?: string
-          consultant_id?: string
+          consultant_id?: string | null
+          consultant_name?: string | null
+          team_leader_id?: string | null
           level?: 'junior' | 'senior'
           criteria_scores?: { criteriaNumber: number; score: number }[]
           total_score?: number
           passed?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          id: string
+          actor_id: string | null
+          actor_email: string | null
+          action: string
+          entity_type: string
+          entity_id: string | null
+          metadata: Record<string, unknown>
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          actor_id?: string | null
+          actor_email?: string | null
+          action: string
+          entity_type: string
+          entity_id?: string | null
+          metadata?: Record<string, unknown>
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          actor_id?: string | null
+          actor_email?: string | null
+          action?: string
+          entity_type?: string
+          entity_id?: string | null
+          metadata?: Record<string, unknown>
           created_at?: string
         }
         Relationships: []
@@ -413,3 +452,4 @@ export type CriteriaScoreRow = Database['public']['Tables']['criteria_scores']['
 export type ChannelCheck = Database['public']['Tables']['channel_checks']['Row']
 export type CriticalError = Database['public']['Tables']['critical_errors']['Row']
 export type TrainingExam = Database['public']['Tables']['training_exams']['Row']
+export type AuditLog = Database['public']['Tables']['audit_logs']['Row']

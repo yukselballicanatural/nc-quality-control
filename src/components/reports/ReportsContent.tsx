@@ -204,7 +204,7 @@ export function ReportsContent({
       lang === 'tr' ? 'Satış Sonucu' : 'Sales Outcome'
     )
 
-    XLSX.utils.writeFile(wb, `quality-report-${new Date().toISOString().slice(0, 10)}.xlsx`)
+    XLSX.writeFile(wb, `quality-report-${new Date().toISOString().slice(0, 10)}.xlsx`)
   }
 
   // ── Derived ────────────────────────────────────────────────────

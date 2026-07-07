@@ -1,11 +1,13 @@
 export const dynamic = 'force-dynamic'
 
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import nextDynamic from 'next/dynamic'
+import { getCurrentProfile } from '@/lib/current-profile'
+import { isRestrictedQualityUser } from '@/lib/access-control'
 import type {
   RecentEval,
   ConsultantStat,
+  EvaluatorStat,
   ChannelStat,
   AdminStats,
   ConsultantViewData,
@@ -13,6 +15,7 @@ import type {
   ResultDist,
   StageDist,
   WeeklyTrend,
+  TrainingExamSummary,
 } from '@/components/dashboard/DashboardContent'
 import type { ChannelType, ConversationResult, EvaluationStatus } from '@/types/supabase'
 
@@ -33,19 +36,9 @@ const STAGE_LABELS_TR: Record<string, string> = {
 }
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, profile, supabase } = await getCurrentProfile()
 
   if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
 
   if (!profile) redirect('/login')
 
@@ -105,21 +98,35 @@ export default async function DashboardPage() {
   // ─── Admin / team_leader / manager view ──────────────────────────
 
   const isTeamLeader = profile.role === 'team_leader' && !!profile.team_id
+  const restrictedQuality = isRestrictedQualityUser(profile)
 
-  const { data: allEvalsRaw } = isTeamLeader
-    ? await supabase
-        .from('evaluations')
-        .select(
-          'id, consultant_id, final_score, critical_error_count, conversation_result, channel, customer_name, status, conversation_date, lead_id'
-        )
-        .gte('conversation_date', since)
-        .eq('team_id', profile.team_id!)
-    : await supabase
-        .from('evaluations')
-        .select(
-          'id, consultant_id, final_score, critical_error_count, conversation_result, channel, customer_name, status, conversation_date, lead_id'
-        )
-        .gte('conversation_date', since)
+  let allEvalsQuery = supabase
+    .from('evaluations')
+    .select(
+      'id, consultant_id, evaluator_id, final_score, critical_error_count, conversation_result, channel, customer_name, status, conversation_date, lead_id'
+    )
+    .gte('conversation_date', since)
+
+  if (isTeamLeader) allEvalsQuery = allEvalsQuery.eq('team_id', profile.team_id!)
+  if (restrictedQuality) allEvalsQuery = allEvalsQuery.eq('evaluator_id', profile.id)
+
+  // Recent evaluations (last 10)
+  let recentQuery = supabase
+    .from('evaluations')
+    .select(
+      'id, consultant_id, evaluator_id, customer_name, channel, final_score, conversation_result, status, conversation_date, lead_id'
+    )
+    .in('status', ['submitted', 'approved'])
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  if (isTeamLeader) recentQuery = recentQuery.eq('team_id', profile.team_id!)
+  if (restrictedQuality) recentQuery = recentQuery.eq('evaluator_id', profile.id)
+
+  const [{ data: allEvalsRaw }, { data: recentRaw }] = await Promise.all([
+    allEvalsQuery,
+    recentQuery,
+  ])
 
   const allEvals = allEvalsRaw ?? []
   const draftCount = allEvals.filter(e => e.status === 'draft').length
@@ -227,14 +234,61 @@ export default async function DashboardPage() {
       return { week: label, avgScore: Math.round(d.total / d.count), count: d.count }
     })
 
-  // Fetch consultant name map
-  const uniqueIds = Array.from(new Set(evals.map(e => e.consultant_id)))
+  // Training exams summary
+  let examRows: Array<{
+    id: string
+    consultant_id: string | null
+    consultant_name?: string | null
+    evaluator_id: string
+    level: 'junior' | 'senior'
+    total_score: number
+    passed: boolean
+    created_at: string
+  }> = []
+
+  let examQuery = supabase
+    .from('training_exams')
+    .select('*')
+    .gte('created_at', `${since}T00:00:00.000Z`)
+    .order('created_at', { ascending: false })
+
+  if (restrictedQuality) examQuery = examQuery.eq('evaluator_id', profile.id)
+
+  if (isTeamLeader) {
+    const { data: teamMembers } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('role', 'consultant')
+      .eq('team_id', profile.team_id!)
+
+    const teamMemberIds = (teamMembers ?? []).map(member => member.id)
+    if (teamMemberIds.length > 0) {
+      examQuery = examQuery.in('consultant_id', teamMemberIds)
+      const { data: exams } = await examQuery
+      examRows = (exams ?? []) as typeof examRows
+    }
+  } else {
+    const { data: exams } = await examQuery
+    examRows = (exams ?? []) as typeof examRows
+  }
+
+  // Fetch profile name map for evaluations and training exams
+  const profileIds = Array.from(
+    new Set(
+      [
+        ...evals.flatMap(e => [e.consultant_id, e.evaluator_id]),
+        ...(recentRaw ?? []).flatMap(e => [e.consultant_id, e.evaluator_id]),
+        ...examRows.flatMap(e => [e.consultant_id, e.evaluator_id]),
+      ].filter((id): id is string => Boolean(id))
+    )
+  )
+
   const profileMap = new Map<string, string>()
-  if (uniqueIds.length > 0) {
+  if (profileIds.length > 0) {
     const { data: ps } = await supabase
       .from('profiles')
       .select('id, full_name')
-      .in('id', uniqueIds)
+      .in('id', profileIds)
     ;(ps ?? []).forEach(p => profileMap.set(p.id, p.full_name))
   }
 
@@ -263,25 +317,33 @@ export default async function DashboardPage() {
     .sort((a, b) => b.averageScore - a.averageScore)
     .slice(0, 8)
 
-  // Recent evaluations (last 10)
-  const { data: recentRaw } = isTeamLeader
-    ? await supabase
-        .from('evaluations')
-        .select(
-          'id, consultant_id, customer_name, channel, final_score, conversation_result, status, conversation_date, lead_id'
-        )
-        .in('status', ['submitted', 'approved'])
-        .eq('team_id', profile.team_id!)
-        .order('created_at', { ascending: false })
-        .limit(10)
-    : await supabase
-        .from('evaluations')
-        .select(
-          'id, consultant_id, customer_name, channel, final_score, conversation_result, status, conversation_date, lead_id'
-        )
-        .in('status', ['submitted', 'approved'])
-        .order('created_at', { ascending: false })
-        .limit(10)
+  // Evaluator stats aggregated and ranked
+  const eAgg = new Map<string, { total: number; count: number; passed: number; name: string }>()
+  evals.forEach(e => {
+    const existing = eAgg.get(e.evaluator_id)
+    if (existing) {
+      existing.total += e.final_score
+      existing.count += 1
+      existing.passed += e.final_score >= 60 ? 1 : 0
+    } else {
+      eAgg.set(e.evaluator_id, {
+        total: e.final_score,
+        count: 1,
+        passed: e.final_score >= 60 ? 1 : 0,
+        name: profileMap.get(e.evaluator_id) ?? '—',
+      })
+    }
+  })
+
+  const evaluatorStats: EvaluatorStat[] = Array.from(eAgg.values())
+    .map(d => ({
+      full_name: d.name,
+      evaluationCount: d.count,
+      averageScore: Math.round(d.total / d.count),
+      passRate: Math.round((d.passed / d.count) * 100),
+    }))
+    .sort((a, b) => b.evaluationCount - a.evaluationCount)
+    .slice(0, 8)
 
   const recentEvaluations: RecentEval[] = (recentRaw ?? []).map(e => ({
     id: e.id,
@@ -295,17 +357,43 @@ export default async function DashboardPage() {
     stage: e.lead_id ?? null,
   }))
 
+  const trainingExamSummary: TrainingExamSummary = {
+    total: examRows.length,
+    passed: examRows.filter(e => e.passed).length,
+    failed: examRows.filter(e => !e.passed).length,
+    passRate: examRows.length > 0
+      ? Math.round((examRows.filter(e => e.passed).length / examRows.length) * 100)
+      : 0,
+    averageScore: examRows.length > 0
+      ? Math.round(examRows.reduce((sum, e) => sum + e.total_score, 0) / examRows.length)
+      : 0,
+    juniorCount: examRows.filter(e => e.level === 'junior').length,
+    seniorCount: examRows.filter(e => e.level === 'senior').length,
+    recent: examRows.slice(0, 8).map(e => ({
+      id: e.id,
+      consultantName: e.consultant_name || (e.consultant_id ? profileMap.get(e.consultant_id) : null) || '—',
+      evaluatorName: profileMap.get(e.evaluator_id) ?? '—',
+      level: e.level,
+      totalScore: e.total_score,
+      passed: e.passed,
+      createdAt: e.created_at,
+    })),
+  }
+
   return (
     <DashboardContent
       role={profile.role}
       stats={stats}
       channelStats={channelStats}
       consultantStats={consultantStats}
+      evaluatorStats={evaluatorStats}
+      showEvaluatorAnalytics={profile.role === 'manager'}
       recentEvaluations={recentEvaluations}
       scoreRanges={scoreRanges}
       resultDist={resultDist}
       stageDist={stageDist}
       weeklyTrend={weeklyTrend}
+      trainingExamSummary={trainingExamSummary}
     />
   )
 }

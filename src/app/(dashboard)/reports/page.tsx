@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { ReportsContent } from '@/components/reports/ReportsContent'
+import nextDynamic from 'next/dynamic'
+import { getCurrentProfile } from '@/lib/current-profile'
+import { isRestrictedQualityUser } from '@/lib/access-control'
 import type { ChannelType, ConversationResult, CriticalErrorType } from '@/types/supabase'
 import type {
   ConsultantPerfRow,
@@ -10,24 +11,18 @@ import type {
 } from '@/types'
 
 export const dynamic = 'force-dynamic'
+const ReportsContent = nextDynamic(
+  () => import('@/components/reports/ReportsContent').then(m => m.ReportsContent),
+  { ssr: false }
+)
 
 interface PageProps {
   searchParams: { [key: string]: string | string[] | undefined }
 }
 
 export default async function ReportsPage({ searchParams }: PageProps) {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, profile, supabase } = await getCurrentProfile()
   if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
   if (!profile) redirect('/login')
 
   if (profile.role === 'consultant') redirect('/evaluations')
@@ -88,6 +83,8 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 
   if (profile.role === 'team_leader' && profile.team_id) {
     evQuery = evQuery.eq('team_id', profile.team_id)
+  } else if (isRestrictedQualityUser(profile)) {
+    evQuery = evQuery.eq('evaluator_id', profile.id)
   }
 
   if (startDate) evQuery = evQuery.gte('conversation_date', startDate)

@@ -27,6 +27,7 @@ import type { EvaluationWithRelations } from '@/types'
 export interface FormStepperProps {
   role: UserRole
   evaluatorId: string
+  evaluatorName: string
   consultants: { id: string; full_name: string }[]
   teamLeaders: { id: string; full_name: string }[]
   teams: { id: string; name: string }[]
@@ -56,6 +57,7 @@ const slideVariants = {
 export function FormStepper({
   role,
   evaluatorId,
+  evaluatorName,
   consultants,
   teamLeaders,
   teams,
@@ -199,7 +201,7 @@ export function FormStepper({
 
   function renderStep() {
     switch (currentStep) {
-      case 1: return <StepBasicInfo role={role} evaluatorId={evaluatorId} consultants={consultants} teamLeaders={teamLeaders} teams={teams} />
+      case 1: return <StepBasicInfo role={role} evaluatorId={evaluatorId} evaluatorName={evaluatorName} consultants={consultants} teamLeaders={teamLeaders} teams={teams} />
       case 2:
         if (isDealStage)        return <StepDealQuestions />
         if (isSecondVisitStage) return <StepSecondVisitQuestions />

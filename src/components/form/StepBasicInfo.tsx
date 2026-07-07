@@ -10,6 +10,7 @@ import type { UserRole, ChannelType, SalesStage } from '@/types/supabase'
 export interface StepBasicInfoProps {
   role: UserRole
   evaluatorId: string
+  evaluatorName: string
   consultants: { id: string; full_name: string }[]
   teamLeaders: { id: string; full_name: string }[]
   teams: { id: string; name: string }[]
@@ -44,13 +45,14 @@ const STAGES: SalesStage[] = [
   'second_visit',
 ]
 
-export function StepBasicInfo({ evaluatorId, consultants, teamLeaders, teams }: StepBasicInfoProps) {
+export function StepBasicInfo({ evaluatorId, evaluatorName, consultants, teamLeaders, teams }: StepBasicInfoProps) {
   const { lang, t } = useLanguage()
   const { step1, updateStep1 } = useFormStore()
 
-  const evaluatorName =
-    consultants.find(c => c.id === evaluatorId)?.full_name ??
-    teamLeaders.find(tl => tl.id === evaluatorId)?.full_name ??
+  const displayEvaluatorName =
+    evaluatorName ||
+    consultants.find(c => c.id === evaluatorId)?.full_name ||
+    teamLeaders.find(tl => tl.id === evaluatorId)?.full_name ||
     t.auth.title
 
   function toggleChannel(ch: ChannelType) {
@@ -111,7 +113,7 @@ export function StepBasicInfo({ evaluatorId, consultants, teamLeaders, teams }: 
             <div className="relative">
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
               <div className={`${inputCls} pl-10 bg-gray-50 text-gray-400 cursor-default`}>
-                {evaluatorName}
+                {displayEvaluatorName}
               </div>
             </div>
           </div>

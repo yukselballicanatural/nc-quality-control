@@ -1,23 +1,16 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { RecheckContent } from '@/components/recheck/RecheckContent'
+import { isRestrictedQualityUser } from '@/lib/access-control'
+import { getCurrentProfile } from '@/lib/current-profile'
 
 export const dynamic = 'force-dynamic'
 
 export default async function RecheckPage() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
+  const { user, profile, supabase } = await getCurrentProfile()
   if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
   if (!profile) redirect('/login')
 
-  if (profile.role === 'consultant' || profile.role === 'manager') {
+  if (profile.role === 'consultant') {
     redirect('/dashboard')
   }
 
@@ -44,6 +37,8 @@ export default async function RecheckPage() {
 
   if (profile.role === 'team_leader' && profile.team_id) {
     query = query.eq('team_id', profile.team_id)
+  } else if (isRestrictedQualityUser(profile)) {
+    query = query.eq('evaluator_id', profile.id)
   }
 
   const { data: items } = await query

@@ -91,7 +91,8 @@ export interface EvaluationListItem {
   is_auto_failed: boolean
   status: import('./supabase').EvaluationStatus
   consultant: { id: string; full_name: string } | null
-  evaluator: { id: string; full_name: string } | null
+  evaluator: { id: string; full_name: string | null; email?: string | null } | null
+  channel_checks?: Pick<import('./supabase').ChannelCheck, 'channel'>[]
 }
 
 export interface ConsultantPerfRow {

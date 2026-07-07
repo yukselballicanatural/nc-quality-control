@@ -1,12 +1,17 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { EvaluationsContent } from '@/components/evaluations/EvaluationsContent'
+import nextDynamic from 'next/dynamic'
+import { getCurrentProfile } from '@/lib/current-profile'
+import { canCreateEvaluation, isRestrictedQualityUser } from '@/lib/access-control'
 import type { ChannelType, ConversationResult, EvaluationStatus } from '@/types/supabase'
 import type { EvaluationListItem } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
 const PAGE_SIZE = 20
+const EvaluationsContent = nextDynamic(
+  () => import('@/components/evaluations/EvaluationsContent').then(m => m.EvaluationsContent),
+  { ssr: false }
+)
 
 const VALID_SORT_COLS = ['conversation_date', 'customer_name', 'final_score'] as const
 type ValidSortCol = (typeof VALID_SORT_COLS)[number]
@@ -18,18 +23,8 @@ interface PageProps {
 }
 
 export default async function EvaluationsPage({ searchParams }: PageProps) {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, profile, supabase } = await getCurrentProfile()
   if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
   if (!profile) redirect('/login')
 
   // ── Parse URL params ────────────────────────────────────────────
@@ -39,6 +34,7 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
   const channel = typeof sp.channel === 'string' ? sp.channel : ''
   const status = typeof sp.status === 'string' ? sp.status : ''
   const result = typeof sp.result === 'string' ? sp.result : ''
+  const evaluatorId = typeof sp.evaluator === 'string' ? sp.evaluator : ''
   const startDate = typeof sp.startDate === 'string' ? sp.startDate : ''
   const endDate = typeof sp.endDate === 'string' ? sp.endDate : ''
   const page = typeof sp.page === 'string' ? Math.max(1, parseInt(sp.page) || 1) : 1
@@ -64,7 +60,8 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
       is_auto_failed,
       status,
       consultant:profiles!evaluations_consultant_id_fkey(id, full_name),
-      evaluator:profiles!evaluations_evaluator_id_fkey(id, full_name)
+      evaluator:profiles!evaluations_evaluator_id_fkey(id, full_name, email),
+      channel_checks(channel)
     `,
       { count: 'exact' }
     )
@@ -74,6 +71,8 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
     query = query.eq('consultant_id', profile.id)
   } else if (profile.role === 'team_leader' && profile.team_id) {
     query = query.eq('team_id', profile.team_id)
+  } else if (isRestrictedQualityUser(profile)) {
+    query = query.eq('evaluator_id', profile.id)
   }
 
   // Filters
@@ -81,8 +80,18 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
   if (channel) query = query.eq('channel', channel as ChannelType)
   if (status) query = query.eq('status', status as EvaluationStatus)
   if (result) query = query.eq('conversation_result', result as ConversationResult)
+  if (evaluatorId && profile.role === 'manager') query = query.eq('evaluator_id', evaluatorId)
   if (startDate) query = query.gte('conversation_date', startDate)
   if (endDate) query = query.lte('conversation_date', endDate)
+
+  const evaluatorsResult = profile.role === 'manager'
+    ? await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('role', ['quality_team', 'team_leader', 'manager'])
+        .eq('is_active', true)
+        .order('full_name')
+    : { data: [] }
 
   // Pagination
   const from = (page - 1) * PAGE_SIZE
@@ -99,13 +108,15 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
       currentPage={page}
       pageSize={PAGE_SIZE}
       role={profile.role}
-      canCreate={profile.role === 'quality_team' || profile.role === 'team_leader'}
+      canCreate={canCreateEvaluation(profile)}
       filterChannel={channel}
       filterStatus={status}
       filterResult={result}
+      filterEvaluator={evaluatorId}
       filterStartDate={startDate}
       filterEndDate={endDate}
       searchQuery={q}
+      evaluatorOptions={evaluatorsResult.data ?? []}
       sortBy={sortBy}
       sortDir={ascending ? 'asc' : 'desc'}
     />

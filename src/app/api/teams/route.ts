@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { canManageUsers } from '@/lib/access-control'
+import { writeAuditLog } from '@/lib/audit-log'
 
 export const dynamic = 'force-dynamic'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://rfgrjujihbombbfyiqgj.supabase.co'
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
 
 function adminHeaders() {
@@ -12,6 +14,10 @@ function adminHeaders() {
     apikey: SERVICE_KEY,
     Authorization: `Bearer ${SERVICE_KEY}`,
   }
+}
+
+function hasAdminConfig() {
+  return Boolean(SUPABASE_URL && SERVICE_KEY)
 }
 
 export async function POST(request: Request) {
@@ -23,15 +29,19 @@ export async function POST(request: Request) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('id, role, email')
     .eq('id', user.id)
     .single()
-  if (!profile || !['quality_team', 'manager'].includes(profile.role)) {
+  if (!profile || !canManageUsers(profile)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  if (!hasAdminConfig()) {
+    return NextResponse.json({ error: 'Supabase admin configuration is missing' }, { status: 500 })
+  }
+
   const { name } = await request.json()
-  if (!name?.trim()) {
+  if (typeof name !== 'string' || !name.trim()) {
     return NextResponse.json({ error: 'Takım adı gerekli' }, { status: 400 })
   }
 
@@ -46,6 +56,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: body }, { status: 500 })
   }
 
+  const createdTeams = await res.json().catch(() => []) as Array<{ id?: string; name?: string }>
+  await writeAuditLog({
+    actor: profile,
+    action: 'team_created',
+    entityType: 'team',
+    entityId: createdTeams[0]?.id ?? null,
+    metadata: { name: name.trim() },
+  })
+
   return NextResponse.json({ success: true })
 }
 
@@ -58,14 +77,21 @@ export async function DELETE(request: Request) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('id, role, email')
     .eq('id', user.id)
     .single()
-  if (!profile || !['quality_team', 'manager'].includes(profile.role)) {
+  if (!profile || !canManageUsers(profile)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  if (!hasAdminConfig()) {
+    return NextResponse.json({ error: 'Supabase admin configuration is missing' }, { status: 500 })
+  }
+
   const { id } = await request.json()
+  if (typeof id !== 'string' || !id) {
+    return NextResponse.json({ error: 'Geçersiz takım' }, { status: 400 })
+  }
 
   // Üyesi olan takımı silme
   const { count } = await supabase
@@ -88,6 +114,14 @@ export async function DELETE(request: Request) {
   if (!res.ok) {
     return NextResponse.json({ error: 'Takım silinemedi' }, { status: 500 })
   }
+
+  await writeAuditLog({
+    actor: profile,
+    action: 'team_deleted',
+    entityType: 'team',
+    entityId: id,
+    metadata: {},
+  })
 
   return NextResponse.json({ success: true })
 }

@@ -20,6 +20,7 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 import type { UserRole } from '@/types/supabase'
+import { canManageUsers } from '@/lib/access-control'
 
 interface UserRow {
   id: string
@@ -43,9 +44,9 @@ interface Props {
 }
 
 const ROLE_LABELS: Record<UserRole, string> = {
-  quality_team: 'Kalite Ekibi',
+  quality_team: 'Kalite Kontrol',
   team_leader: 'Takım Lideri',
-  manager: 'Yönetici',
+  manager: 'Yönetici / Admin',
   consultant: 'Danışman',
 }
 
@@ -59,6 +60,8 @@ const ROLE_COLORS: Record<UserRole, string> = {
 const CREATABLE_ROLES: { value: UserRole; label: string }[] = [
   { value: 'consultant', label: 'Danışman' },
   { value: 'team_leader', label: 'Takım Lideri' },
+  { value: 'quality_team', label: 'Kalite Kontrol' },
+  { value: 'manager', label: 'Yönetici / Admin' },
 ]
 
 type Tab = 'users' | 'teams' | 'account'
@@ -68,9 +71,11 @@ function initAddForm() {
 }
 
 export default function SettingsContent({ currentProfile, users, teams }: Props) {
+  const canManage = canManageUsers(currentProfile)
+
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [activeTab, setActiveTab] = useState<Tab>('users')
+  const [activeTab, setActiveTab] = useState<Tab>(canManage ? 'users' : 'account')
 
   // ── Add User ────────────────────────────────────────────────────────
   const [showAddUser, setShowAddUser] = useState(false)
@@ -114,7 +119,6 @@ export default function SettingsContent({ currentProfile, users, teams }: Props)
   const [selfPwLoading, setSelfPwLoading] = useState(false)
   const [selfPwMsg, setSelfPwMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
-  const canManage = ['quality_team', 'manager'].includes(currentProfile.role)
   const teamMap = new Map(teams.map(t => [t.id, t.name]))
 
   function refresh() {

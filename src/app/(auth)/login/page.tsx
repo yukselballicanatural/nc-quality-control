@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
@@ -10,7 +9,6 @@ import { useLanguage } from '@/lib/i18n'
 
 export default function LoginPage() {
   const { lang, setLang, t } = useLanguage()
-  const router = useRouter()
   const [email, setEmail]     = useState('')
   const [password, setPassword] = useState('')
   const [show, setShow]       = useState(false)
@@ -28,10 +26,31 @@ export default function LoginPage() {
       const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
       if (authError) { setError(t.auth.invalidCredentials); return }
       if (!data.user)  { setError(t.auth.unknownError); return }
-      await supabase.from('profiles').select('role').eq('id', data.user.id).single()
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single()
+
+      if (profileError || !profile) {
+        await supabase.auth.signOut()
+        setError(t.auth.unknownError)
+        return
+      }
+
       localStorage.setItem('nc_welcome', '1')
+      await fetch('/api/audit-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'login',
+          entityType: 'auth',
+          metadata: { email },
+        }),
+      }).catch(() => null)
       setSuccess(true)
-      router.push('/dashboard')
+      window.location.assign('/dashboard')
     } catch {
       setError(t.auth.unknownError)
     } finally {
@@ -40,10 +59,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#F4F4F2]">
+    <div className="min-h-screen flex bg-[#F4F4F2]" style={{ minHeight: '100vh', display: 'flex', background: '#F4F4F2' }}>
 
       {/* ─── SOL: Fotoğraf ─────────────────────────────────────── */}
-      <div className="hidden lg:block w-[52%] relative overflow-hidden flex-shrink-0">
+      <div className="hidden lg:block w-[52%] relative overflow-hidden flex-shrink-0" style={{ position: 'relative', width: '52%', minHeight: '100vh', overflow: 'hidden', flexShrink: 0 }}>
         <Image
           src="/nc-building.png"
           alt="Natural Clinic"
@@ -79,10 +98,10 @@ export default function LoginPage() {
       </div>
 
       {/* ─── SAĞ: Form ─────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col bg-[#F4F4F2]">
+      <div className="flex-1 flex flex-col bg-[#F4F4F2]" style={{ flex: '1 1 0%', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F4F4F2' }}>
 
         {/* Üst bar */}
-        <div className="flex items-center justify-between px-10 sm:px-14 pt-8">
+        <div className="flex items-center justify-between px-10 sm:px-14 pt-8" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '32px 56px 0' }}>
           {/* Mobil logo */}
           <div className="lg:hidden flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-[#1B4332] flex items-center justify-center">
@@ -111,12 +130,13 @@ export default function LoginPage() {
         </div>
 
         {/* Form merkezi */}
-        <div className="flex-1 flex items-center justify-center px-8 sm:px-12 py-10">
+        <div className="flex-1 flex items-center justify-center px-8 sm:px-12 py-10" style={{ flex: '1 1 0%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 48px' }}>
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
             className="w-full max-w-[400px]"
+            style={{ width: '100%', maxWidth: 400 }}
           >
 
             {/* Başlık — kart dışında */}
@@ -136,7 +156,7 @@ export default function LoginPage() {
 
             {/* ── FORM KARTI ─────────────────────────────── */}
             <form onSubmit={handleLogin}>
-              <div className="bg-white rounded-3xl shadow-2xl shadow-gray-300/40 border border-white/80 p-7 sm:p-8 space-y-5">
+              <div className="bg-white rounded-3xl shadow-2xl shadow-gray-300/40 border border-white/80 p-7 sm:p-8 space-y-5" style={{ background: '#fff', borderRadius: 24, border: '1px solid rgba(255,255,255,0.8)', boxShadow: '0 24px 60px rgba(156, 163, 175, 0.35)', padding: 32, display: 'flex', flexDirection: 'column', gap: 20 }}>
 
                 {/* E-posta */}
                 <div>

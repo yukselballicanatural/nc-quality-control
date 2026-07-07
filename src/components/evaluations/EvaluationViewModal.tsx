@@ -18,6 +18,7 @@ import {
   CHECK_ANSWER_OPTIONS,
 } from '@/lib/constants'
 import type { EvaluationWithRelations } from '@/types'
+import type { ChannelType } from '@/types/supabase'
 
 // ─── Stage labels ────────────────────────────────────────────────────
 
@@ -145,6 +146,37 @@ function Section({ title, icon, children }: { title: string; icon?: React.ReactN
   )
 }
 
+function getChannels(ev: EvaluationWithRelations): ChannelType[] {
+  const channels = new Set<ChannelType>()
+  channels.add(ev.channel)
+  ;(ev.channel_checks ?? []).forEach(check => channels.add(check.channel))
+  return Array.from(channels)
+}
+
+function ChannelBadges({ channels, labels }: { channels: ChannelType[]; labels: { whatsapp: string; call: string } }) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {channels.map(channel => {
+        const isWhatsapp = channel === 'whatsapp'
+        const Icon = isWhatsapp ? MessageSquare : Phone
+        return (
+          <span
+            key={channel}
+            className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold ${
+              isWhatsapp
+                ? 'bg-emerald-50 text-emerald-700'
+                : 'bg-blue-50 text-blue-700'
+            }`}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            {isWhatsapp ? labels.whatsapp : labels.call}
+          </span>
+        )
+      })}
+    </div>
+  )
+}
+
 // Score bar for a single question row
 function QuestionRow({ index, label, answer, score, maxScore }: {
   index: number | string
@@ -204,10 +236,7 @@ function ModalBody({ ev }: { ev: EvaluationWithRelations }) {
   const criteriaMap = Object.fromEntries(
     (ev.criteria_scores ?? []).map(cs => [cs.criteria_number, cs])
   )
-  const checksMap = Object.fromEntries(
-    (ev.channel_checks ?? []).map(cc => [cc.question_number, cc])
-  )
-  const questions = ev.channel === 'whatsapp' ? WHATSAPP_QUESTIONS : CALL_QUESTIONS
+  const channels = getChannels(ev)
 
   const hasSalesData = [
     ev.sales_understood_motivation, ev.sales_eased_decision, ev.sales_opportunity_used,
@@ -264,12 +293,7 @@ function ModalBody({ ev }: { ev: EvaluationWithRelations }) {
 
           <div>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-0.5">{t.evaluations.channel}</p>
-            <div className="flex items-center gap-1.5 font-medium text-gray-700">
-              {ev.channel === 'whatsapp'
-                ? <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
-                : <Phone className="w-3.5 h-3.5 text-blue-600" />}
-              {ev.channel === 'whatsapp' ? 'WhatsApp' : t.channel.call}
-            </div>
+            <ChannelBadges channels={channels} labels={t.channel} />
           </div>
 
           <div>
@@ -459,35 +483,50 @@ function ModalBody({ ev }: { ev: EvaluationWithRelations }) {
 
       {/* ── Kanal kontrolleri ──────────────────────────────── */}
       {(ev.channel_checks ?? []).length > 0 && (
-        <Section
-          title={ev.channel === 'whatsapp' ? 'WhatsApp Kontrolleri' : `${t.channel.call} Kontrolleri`}
-          icon={ev.channel === 'whatsapp' ? <MessageSquare className="w-3.5 h-3.5" /> : <Phone className="w-3.5 h-3.5" />}
-        >
-          <div className="space-y-1.5">
-            {questions.map(q => {
-              const row = checksMap[q.number]
-              const label = lang === 'tr' ? q.labelTr : q.labelEn
-              const answerOpt = row ? CHECK_ANSWER_OPTIONS.find(o => o.value === row.answer) : null
-              const answerLabel = answerOpt ? (lang === 'tr' ? answerOpt.labelTr : answerOpt.labelEn) : '—'
-              const answerColor = row ? (CHECK_COLORS[row.answer] ?? 'bg-gray-100 text-gray-500') : ''
-              return (
-                <div key={q.number} className="flex items-center gap-2.5 bg-white border border-gray-100 rounded-xl px-3.5 py-2.5">
-                  <div className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center flex-shrink-0 ${
-                    row ? 'bg-[#1B4332] text-white' : 'bg-gray-100 text-gray-400'
-                  }`}>
-                    {row ? <Check className="w-3 h-3" /> : q.number}
-                  </div>
-                  <p className="text-sm text-gray-700 flex-1 leading-snug">{label}</p>
-                  {row && (
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg flex-shrink-0 ${answerColor}`}>
-                      {answerLabel}
-                    </span>
-                  )}
+        <div className="space-y-3">
+          {channels.map(channel => {
+            const isWhatsapp = channel === 'whatsapp'
+            const questions = isWhatsapp ? WHATSAPP_QUESTIONS : CALL_QUESTIONS
+            const checksMap = Object.fromEntries(
+              (ev.channel_checks ?? [])
+                .filter(cc => cc.channel === channel)
+                .map(cc => [cc.question_number, cc])
+            )
+
+            return (
+              <Section
+                key={channel}
+                title={isWhatsapp ? 'WhatsApp Kontrolleri' : `${t.channel.call} Kontrolleri`}
+                icon={isWhatsapp ? <MessageSquare className="w-3.5 h-3.5" /> : <Phone className="w-3.5 h-3.5" />}
+              >
+                <div className="space-y-1.5">
+                  {questions.map(q => {
+                    const row = checksMap[q.number]
+                    const label = lang === 'tr' ? q.labelTr : q.labelEn
+                    const answerOpt = row ? CHECK_ANSWER_OPTIONS.find(o => o.value === row.answer) : null
+                    const answerLabel = answerOpt ? (lang === 'tr' ? answerOpt.labelTr : answerOpt.labelEn) : '—'
+                    const answerColor = row ? (CHECK_COLORS[row.answer] ?? 'bg-gray-100 text-gray-500') : ''
+                    return (
+                      <div key={q.number} className="flex items-center gap-2.5 bg-white border border-gray-100 rounded-xl px-3.5 py-2.5">
+                        <div className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center flex-shrink-0 ${
+                          row ? 'bg-[#1B4332] text-white' : 'bg-gray-100 text-gray-400'
+                        }`}>
+                          {row ? <Check className="w-3 h-3" /> : q.number}
+                        </div>
+                        <p className="text-sm text-gray-700 flex-1 leading-snug">{label}</p>
+                        {row && (
+                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg flex-shrink-0 ${answerColor}`}>
+                            {answerLabel}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
-              )
-            })}
-          </div>
-        </Section>
+              </Section>
+            )
+          })}
+        </div>
       )}
 
       {/* ── Kritik hatalar ─────────────────────────────────── */}

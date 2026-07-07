@@ -73,6 +73,7 @@ export const translations = {
       settings: 'Ayarlar',
       myEvaluations: 'Değerlendirmelerim',
       trainingExam: 'Eğitim Sınavı',
+      trainingExamResults: 'Sınav Sonuçları',
     },
     dashboard: {
       pageTitle: 'Dashboard',
@@ -364,6 +365,9 @@ export const translations = {
     trainingExam: {
       pageTitle: 'Eğitim Sınavı',
     },
+    trainingExamResults: {
+      pageTitle: 'Sınav Sonuçları',
+    },
   },
 
   en: {
@@ -440,6 +444,7 @@ export const translations = {
       settings: 'Settings',
       myEvaluations: 'My Evaluations',
       trainingExam: 'Training Exam',
+      trainingExamResults: 'Exam Results',
     },
     dashboard: {
       pageTitle: 'Dashboard',
@@ -730,6 +735,9 @@ export const translations = {
     },
     trainingExam: {
       pageTitle: 'Training Exam',
+    },
+    trainingExamResults: {
+      pageTitle: 'Exam Results',
     },
   },
 } as const

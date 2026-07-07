@@ -1,28 +1,23 @@
 export const dynamic = 'force-dynamic'
 
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { FormStepper } from '@/components/form/FormStepper'
+import nextDynamic from 'next/dynamic'
+import { canCreateEvaluation } from '@/lib/access-control'
+import { getCurrentProfile } from '@/lib/current-profile'
+
+const FormStepper = nextDynamic(
+  () => import('@/components/form/FormStepper').then(m => m.FormStepper),
+  { ssr: false }
+)
 
 export default async function NewEvaluationPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, profile, supabase } = await getCurrentProfile()
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
   if (!profile) redirect('/login')
 
-  // Only quality_team and team_leader can create evaluations
-  if (profile.role === 'consultant' || profile.role === 'manager') {
+  if (!canCreateEvaluation(profile)) {
     redirect('/dashboard')
   }
 
@@ -47,6 +42,7 @@ export default async function NewEvaluationPage() {
     <FormStepper
       role={profile.role}
       evaluatorId={profile.id}
+      evaluatorName={profile.full_name}
       consultants={consultantsResult.data ?? []}
       teamLeaders={teamLeadersResult.data ?? []}
       teams={teamsResult.data ?? []}
