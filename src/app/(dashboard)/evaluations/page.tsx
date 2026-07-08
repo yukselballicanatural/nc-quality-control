@@ -13,7 +13,7 @@ const EvaluationsContent = nextDynamic(
   { ssr: false }
 )
 
-const VALID_SORT_COLS = ['conversation_date', 'customer_name', 'final_score'] as const
+const VALID_SORT_COLS = ['created_at', 'conversation_date', 'customer_name', 'final_score'] as const
 type ValidSortCol = (typeof VALID_SORT_COLS)[number]
 
 // ─── Page ─────────────────────────────────────────────────────────
@@ -42,7 +42,7 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
   const rawSortBy = typeof sp.sortBy === 'string' ? sp.sortBy : ''
   const sortBy: ValidSortCol = VALID_SORT_COLS.includes(rawSortBy as ValidSortCol)
     ? (rawSortBy as ValidSortCol)
-    : 'conversation_date'
+    : 'created_at'
   const ascending = typeof sp.sortDir === 'string' && sp.sortDir === 'asc'
 
   // ── Build query ─────────────────────────────────────────────────
@@ -55,6 +55,7 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
       customer_name,
       channel,
       conversation_date,
+      created_at,
       conversation_result,
       final_score,
       is_auto_failed,
