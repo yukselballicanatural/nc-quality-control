@@ -275,9 +275,9 @@ export function StepOfferQuestions() {
       <QuestionCard index={17} title={oq.q17} answered={offerAnswers.q17FollowUpWeek !== -1} delay={0.23}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {([
-            { v: 3 as const, pts: 5,  variant: 'success'  as const },
-            { v: 2 as const, pts: 3,  variant: 'default'  as const },
-            { v: 1 as const, pts: 2,  variant: 'neutral'  as const },
+            { v: 3 as const, pts: 3,  variant: 'success'  as const },
+            { v: 2 as const, pts: 2,  variant: 'default'  as const },
+            { v: 1 as const, pts: 1,  variant: 'neutral'  as const },
             { v: 0 as const, pts: 0,  variant: 'danger'   as const },
           ]).map(opt => (
             <AnswerBtn

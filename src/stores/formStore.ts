@@ -358,7 +358,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
     const q14 = offerAnswers.q14ClearExplanation     === 'yes'  ?  5 : 0
     const q15 = offerAnswers.q15BeforeAfterPhotos    === 'yes'  ?  5 : 0
     const q16 = offerAnswers.q16ConciseCommunication === 'yes'  ?  5 : 0
-    const q17 = offerAnswers.q17FollowUpWeek === 3 ? 5 : offerAnswers.q17FollowUpWeek === 2 ? 3 : offerAnswers.q17FollowUpWeek === 1 ? 2 : 0
+    const q17 = offerAnswers.q17FollowUpWeek === -1 ? 0 : offerAnswers.q17FollowUpWeek
     return part1 + q11 + q12 + q13 + q14 + q15 + q16 + q17
   },
 
@@ -370,7 +370,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
     const q14 = offerAnswers.q14ClearExplanation     === 'yes'  ?  5 : 0
     const q15 = offerAnswers.q15BeforeAfterPhotos    === 'yes'  ?  5 : 0
     const q16 = offerAnswers.q16ConciseCommunication === 'yes'  ?  5 : 0
-    const q17 = offerAnswers.q17FollowUpWeek === 3 ? 5 : offerAnswers.q17FollowUpWeek === 2 ? 3 : offerAnswers.q17FollowUpWeek === 1 ? 2 : 0
+    const q17 = offerAnswers.q17FollowUpWeek === -1 ? 0 : offerAnswers.q17FollowUpWeek
     return q11 + q12 + q13 + q14 + q15 + q16 + q17
   },
 
