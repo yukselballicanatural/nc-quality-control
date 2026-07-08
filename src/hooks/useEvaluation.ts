@@ -200,6 +200,7 @@ export function useEvaluation() {
 
       return evalId
     } catch (err) {
+      console.error('useEvaluation save error:', err)
       const msg = err instanceof Error ? err.message : 'Kayıt sırasında bir hata oluştu.'
       setSaveError(msg)
       return null
@@ -216,6 +217,7 @@ export function useEvaluation() {
   async function submit(): Promise<void> {
     const id = await save('submitted')
     if (id) {
+      router.refresh()
       router.push('/evaluations')
     }
   }
