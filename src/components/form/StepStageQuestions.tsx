@@ -177,13 +177,6 @@ export function StepStageQuestions() {
     { value: 10, label: '10' },
   ]
 
-  const score10Opts: { value: Score10Answer; label: string }[] = [
-    { value: 10, label: '10' },
-    { value: 7,  label: '7' },
-    { value: 5,  label: '5' },
-    { value: 0,  label: '0' },
-  ]
-
   const yes = t.common.yes
   const no  = t.common.no
 

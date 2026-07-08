@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useFormStore } from '@/stores/formStore'
@@ -8,10 +8,16 @@ import { calculateFinalScore } from '@/lib/scoring'
 import type { ChannelType, CriteriaScore, EvaluationStatus } from '@/types/supabase'
 import { EXTENDED_STAGES, SECOND_VISIT_STAGE } from '@/types/supabase'
 
-export function useEvaluation() {
+export function useEvaluation(editingId: string | null = null) {
   const router = useRouter()
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  // The id of the record this specific form session is working on.
+  // For edit mode this is the existing evaluation id; for a new form it stays
+  // null until we insert, then holds the created id so follow-up draft saves
+  // update the same row. Crucially this is per-mount, so a fresh new-evaluation
+  // form always inserts even if the global store still holds a stale id.
+  const createdIdRef = useRef<string | null>(null)
 
   async function save(status: EvaluationStatus): Promise<string | null> {
     setIsSaving(true)
@@ -20,7 +26,6 @@ export function useEvaluation() {
     try {
       const supabase = createClient()
       const {
-        evaluationId,
         step1,
         stageAnswers,
         offerAnswers,
@@ -94,15 +99,19 @@ export function useEvaluation() {
         second_visit_answers: isSecondVisitStage ? secondVisitAnswers as unknown as Record<string, unknown> : null,
       }
 
-      let evalId = evaluationId
+      // Decide insert vs update from the form-session id, NOT the global store,
+      // so a stale evaluationId lingering in the store can never turn a brand-new
+      // evaluation into an accidental update of a previous record.
+      const targetId = editingId ?? createdIdRef.current
+      let evalId = targetId
 
-      const wasEditing = Boolean(evaluationId)
+      const wasEditing = Boolean(targetId)
 
-      if (evaluationId) {
+      if (targetId) {
         const { error } = await supabase
           .from('evaluations')
           .update(evalPayload)
-          .eq('id', evaluationId)
+          .eq('id', targetId)
         if (error) throw error
       } else {
         const { data, error } = await supabase
@@ -112,6 +121,7 @@ export function useEvaluation() {
           .single()
         if (error) throw error
         evalId = data.id
+        createdIdRef.current = evalId
         setEvaluationId(evalId)
       }
 
@@ -217,9 +227,10 @@ export function useEvaluation() {
   async function submit(): Promise<void> {
     const id = await save('submitted')
     if (id) {
+      createdIdRef.current = null
       useFormStore.getState().resetForm()
-      router.refresh()
       router.push('/evaluations')
+      router.refresh()
     }
   }
 

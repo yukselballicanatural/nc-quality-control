@@ -64,7 +64,7 @@ export function FormStepper({
   initialEvaluation,
 }: FormStepperProps) {
   const { lang, t } = useLanguage()
-  const { saveDraft, submit, isSaving, saveError, clearError } = useEvaluation()
+  const { saveDraft, submit, isSaving, saveError, clearError } = useEvaluation(initialEvaluation?.id ?? null)
 
   const {
     currentStep,
