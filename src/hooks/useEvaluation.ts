@@ -217,6 +217,7 @@ export function useEvaluation() {
   async function submit(): Promise<void> {
     const id = await save('submitted')
     if (id) {
+      useFormStore.getState().resetForm()
       router.refresh()
       router.push('/evaluations')
     }

@@ -40,6 +40,7 @@ export default async function NewEvaluationPage() {
 
   return (
     <FormStepper
+      key={Date.now()}
       role={profile.role}
       evaluatorId={profile.id}
       evaluatorName={profile.full_name}
