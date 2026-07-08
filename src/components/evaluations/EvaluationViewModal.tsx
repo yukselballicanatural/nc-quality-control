@@ -385,7 +385,7 @@ function ModalBody({ ev }: { ev: EvaluationWithRelations }) {
                   <QuestionRow index={7}  label={tr_ ? STAGE_QUESTIONS.q7.tr  : STAGE_QUESTIONS.q7.en}  {...fmtYesNo(sa.q7CrmDocumentation, 10, lang)}      maxScore={10} />
                   <QuestionRow index={8}  label={tr_ ? STAGE_QUESTIONS.q8.tr  : STAGE_QUESTIONS.q8.en}  {...fmtYesNo(sa.q8ConfirmNextSteps, 10, lang)}       maxScore={10} />
                   <QuestionRow index={9}  label={tr_ ? STAGE_QUESTIONS.q9.tr  : STAGE_QUESTIONS.q9.en}  {...fmtYesNo(sa.q9NoPriceDiscussion, 10, lang)}      maxScore={10} />
-                  <QuestionRow index={10} label={tr_ ? STAGE_QUESTIONS.q10.tr : STAGE_QUESTIONS.q10.en} {...fmtFollowUp(sa.q10FollowUp, [0,5,7,10], lang)}   maxScore={10} />
+                  <QuestionRow index={10} label={tr_ ? STAGE_QUESTIONS.q10.tr : STAGE_QUESTIONS.q10.en} {...fmtFollowUp(sa.q10FollowUp, [0,1,2,3], lang)}   maxScore={3}  />
                 </div>
               ) : (
                 <NoAnswers lang={lang} />

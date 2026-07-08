@@ -57,7 +57,7 @@ export interface FormStageAnswers {
   q7CrmDocumentation: YesNoAnswer
   q8ConfirmNextSteps: YesNoAnswer
   q9NoPriceDiscussion: YesNoAnswer
-  q10FollowUp: Score10Answer
+  q10FollowUp: FollowUpCountAnswer
 }
 
 export interface FormStep5 {

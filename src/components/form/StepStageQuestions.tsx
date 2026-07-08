@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useFormStore } from '@/stores/formStore'
 import { useLanguage } from '@/lib/i18n'
-import type { ResponseTimeAnswer, Score4Answer, YesNoAnswer, Score10Answer } from '@/types/supabase'
+import type { ResponseTimeAnswer, Score4Answer, YesNoAnswer, FollowUpCountAnswer } from '@/types/supabase'
 import { EXTENDED_STAGES } from '@/types/supabase'
 
 // ─── Skor rengini hesapla ─────────────────────────────────────────
@@ -330,14 +330,19 @@ export function StepStageQuestions() {
         delay={0.42}
       >
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {score10Opts.map(opt => (
+          {([
+            { v: 3 as FollowUpCountAnswer, variant: 'success'  as const },
+            { v: 2 as FollowUpCountAnswer, variant: 'default'  as const },
+            { v: 1 as FollowUpCountAnswer, variant: 'neutral'  as const },
+            { v: 0 as FollowUpCountAnswer, variant: 'danger'   as const },
+          ]).map(opt => (
             <AnswerBtn
-              key={opt.value}
-              label={String(opt.value)}
-              sublabel={sub(opt.value)}
-              selected={stageAnswers.q10FollowUp === opt.value}
-              onClick={() => updateStageAnswers({ q10FollowUp: opt.value })}
-              variant={opt.value === 10 ? 'success' : opt.value === 0 ? 'danger' : 'default'}
+              key={opt.v}
+              label={String(opt.v)}
+              sublabel={`${opt.v} ${pts}`}
+              selected={stageAnswers.q10FollowUp === opt.v}
+              onClick={() => updateStageAnswers({ q10FollowUp: opt.v })}
+              variant={opt.variant}
             />
           ))}
         </div>
