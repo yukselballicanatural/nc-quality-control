@@ -349,17 +349,8 @@ export function TrainingExamResultsContent({
       }
 
       if (isMissingConsultantNameColumn(error)) {
-        if (!matchedConsultant && !editResult.consultant_id) {
-          setEditError(
-            isTr
-              ? 'Bu danışman adı sistemdeki aktif danışmanlarla eşleşmedi. Serbest manuel isim kaydı için Supabase SQL güncellemesi gerekiyor.'
-              : 'This consultant name did not match an active consultant. A Supabase SQL update is required for free manual names.'
-          )
-          return
-        }
-
         const payloadWithoutConsultantName = {
-          consultant_id: matchedConsultant?.id ?? editResult.consultant_id,
+          consultant_id: matchedConsultant?.id ?? editResult.consultant_id ?? null,
           level: updatePayload.level,
           criteria_scores: updatePayload.criteria_scores,
           total_score: updatePayload.total_score,
