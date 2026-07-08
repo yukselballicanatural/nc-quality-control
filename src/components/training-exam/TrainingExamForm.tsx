@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Check,
@@ -113,6 +114,7 @@ interface Props {
 export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Props) {
   const { lang } = useLanguage()
   const isTr = lang === 'tr'
+  const router = useRouter()
 
   const [phase, setPhase] = useState<Phase>('level')
   const [level, setLevel] = useState<Level | null>(null)
@@ -283,6 +285,8 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
         }),
       }).catch(() => null)
       setSaved(true)
+      router.refresh()
+      setTimeout(() => router.push('/training-exam-results'), 1500)
     } catch (err) {
       console.error('Training exam save error:', err)
       setError(isTr ? 'Kayıt sırasında hata oluştu.' : 'Error saving result.')
