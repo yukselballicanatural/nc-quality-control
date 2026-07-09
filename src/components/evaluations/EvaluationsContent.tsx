@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import { getScoreLevel } from '@/lib/scoring'
+import { DatePicker } from '@/components/ui/DatePicker'
 import type { UserRole, ChannelType, ConversationResult, EvaluationStatus } from '@/types/supabase'
 import type { EvaluationListItem, EvaluationWithRelations } from '@/types'
 import { EvaluationViewModal } from './EvaluationViewModal'
@@ -65,7 +66,7 @@ const RESULT_STYLES: Record<ConversationResult, string> = {
 }
 
 const selectClass =
-  'text-sm border border-gray-200 rounded-xl bg-gray-50 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 focus:border-[#1B4332] cursor-pointer'
+  'appearance-none w-full text-sm font-medium text-gray-700 border border-gray-200 rounded-xl bg-gray-50 pl-3.5 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 focus:border-[#1B4332] hover:border-gray-300 transition-colors cursor-pointer truncate'
 
 // ─── Sort icon helper ─────────────────────────────────────────────
 
@@ -465,69 +466,83 @@ export function EvaluationsContent({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <select
-            value={filterChannel}
-            onChange={e => updateFilter('channel', e.target.value)}
-            className={selectClass}
-          >
-            <option value="">{t.evaluations.filterByChannel}</option>
-            <option value="whatsapp">WhatsApp</option>
-            <option value="call">{t.channel.call}</option>
-          </select>
-
-          <select
-            value={filterStatus}
-            onChange={e => updateFilter('status', e.target.value)}
-            className={selectClass}
-          >
-            <option value="">{t.evaluations.filterByStatus}</option>
-            {(['draft', 'submitted', 'approved', 'rejected'] as EvaluationStatus[]).map(s => (
-              <option key={s} value={s}>{t.status[s]}</option>
-            ))}
-          </select>
-
-          <select
-            value={filterResult}
-            onChange={e => updateFilter('result', e.target.value)}
-            className={selectClass}
-          >
-            <option value="">{t.evaluations.filterByResult}</option>
-            {(['won', 'open', 'follow_up', 'lost', 'no_answer'] as ConversationResult[]).map(r => (
-              <option key={r} value={r}>{t.conversationResult[r]}</option>
-            ))}
-          </select>
-
-          {showEvaluator && (
+          <div className="relative w-[150px] flex-shrink-0">
             <select
-              value={filterEvaluator}
-              onChange={e => updateFilter('evaluator', e.target.value)}
+              value={filterChannel}
+              onChange={e => updateFilter('channel', e.target.value)}
               className={selectClass}
             >
-              <option value="">{lang === 'tr' ? 'Değerlendirene göre filtrele' : 'Filter by evaluator'}</option>
-                  {evaluatorOptions.map(evaluator => (
-                <option key={evaluator.id} value={evaluator.id}>
-                  {evaluator.full_name || evaluator.email || 'Natural Clinic'}
-                </option>
+              <option value="">{lang === 'tr' ? 'Kanal: Tümü' : 'Channel: All'}</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="call">{t.channel.call}</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+          </div>
+
+          <div className="relative w-[150px] flex-shrink-0">
+            <select
+              value={filterStatus}
+              onChange={e => updateFilter('status', e.target.value)}
+              className={selectClass}
+            >
+              <option value="">{lang === 'tr' ? 'Durum: Tümü' : 'Status: All'}</option>
+              {(['draft', 'submitted', 'approved', 'rejected'] as EvaluationStatus[]).map(s => (
+                <option key={s} value={s}>{t.status[s]}</option>
               ))}
             </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+          </div>
+
+          <div className="relative w-[160px] flex-shrink-0">
+            <select
+              value={filterResult}
+              onChange={e => updateFilter('result', e.target.value)}
+              className={selectClass}
+            >
+              <option value="">{lang === 'tr' ? 'Sonuç: Tümü' : 'Result: All'}</option>
+              {(['won', 'open', 'follow_up', 'lost', 'no_answer'] as ConversationResult[]).map(r => (
+                <option key={r} value={r}>{t.conversationResult[r]}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+          </div>
+
+          {showEvaluator && (
+            <div className="relative w-[190px] flex-shrink-0">
+              <select
+                value={filterEvaluator}
+                onChange={e => updateFilter('evaluator', e.target.value)}
+                className={selectClass}
+              >
+                <option value="">{lang === 'tr' ? 'Değerlendiren: Tümü' : 'Evaluator: All'}</option>
+                {evaluatorOptions.map(evaluator => (
+                  <option key={evaluator.id} value={evaluator.id}>
+                    {evaluator.full_name || evaluator.email || 'Natural Clinic'}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+            </div>
           )}
 
           <div className="flex flex-wrap items-center gap-1.5">
-            <input
-              type="date"
-              value={filterStartDate}
-              onChange={e => updateFilter('startDate', e.target.value)}
-              className={`${selectClass} w-[130px] sm:w-36`}
-              title={t.evaluations.startDate}
-            />
-            <span className="text-gray-400 text-sm">—</span>
-            <input
-              type="date"
-              value={filterEndDate}
-              onChange={e => updateFilter('endDate', e.target.value)}
-              className={`${selectClass} w-[130px] sm:w-36`}
-              title={t.evaluations.endDate}
-            />
+            <div className="w-[160px] sm:w-44">
+              <DatePicker
+                value={filterStartDate}
+                onChange={v => updateFilter('startDate', v)}
+                placeholder={t.evaluations.startDate}
+                maxDate={filterEndDate || undefined}
+              />
+            </div>
+            <span className="text-gray-400 text-sm">-</span>
+            <div className="w-[160px] sm:w-44">
+              <DatePicker
+                value={filterEndDate}
+                onChange={v => updateFilter('endDate', v)}
+                placeholder={t.evaluations.endDate}
+                minDate={filterStartDate || undefined}
+              />
+            </div>
           </div>
         </div>
       </div>
