@@ -60,7 +60,7 @@ interface Props {
 }
 
 const selectClass =
-  'text-sm border border-gray-200 rounded-xl bg-gray-50 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 focus:border-[#1B4332] cursor-pointer'
+  'appearance-none w-full text-sm font-medium text-gray-700 border border-gray-200 rounded-xl bg-gray-50 pl-3.5 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 focus:border-[#1B4332] hover:border-gray-300 transition-colors cursor-pointer truncate'
 
 const PASS_THRESHOLDS = { junior: 32, senior: 35 } as const
 const CRITERIA_EN = [
@@ -751,39 +751,48 @@ export function TrainingExamResultsContent({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <select
-            value={filterLevel}
-            onChange={event => updateFilter('level', event.target.value)}
-            className={selectClass}
-          >
-            <option value="">{isTr ? 'Tümü' : 'All'}</option>
-            <option value="junior">Junior</option>
-            <option value="senior">Senior</option>
-          </select>
-
-          <select
-            value={filterResult}
-            onChange={event => updateFilter('result', event.target.value)}
-            className={selectClass}
-          >
-            <option value="">{isTr ? 'Sonuca göre filtrele' : 'Filter by result'}</option>
-            <option value="passed">{isTr ? 'Geçti' : 'Passed'}</option>
-            <option value="failed">{isTr ? 'Kaldı' : 'Failed'}</option>
-          </select>
-
-          {role === 'manager' && (
+          <div className="relative w-[110px] flex-shrink-0">
             <select
-              value={filterEvaluator}
-              onChange={event => updateFilter('evaluator', event.target.value)}
+              value={filterLevel}
+              onChange={event => updateFilter('level', event.target.value)}
               className={selectClass}
             >
-              <option value="">{isTr ? 'De?erlendirene g?re filtrele' : 'Filter by evaluator'}</option>
-              {evaluatorOptions.map(evaluator => (
-                <option key={evaluator.id} value={evaluator.id}>
-                  {evaluator.full_name || evaluator.email || 'Natural Clinic'}
-                </option>
-              ))}
+              <option value="">{isTr ? 'Tümü' : 'All'}</option>
+              <option value="junior">Junior</option>
+              <option value="senior">Senior</option>
             </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+          </div>
+
+          <div className="relative w-[150px] flex-shrink-0">
+            <select
+              value={filterResult}
+              onChange={event => updateFilter('result', event.target.value)}
+              className={selectClass}
+            >
+              <option value="">{isTr ? 'Sonuç: Tümü' : 'Result: All'}</option>
+              <option value="passed">{isTr ? 'Geçti' : 'Passed'}</option>
+              <option value="failed">{isTr ? 'Kaldı' : 'Failed'}</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+          </div>
+
+          {role === 'manager' && (
+            <div className="relative w-[190px] flex-shrink-0">
+              <select
+                value={filterEvaluator}
+                onChange={event => updateFilter('evaluator', event.target.value)}
+                className={selectClass}
+              >
+                <option value="">{isTr ? 'Değerlendiren: Tümü' : 'Evaluator: All'}</option>
+                {evaluatorOptions.map(evaluator => (
+                  <option key={evaluator.id} value={evaluator.id}>
+                    {evaluator.full_name || evaluator.email || 'Natural Clinic'}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+            </div>
           )}
 
           <div className="flex flex-wrap items-center gap-1.5">
