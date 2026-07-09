@@ -286,7 +286,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
       }).catch(() => null)
       setSaved(true)
       router.refresh()
-      setTimeout(() => router.push('/training-exam-results'), 1500)
+      router.push('/training-exam-results')
     } catch (err) {
       console.error('Training exam save error:', err)
       setError(isTr ? 'Kayıt sırasında hata oluştu.' : 'Error saving result.')
