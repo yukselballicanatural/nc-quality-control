@@ -31,6 +31,10 @@ export function deriveTeamLeaderName(agent: Pick<Agent, 'role' | 'first_name' | 
   return null
 }
 
+export function isTeamLeaderRole(role: string | null): boolean {
+  return /^Team Leader\s*-\s*/i.test((role ?? '').trim())
+}
+
 export function toAgentOption(
   agent: Pick<Agent, 'id' | 'first_name' | 'last_name' | 'role' | 'region'>
 ): AgentOption {

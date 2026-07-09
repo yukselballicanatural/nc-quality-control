@@ -46,7 +46,7 @@ const STAGES: SalesStage[] = [
   'second_visit',
 ]
 
-export function StepBasicInfo({ evaluatorId, evaluatorName, agents, teamLeaders, teams }: StepBasicInfoProps) {
+export function StepBasicInfo({ evaluatorId, evaluatorName, agents, teamLeaders }: StepBasicInfoProps) {
   const { lang, t } = useLanguage()
   const { step1, updateStep1 } = useFormStore()
 
@@ -114,17 +114,6 @@ export function StepBasicInfo({ evaluatorId, evaluatorName, agents, teamLeaders,
                 {step1.agentTeamLeaderName || (lang === 'tr' ? 'Danışman seçilince görünür' : 'Appears after selecting consultant')}
               </div>
             </div>
-          </div>
-
-          <div>
-            <label className={labelCls}>{t.form.step1.team}</label>
-            <SearchableSelect
-              value={step1.teamId}
-              onChange={v => updateStep1({ teamId: v })}
-              options={teams.map(tm => ({ value: tm.id, label: tm.name }))}
-              placeholder={t.form.step1.teamPlaceholder}
-              icon={Building2}
-            />
           </div>
 
           <div>

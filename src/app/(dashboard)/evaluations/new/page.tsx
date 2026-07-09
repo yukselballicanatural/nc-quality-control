@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import nextDynamic from 'next/dynamic'
 import { canCreateEvaluation } from '@/lib/access-control'
 import { getCurrentProfile } from '@/lib/current-profile'
-import { toAgentOption } from '@/lib/agents'
+import { toAgentOption, isTeamLeaderRole } from '@/lib/agents'
 
 const FormStepper = nextDynamic(
   () => import('@/components/form/FormStepper').then(m => m.FormStepper),
@@ -37,7 +37,9 @@ export default async function NewEvaluationPage() {
     supabase.from('teams').select('id, name').order('name'),
   ])
 
-  const agents = (agentsResult.data ?? []).map(toAgentOption)
+  const agents = (agentsResult.data ?? [])
+    .filter(a => !isTeamLeaderRole(a.role))
+    .map(toAgentOption)
 
   return (
     <FormStepper

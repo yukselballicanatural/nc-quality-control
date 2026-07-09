@@ -4,7 +4,7 @@ import { redirect, notFound } from 'next/navigation'
 import nextDynamic from 'next/dynamic'
 import { canCreateEvaluation, isRestrictedQualityUser } from '@/lib/access-control'
 import { getCurrentProfile } from '@/lib/current-profile'
-import { toAgentOption } from '@/lib/agents'
+import { toAgentOption, isTeamLeaderRole } from '@/lib/agents'
 import type { EvaluationWithRelations } from '@/types'
 
 const FormStepper = nextDynamic(
@@ -74,7 +74,9 @@ export default async function EditEvaluationPage({
     supabase.from('teams').select('id, name').order('name'),
   ])
 
-  const agents = (agentsResult.data ?? []).map(toAgentOption)
+  const agents = (agentsResult.data ?? [])
+    .filter(a => !isTeamLeaderRole(a.role))
+    .map(toAgentOption)
 
   return (
     <FormStepper
