@@ -15,10 +15,11 @@ import {
 } from 'recharts'
 import {
   Download, X, MessageSquare, Phone, Users, BarChart2, AlertCircle, Award,
-  ClipboardList, Gauge, ShieldAlert, Trophy,
+  ClipboardList, Gauge, ShieldAlert, Trophy, ChevronDown,
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import { getScoreLevel } from '@/lib/scoring'
+import { DatePicker } from '@/components/ui/DatePicker'
 import type { UserRole, ConversationResult, CriticalErrorType } from '@/types/supabase'
 import type { ConsultantPerfRow, ChannelCompRow, CriticalErrorRow, SalesOutcomeRow } from '@/types'
 
@@ -79,7 +80,7 @@ const RESULT_COLORS: Record<ConversationResult, string> = {
 }
 
 const selectClass =
-  'text-sm border border-gray-200 rounded-xl bg-gray-50 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 focus:border-[#1B4332] cursor-pointer'
+  'appearance-none w-full text-sm font-medium text-gray-700 border border-gray-200 rounded-xl bg-gray-50 pl-3.5 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 focus:border-[#1B4332] hover:border-gray-300 transition-colors cursor-pointer truncate'
 
 // ─── Props ────────────────────────────────────────────────────────
 
@@ -310,79 +311,93 @@ export function ReportsContent({
         <div className="flex flex-wrap gap-2 items-center">
           {/* Date range */}
           <div className="flex flex-wrap items-center gap-1.5">
-            <input
-              type="date"
-              value={filterStartDate}
-              onChange={e => pushParams({ startDate: e.target.value })}
-              className={`${selectClass} w-[130px] sm:w-36`}
-              title={lang === 'tr' ? 'Başlangıç tarihi' : 'Start date'}
-            />
-            <span className="text-gray-400 text-sm">—</span>
-            <input
-              type="date"
-              value={filterEndDate}
-              onChange={e => pushParams({ endDate: e.target.value })}
-              className={`${selectClass} w-[130px] sm:w-36`}
-              title={lang === 'tr' ? 'Bitiş tarihi' : 'End date'}
-            />
+            <div className="w-[160px] sm:w-44">
+              <DatePicker
+                value={filterStartDate}
+                onChange={v => pushParams({ startDate: v })}
+                placeholder={lang === 'tr' ? 'Başlangıç' : 'Start date'}
+                maxDate={filterEndDate || undefined}
+              />
+            </div>
+            <span className="text-gray-400 text-sm">-</span>
+            <div className="w-[160px] sm:w-44">
+              <DatePicker
+                value={filterEndDate}
+                onChange={v => pushParams({ endDate: v })}
+                placeholder={lang === 'tr' ? 'Bitiş' : 'End date'}
+                minDate={filterStartDate || undefined}
+              />
+            </div>
           </div>
 
           {/* Consultant */}
-          <select
-            value={filterConsultantId}
-            onChange={e => pushParams({ consultantId: e.target.value })}
-            className={selectClass}
-          >
-            <option value="">{t.reports.consultant}</option>
-            {consultants.map(c => (
-              <option key={c.id} value={c.id}>
-                {c.full_name}
-              </option>
-            ))}
-          </select>
-
-          {/* Team (quality_team + manager only) */}
-          {(role === 'quality_team' || role === 'manager') && (
+          <div className="relative w-[170px] flex-shrink-0">
             <select
-              value={filterTeamId}
-              onChange={e => pushParams({ teamId: e.target.value })}
+              value={filterConsultantId}
+              onChange={e => pushParams({ consultantId: e.target.value })}
               className={selectClass}
             >
-              <option value="">{t.reports.team}</option>
-              {teams.map(tm => (
-                <option key={tm.id} value={tm.id}>
-                  {tm.name}
+              <option value="">{t.reports.consultant}</option>
+              {consultants.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.full_name}
                 </option>
               ))}
             </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+          </div>
+
+          {/* Team (quality_team + manager only) */}
+          {(role === 'quality_team' || role === 'manager') && (
+            <div className="relative w-[150px] flex-shrink-0">
+              <select
+                value={filterTeamId}
+                onChange={e => pushParams({ teamId: e.target.value })}
+                className={selectClass}
+              >
+                <option value="">{t.reports.team}</option>
+                {teams.map(tm => (
+                  <option key={tm.id} value={tm.id}>
+                    {tm.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+            </div>
           )}
 
           {/* Channel */}
-          <select
-            value={filterChannel}
-            onChange={e => pushParams({ channel: e.target.value })}
-            className={selectClass}
-          >
-            <option value="">{t.reports.channel}</option>
-            <option value="whatsapp">WhatsApp</option>
-            <option value="call">{t.channel.call}</option>
-          </select>
+          <div className="relative w-[140px] flex-shrink-0">
+            <select
+              value={filterChannel}
+              onChange={e => pushParams({ channel: e.target.value })}
+              className={selectClass}
+            >
+              <option value="">{t.reports.channel}</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="call">{t.channel.call}</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+          </div>
 
           {/* Result */}
-          <select
-            value={filterResult}
-            onChange={e => pushParams({ result: e.target.value })}
-            className={selectClass}
-          >
-            <option value="">{t.reports.result}</option>
-            {(
-              ['won', 'open', 'follow_up', 'lost', 'no_answer'] as ConversationResult[]
-            ).map(r => (
-              <option key={r} value={r}>
-                {resultLabels[r]}
-              </option>
-            ))}
-          </select>
+          <div className="relative w-[150px] flex-shrink-0">
+            <select
+              value={filterResult}
+              onChange={e => pushParams({ result: e.target.value })}
+              className={selectClass}
+            >
+              <option value="">{t.reports.result}</option>
+              {(
+                ['won', 'open', 'follow_up', 'lost', 'no_answer'] as ConversationResult[]
+              ).map(r => (
+                <option key={r} value={r}>
+                  {resultLabels[r]}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+          </div>
 
           {/* Clear */}
           {hasFilters && (
