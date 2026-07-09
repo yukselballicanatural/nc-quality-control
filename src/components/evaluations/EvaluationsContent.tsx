@@ -262,8 +262,8 @@ export function EvaluationsContent({
     const visibleEvaluations = evaluations.filter(evaluation => !deletedIds.has(evaluation.id))
     if (clientSortKey !== 'consultant') return visibleEvaluations
     return [...visibleEvaluations].sort((a, b) => {
-      const na = (a.consultant?.full_name ?? '').toLowerCase()
-      const nb = (b.consultant?.full_name ?? '').toLowerCase()
+      const na = (a.consultant?.full_name ?? a.consultant_name ?? '').toLowerCase()
+      const nb = (b.consultant?.full_name ?? b.consultant_name ?? '').toLowerCase()
       const cmp = na.localeCompare(nb, 'tr')
       return clientSortDir === 'asc' ? cmp : -cmp
     })
@@ -351,7 +351,7 @@ export function EvaluationsContent({
                   </p>
                   <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
                     <div className="truncate text-sm font-semibold text-gray-900">
-                      {deleteEvaluation.consultant?.full_name ?? deleteEvaluation.customer_name}
+                      {deleteEvaluation.consultant?.full_name ?? deleteEvaluation.consultant_name ?? deleteEvaluation.customer_name}
                     </div>
                     <div className="mt-0.5 text-xs text-gray-400">
                       {deleteEvaluation.customer_name} · {deleteEvaluation.final_score}/100 · {deleteEvaluation.evaluation_date}
@@ -646,8 +646,13 @@ export function EvaluationsContent({
                       {showConsultant && (
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className="font-medium text-gray-900">
-                            {ev.consultant?.full_name ?? '—'}
+                            {ev.consultant?.full_name ?? ev.consultant_name ?? '—'}
                           </span>
+                          {(ev.team_leader_name || ev.region) && (
+                            <p className="text-[11px] text-gray-400 mt-0.5">
+                              {[ev.team_leader_name, ev.region].filter(Boolean).join(' · ')}
+                            </p>
+                          )}
                         </td>
                       )}
 

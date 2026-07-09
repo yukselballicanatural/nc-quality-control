@@ -23,12 +23,13 @@ import { StepActionPlan } from './StepActionPlan'
 import type { UserRole } from '@/types/supabase'
 import { EARLY_STAGES, EXTENDED_STAGES, SECOND_VISIT_STAGE } from '@/types/supabase'
 import type { EvaluationWithRelations } from '@/types'
+import type { AgentOption } from '@/lib/agents'
 
 export interface FormStepperProps {
   role: UserRole
   evaluatorId: string
   evaluatorName: string
-  consultants: { id: string; full_name: string }[]
+  agents: AgentOption[]
   teamLeaders: { id: string; full_name: string }[]
   teams: { id: string; name: string }[]
   initialEvaluation?: EvaluationWithRelations
@@ -58,7 +59,7 @@ export function FormStepper({
   role,
   evaluatorId,
   evaluatorName,
-  consultants,
+  agents,
   teamLeaders,
   teams,
   initialEvaluation,
@@ -201,7 +202,7 @@ export function FormStepper({
 
   function renderStep() {
     switch (currentStep) {
-      case 1: return <StepBasicInfo role={role} evaluatorId={evaluatorId} evaluatorName={evaluatorName} consultants={consultants} teamLeaders={teamLeaders} teams={teams} />
+      case 1: return <StepBasicInfo role={role} evaluatorId={evaluatorId} evaluatorName={evaluatorName} agents={agents} teamLeaders={teamLeaders} teams={teams} />
       case 2:
         if (isDealStage)        return <StepDealQuestions />
         if (isSecondVisitStage) return <StepSecondVisitQuestions />

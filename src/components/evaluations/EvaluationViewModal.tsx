@@ -288,8 +288,14 @@ function ModalBody({ ev }: { ev: EvaluationWithRelations }) {
       {/* ── Temel bilgiler ─────────────────────────────────── */}
       <Section title={tr_ ? 'Temel Bilgiler' : 'Basic Info'} icon={<User className="w-3.5 h-3.5" />}>
         <div className="bg-gray-50 rounded-2xl p-3.5 sm:p-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-          <InfoCell label={t.evaluations.consultant} value={ev.consultant?.full_name ?? '—'} />
+          <InfoCell label={t.evaluations.consultant} value={ev.consultant?.full_name ?? ev.consultant_name ?? '—'} />
           <InfoCell label={t.evaluations.customer}   value={ev.customer_name} />
+          {ev.team_leader_name && (
+            <InfoCell label={tr_ ? 'Takım Lideri' : 'Team Leader'} value={ev.team_leader_name} />
+          )}
+          {ev.region && (
+            <InfoCell label={tr_ ? 'Bölge' : 'Region'} value={ev.region} />
+          )}
 
           <div>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-0.5">{t.evaluations.channel}</p>

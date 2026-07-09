@@ -64,7 +64,11 @@ export function useEvaluation(editingId: string | null = null) {
       const finalScore = calculateFinalScore(rawScore, critCount, isAutoFailed)
 
       const evalPayload = {
-        consultant_id: step1.consultantId,
+        consultant_id: null,
+        agent_id: step1.consultantId || null,
+        consultant_name: step1.consultantName || null,
+        region: step1.region || null,
+        team_leader_name: step1.agentTeamLeaderName || null,
         team_leader_id: step1.teamLeaderId || null,
         team_id: step1.teamId || null,
         evaluator_id: step1.evaluatorId,

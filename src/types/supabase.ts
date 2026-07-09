@@ -111,7 +111,11 @@ export interface Database {
       evaluations: {
         Row: {
           id: string
-          consultant_id: string
+          consultant_id: string | null
+          consultant_name: string | null
+          agent_id: string | null
+          region: string | null
+          team_leader_name: string | null
           team_leader_id: string | null
           team_id: string | null
           evaluator_id: string
@@ -151,7 +155,11 @@ export interface Database {
         }
         Insert: {
           id?: string
-          consultant_id: string
+          consultant_id?: string | null
+          consultant_name?: string | null
+          agent_id?: string | null
+          region?: string | null
+          team_leader_name?: string | null
           team_leader_id?: string | null
           team_id?: string | null
           evaluator_id: string
@@ -191,7 +199,11 @@ export interface Database {
         }
         Update: {
           id?: string
-          consultant_id?: string
+          consultant_id?: string | null
+          consultant_name?: string | null
+          agent_id?: string | null
+          region?: string | null
+          team_leader_name?: string | null
           team_leader_id?: string | null
           team_id?: string | null
           evaluator_id?: string
@@ -428,6 +440,33 @@ export interface Database {
           entity_id?: string | null
           metadata?: Record<string, unknown>
           created_at?: string
+        }
+        Relationships: []
+      }
+      agents: {
+        Row: {
+          id: string
+          first_name: string | null
+          last_name: string | null
+          role: string | null
+          region: string | null
+          synced_at: string | null
+        }
+        Insert: {
+          id: string
+          first_name?: string | null
+          last_name?: string | null
+          role?: string | null
+          region?: string | null
+          synced_at?: string | null
+        }
+        Update: {
+          id?: string
+          first_name?: string | null
+          last_name?: string | null
+          role?: string | null
+          region?: string | null
+          synced_at?: string | null
         }
         Relationships: []
       }

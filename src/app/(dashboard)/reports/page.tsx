@@ -54,7 +54,8 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 
   type EvalRow = {
     id: string
-    consultant_id: string
+    consultant_id: string | null
+    consultant_name: string | null
     team_id: string | null
     channel: ChannelType
     conversation_result: ConversationResult
@@ -70,6 +71,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
       `
       id,
       consultant_id,
+      consultant_name,
       team_id,
       channel,
       conversation_result,
@@ -125,8 +127,8 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   >()
 
   for (const ev of evalRows) {
-    const cid = ev.consultant_id
-    const cname = ev.consultant?.full_name ?? '—'
+    const cname = ev.consultant?.full_name ?? ev.consultant_name ?? '—'
+    const cid = ev.consultant_id ?? cname
     if (!consultantMap.has(cid)) {
       consultantMap.set(cid, {
         consultantId: cid,
@@ -182,7 +184,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 
   const evalConsultantMap = new Map<string, string>()
   for (const ev of evalRows) {
-    evalConsultantMap.set(ev.id, ev.consultant?.full_name ?? '—')
+    evalConsultantMap.set(ev.id, ev.consultant?.full_name ?? ev.consultant_name ?? '—')
   }
 
   const errorMap = new Map<CriticalErrorType, Map<string, number>>()

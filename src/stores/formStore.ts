@@ -19,6 +19,9 @@ import type { EvaluationWithRelations } from '@/types'
 
 export interface FormStep1 {
   consultantId: string
+  consultantName: string
+  region: string
+  agentTeamLeaderName: string
   teamLeaderId: string
   teamId: string
   evaluatorId: string
@@ -185,6 +188,9 @@ function makeStep1(): FormStep1 {
   const today = new Date().toISOString().split('T')[0]
   return {
     consultantId: '',
+    consultantName: '',
+    region: '',
+    agentTeamLeaderName: '',
     teamLeaderId: '',
     teamId: '',
     evaluatorId: '',
@@ -527,7 +533,10 @@ export const useFormStore = create<FormStore>()((set, get) => ({
       evaluationId: ev.id,
       currentStep: 1,
       step1: {
-        consultantId: ev.consultant.id,
+        consultantId: ev.agent_id ?? ev.consultant?.id ?? '',
+        consultantName: ev.consultant_name ?? ev.consultant?.full_name ?? '',
+        region: ev.region ?? '',
+        agentTeamLeaderName: ev.team_leader_name ?? '',
         teamLeaderId: ev.team_leader?.id ?? '',
         teamId: ev.team?.id ?? '',
         evaluatorId: ev.evaluator.id,

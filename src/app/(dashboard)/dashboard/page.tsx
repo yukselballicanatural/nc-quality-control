@@ -103,7 +103,7 @@ export default async function DashboardPage() {
   let allEvalsQuery = supabase
     .from('evaluations')
     .select(
-      'id, consultant_id, evaluator_id, final_score, critical_error_count, conversation_result, channel, customer_name, status, conversation_date, lead_id'
+      'id, consultant_id, consultant_name, evaluator_id, final_score, critical_error_count, conversation_result, channel, customer_name, status, conversation_date, lead_id'
     )
     .gte('conversation_date', since)
 
@@ -114,7 +114,7 @@ export default async function DashboardPage() {
   let recentQuery = supabase
     .from('evaluations')
     .select(
-      'id, consultant_id, evaluator_id, customer_name, channel, final_score, conversation_result, status, conversation_date, lead_id'
+      'id, consultant_id, consultant_name, evaluator_id, customer_name, channel, final_score, conversation_result, status, conversation_date, lead_id'
     )
     .in('status', ['submitted', 'approved'])
     .order('created_at', { ascending: false })
@@ -278,7 +278,7 @@ export default async function DashboardPage() {
       [
         ...evals.flatMap(e => [e.consultant_id, e.evaluator_id]),
         ...(recentRaw ?? []).flatMap(e => [e.consultant_id, e.evaluator_id]),
-        ...examRows.flatMap(e => [e.consultant_id, e.evaluator_id]),
+        ...examRows.flatMap(e => [e.consultant_id ?? null, e.evaluator_id]),
       ].filter((id): id is string => Boolean(id))
     )
   )
@@ -295,15 +295,16 @@ export default async function DashboardPage() {
   // Consultant stats aggregated and ranked
   const cAgg = new Map<string, { total: number; count: number; name: string }>()
   evals.forEach(e => {
-    const existing = cAgg.get(e.consultant_id)
+    const key = e.consultant_id ?? e.consultant_name ?? 'unknown'
+    const existing = cAgg.get(key)
     if (existing) {
       existing.total += e.final_score
       existing.count += 1
     } else {
-      cAgg.set(e.consultant_id, {
+      cAgg.set(key, {
         total: e.final_score,
         count: 1,
-        name: profileMap.get(e.consultant_id) ?? '—',
+        name: (e.consultant_id ? profileMap.get(e.consultant_id) : e.consultant_name) ?? '—',
       })
     }
   })
@@ -347,7 +348,7 @@ export default async function DashboardPage() {
 
   const recentEvaluations: RecentEval[] = (recentRaw ?? []).map(e => ({
     id: e.id,
-    consultant_name: profileMap.get(e.consultant_id) ?? '—',
+    consultant_name: (e.consultant_id ? profileMap.get(e.consultant_id) : e.consultant_name) ?? '—',
     customer_name: e.customer_name,
     channel: e.channel as ChannelType,
     final_score: e.final_score,

@@ -61,6 +61,9 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
       final_score,
       is_auto_failed,
       status,
+      consultant_name,
+      region,
+      team_leader_name,
       consultant:profiles!evaluations_consultant_id_fkey(id, full_name),
       evaluator:profiles!evaluations_evaluator_id_fkey(id, full_name, email),
       channel_checks(channel)

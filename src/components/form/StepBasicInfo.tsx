@@ -6,12 +6,13 @@ import { useLanguage } from '@/lib/i18n'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import { DatePicker } from '@/components/ui/DatePicker'
 import type { UserRole, ChannelType, SalesStage } from '@/types/supabase'
+import type { AgentOption } from '@/lib/agents'
 
 export interface StepBasicInfoProps {
   role: UserRole
   evaluatorId: string
   evaluatorName: string
-  consultants: { id: string; full_name: string }[]
+  agents: AgentOption[]
   teamLeaders: { id: string; full_name: string }[]
   teams: { id: string; name: string }[]
 }
@@ -45,15 +46,24 @@ const STAGES: SalesStage[] = [
   'second_visit',
 ]
 
-export function StepBasicInfo({ evaluatorId, evaluatorName, consultants, teamLeaders, teams }: StepBasicInfoProps) {
+export function StepBasicInfo({ evaluatorId, evaluatorName, agents, teamLeaders, teams }: StepBasicInfoProps) {
   const { lang, t } = useLanguage()
   const { step1, updateStep1 } = useFormStore()
 
   const displayEvaluatorName =
     evaluatorName ||
-    consultants.find(c => c.id === evaluatorId)?.full_name ||
     teamLeaders.find(tl => tl.id === evaluatorId)?.full_name ||
     t.auth.title
+
+  function selectAgent(agentId: string) {
+    const agent = agents.find(a => a.id === agentId)
+    updateStep1({
+      consultantId: agentId,
+      consultantName: agent?.fullName ?? '',
+      region: agent?.region ?? '',
+      agentTeamLeaderName: agent?.teamLeaderName ?? '',
+    })
+  }
 
   function toggleChannel(ch: ChannelType) {
     const already = step1.channels.includes(ch)
@@ -78,8 +88,8 @@ export function StepBasicInfo({ evaluatorId, evaluatorName, consultants, teamLea
             </label>
             <SearchableSelect
               value={step1.consultantId}
-              onChange={v => updateStep1({ consultantId: v })}
-              options={consultants.map(c => ({ value: c.id, label: c.full_name }))}
+              onChange={selectAgent}
+              options={agents.map(a => ({ value: a.id, label: a.fullName }))}
               placeholder={t.form.step1.consultantPlaceholder}
               icon={User}
               required
@@ -87,14 +97,23 @@ export function StepBasicInfo({ evaluatorId, evaluatorName, consultants, teamLea
           </div>
 
           <div>
+            <label className={labelCls}>{lang === 'tr' ? 'Region' : 'Region'}</label>
+            <div className="relative">
+              <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
+              <div className={`${inputCls} pl-10 bg-gray-50 text-gray-500 cursor-default`}>
+                {step1.region || (lang === 'tr' ? 'Danışman seçilince görünür' : 'Appears after selecting consultant')}
+              </div>
+            </div>
+          </div>
+
+          <div>
             <label className={labelCls}>{t.form.step1.teamLeader}</label>
-            <SearchableSelect
-              value={step1.teamLeaderId}
-              onChange={v => updateStep1({ teamLeaderId: v })}
-              options={teamLeaders.map(tl => ({ value: tl.id, label: tl.full_name }))}
-              placeholder={t.form.step1.teamLeaderPlaceholder}
-              icon={User}
-            />
+            <div className="relative">
+              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
+              <div className={`${inputCls} pl-10 bg-gray-50 text-gray-500 cursor-default`}>
+                {step1.agentTeamLeaderName || (lang === 'tr' ? 'Danışman seçilince görünür' : 'Appears after selecting consultant')}
+              </div>
+            </div>
           </div>
 
           <div>

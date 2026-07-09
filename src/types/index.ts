@@ -16,7 +16,11 @@ export type {
 
 export interface EvaluationWithRelations {
   id: string
-  consultant: { id: string; full_name: string }
+  consultant: { id: string; full_name: string } | null
+  consultant_name: string | null
+  agent_id: string | null
+  region: string | null
+  team_leader_name: string | null
   team_leader: { id: string; full_name: string } | null
   team: { id: string; name: string } | null
   evaluator: { id: string; full_name: string }
@@ -92,6 +96,9 @@ export interface EvaluationListItem {
   is_auto_failed: boolean
   status: import('./supabase').EvaluationStatus
   consultant: { id: string; full_name: string } | null
+  consultant_name: string | null
+  region: string | null
+  team_leader_name: string | null
   evaluator: { id: string; full_name: string | null; email?: string | null } | null
   channel_checks?: Pick<import('./supabase').ChannelCheck, 'channel'>[]
 }
