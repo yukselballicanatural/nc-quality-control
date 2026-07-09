@@ -1,8 +1,22 @@
 'use client'
 
-import { useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Download, X, MessageSquare, Phone, Users, BarChart2, AlertCircle, Award } from 'lucide-react'
+import {
+  Bar,
+  BarChart,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import {
+  Download, X, MessageSquare, Phone, Users, BarChart2, AlertCircle, Award,
+  ClipboardList, Gauge, ShieldAlert, Trophy,
+} from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import { getScoreLevel } from '@/lib/scoring'
 import type { UserRole, ConversationResult, CriticalErrorType } from '@/types/supabase'
@@ -85,6 +99,9 @@ interface Props {
   filterResult: string
   activeTab: string
   role: UserRole
+  overallAvgScore: number
+  totalCriticalErrors: number
+  overallWonRate: number
 }
 
 // ─── Component ────────────────────────────────────────────────────
@@ -105,17 +122,32 @@ export function ReportsContent({
   filterResult,
   activeTab,
   role,
+  overallAvgScore,
+  totalCriticalErrors,
+  overallWonRate,
 }: Props) {
   const { lang, t } = useLanguage()
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  // Tab switching needs no server round-trip — every tab's data is already
+  // in props. Keep it as local state so it's instant, and mirror it into the
+  // URL via history.replaceState (no Next.js navigation, no refetch) purely
+  // so the tab survives a manual page refresh / is shareable as a link.
+  const [tab, setTab] = useState(activeTab as TabId)
+
+  function switchTab(id: TabId) {
+    setTab(id)
+    const url = new URL(window.location.href)
+    url.searchParams.set('tab', id)
+    window.history.replaceState(null, '', url.toString())
+  }
 
   // ── URL helpers ────────────────────────────────────────────────
 
   function pushParams(overrides: Record<string, string>) {
     const params = new URLSearchParams()
     const current: Record<string, string> = {
-      tab: activeTab,
+      tab,
       startDate: filterStartDate,
       endDate: filterEndDate,
       consultantId: filterConsultantId,
@@ -134,7 +166,7 @@ export function ReportsContent({
 
   function clearFilters() {
     startTransition(() => {
-      router.replace(`/reports?tab=${activeTab}`)
+      router.replace(`/reports?tab=${tab}`)
     })
   }
 
@@ -246,6 +278,33 @@ export function ReportsContent({
         </button>
       </div>
 
+      {/* ── Overview KPI cards ──────────────────────────────────── */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <KpiCard
+          icon={ClipboardList}
+          label={lang === 'tr' ? 'Toplam Değerlendirme' : 'Total Evaluations'}
+          value={String(totalEvaluations)}
+        />
+        <KpiCard
+          icon={Gauge}
+          label={lang === 'tr' ? 'Genel Ortalama Skor' : 'Overall Avg Score'}
+          value={`${overallAvgScore}/100`}
+          valueClassName={getScoreLevel(overallAvgScore).textColor}
+        />
+        <KpiCard
+          icon={ShieldAlert}
+          label={lang === 'tr' ? 'Toplam Kritik Hata' : 'Total Critical Errors'}
+          value={String(totalCriticalErrors)}
+          valueClassName={totalCriticalErrors > 0 ? 'text-red-600' : 'text-gray-900'}
+        />
+        <KpiCard
+          icon={Trophy}
+          label={lang === 'tr' ? 'Genel Kazanma Oranı' : 'Overall Won Rate'}
+          value={`%${overallWonRate}`}
+          valueClassName={overallWonRate >= 50 ? 'text-green-700' : 'text-gray-900'}
+        />
+      </div>
+
       {/* ── Filter panel ─────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
         <div className="flex flex-wrap gap-2 items-center">
@@ -345,9 +404,9 @@ export function ReportsContent({
           {TABS.map(({ id, label, Icon }) => (
             <button
               key={id}
-              onClick={() => pushParams({ tab: id })}
+              onClick={() => switchTab(id)}
               className={`flex items-center gap-2 px-4 py-3.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
-                activeTab === id
+                tab === id
                   ? 'text-[#1B4332] border-[#1B4332]'
                   : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-200'
               }`}
@@ -363,11 +422,49 @@ export function ReportsContent({
           className={`transition-opacity duration-150 ${isPending ? 'opacity-60' : 'opacity-100'}`}
         >
           {/* ── Tab 1: Consultant Performance ─────────────────── */}
-          {activeTab === 'consultantPerformance' && (
-            <div className="overflow-x-auto">
+          {tab === 'consultantPerformance' && (
+            <div>
               {consultantPerf.length === 0 ? (
                 <EmptyState lang={lang} />
               ) : (
+                <>
+                  <div className="px-5 pt-5">
+                    <ResponsiveContainer width="100%" height={Math.max(180, consultantPerf.slice(0, 10).length * 34)}>
+                      <BarChart
+                        data={consultantPerf.slice(0, 10).map(r => ({ name: r.consultantName, score: r.avgScore }))}
+                        layout="vertical"
+                        margin={{ left: 8, right: 24 }}
+                      >
+                        <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                        <YAxis
+                          type="category"
+                          dataKey="name"
+                          width={110}
+                          tick={{ fontSize: 12, fill: '#374151' }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <Tooltip
+                          cursor={{ fill: 'rgba(27, 67, 50, 0.04)' }}
+                          contentStyle={{ border: 'none', borderRadius: 12, boxShadow: '0 12px 30px rgba(15, 23, 42, 0.12)', fontSize: 12 }}
+                          formatter={(value: unknown) => [String(value ?? ''), t.reports.consultantTable.averageScore]}
+                        />
+                        <Bar dataKey="score" radius={[0, 8, 8, 0]} barSize={18}>
+                          {consultantPerf.slice(0, 10).map((row, index) => (
+                            <Cell key={index} fill={scoreBarColor(row.avgScore)} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  {consultantPerf.length > 10 && (
+                    <p className="px-5 pt-1 text-[11px] text-gray-400">
+                      {lang === 'tr'
+                        ? `İlk 10 danışman gösteriliyor · toplam ${consultantPerf.length}`
+                        : `Showing top 10 · ${consultantPerf.length} total`}
+                    </p>
+                  )}
+                  <div className="overflow-x-auto mt-4">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50/60 border-b border-gray-100">
@@ -431,17 +528,42 @@ export function ReportsContent({
                     })}
                   </tbody>
                 </table>
+                  </div>
+                </>
               )}
             </div>
           )}
 
           {/* ── Tab 2: Channel Comparison ──────────────────────── */}
-          {activeTab === 'channelComparison' && (
+          {tab === 'channelComparison' && (
             <div className="p-6">
               {channelComp.every(r => r.evaluationCount === 0) ? (
                 <EmptyState lang={lang} />
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <BarChart
+                      data={channelComp.map(r => ({
+                        name: r.channel === 'whatsapp' ? 'WhatsApp' : (lang === 'tr' ? 'Arama' : 'Call'),
+                        score: r.avgScore,
+                      }))}
+                      barSize={56}
+                    >
+                      <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                      <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} width={28} />
+                      <Tooltip
+                        cursor={{ fill: 'rgba(27, 67, 50, 0.04)' }}
+                        contentStyle={{ border: 'none', borderRadius: 12, boxShadow: '0 12px 30px rgba(15, 23, 42, 0.12)', fontSize: 12 }}
+                        formatter={(value: unknown) => [String(value ?? ''), t.reports.consultantTable.averageScore]}
+                      />
+                      <Bar dataKey="score" radius={[8, 8, 0, 0]}>
+                        {channelComp.map((_, index) => (
+                          <Cell key={index} fill={index === 0 ? '#52B788' : '#1B4332'} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                   {channelComp.map(row => {
                     const level = getScoreLevel(row.avgScore)
                     const isWhatsApp = row.channel === 'whatsapp'
@@ -496,16 +618,44 @@ export function ReportsContent({
                     )
                   })}
                 </div>
+                </>
               )}
             </div>
           )}
 
           {/* ── Tab 3: Critical Error Report ───────────────────── */}
-          {activeTab === 'criticalErrors' && (
-            <div className="overflow-x-auto">
+          {tab === 'criticalErrors' && (
+            <div>
               {criticalErrors.length === 0 ? (
                 <EmptyState lang={lang} />
               ) : (
+                <>
+                  <div className="px-5 pt-5">
+                    <ResponsiveContainer width="100%" height={Math.max(140, criticalErrors.length * 36)}>
+                      <BarChart
+                        data={criticalErrors.map(r => ({ name: ceLabels[r.errorType], count: r.totalCount }))}
+                        layout="vertical"
+                        margin={{ left: 8, right: 24 }}
+                      >
+                        <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                        <YAxis
+                          type="category"
+                          dataKey="name"
+                          width={130}
+                          tick={{ fontSize: 12, fill: '#374151' }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <Tooltip
+                          cursor={{ fill: 'rgba(239, 68, 68, 0.04)' }}
+                          contentStyle={{ border: 'none', borderRadius: 12, boxShadow: '0 12px 30px rgba(15, 23, 42, 0.12)', fontSize: 12 }}
+                          formatter={(value: unknown) => [String(value ?? ''), t.reports.criticalErrorReport.totalCount]}
+                        />
+                        <Bar dataKey="count" radius={[0, 8, 8, 0]} barSize={18} fill="#EF4444" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="overflow-x-auto mt-4">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50/60 border-b border-gray-100">
@@ -548,16 +698,54 @@ export function ReportsContent({
                     ))}
                   </tbody>
                 </table>
+                  </div>
+                </>
               )}
             </div>
           )}
 
           {/* ── Tab 4: Sales Outcome ────────────────────────────── */}
-          {activeTab === 'salesOutcome' && (
-            <div className="overflow-x-auto">
+          {tab === 'salesOutcome' && (
+            <div>
               {salesOutcome.length === 0 ? (
                 <EmptyState lang={lang} />
               ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4 p-5">
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie
+                          data={salesOutcome.map(r => ({ name: resultLabels[r.result], value: r.evaluationCount, result: r.result }))}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={52}
+                          outerRadius={80}
+                          paddingAngle={3}
+                          dataKey="value"
+                        >
+                          {salesOutcome.map(row => (
+                            <Cell key={row.result} fill={RESULT_CHART_COLORS[row.result]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{ border: 'none', borderRadius: 12, boxShadow: '0 12px 30px rgba(15, 23, 42, 0.12)', fontSize: 12 }}
+                          formatter={(value: unknown) => [String(value ?? ''), lang === 'tr' ? 'Kayıt' : 'Records']}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="flex flex-col justify-center gap-2">
+                      {salesOutcome.map(row => (
+                        <div key={row.result} className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 px-3 py-2">
+                          <span className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: RESULT_CHART_COLORS[row.result] }} />
+                            {resultLabels[row.result]}
+                          </span>
+                          <span className="text-sm font-bold text-gray-950">{row.evaluationCount}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50/60 border-b border-gray-100">
@@ -601,6 +789,8 @@ export function ReportsContent({
                     })}
                   </tbody>
                 </table>
+                  </div>
+                </>
               )}
             </div>
           )}
@@ -608,6 +798,16 @@ export function ReportsContent({
       </div>
     </div>
   )
+}
+
+// ─── Result chart colors ──────────────────────────────────────────
+
+const RESULT_CHART_COLORS: Record<ConversationResult, string> = {
+  won: '#22C55E',
+  open: '#3B82F6',
+  follow_up: '#F59E0B',
+  lost: '#EF4444',
+  no_answer: '#9CA3AF',
 }
 
 // ─── Empty state ─────────────────────────────────────────────────
@@ -620,4 +820,39 @@ function EmptyState({ lang }: { lang: string }) {
       </p>
     </div>
   )
+}
+
+// ─── KPI card ─────────────────────────────────────────────────────
+
+function KpiCard({
+  icon: Icon,
+  label,
+  value,
+  valueClassName = 'text-gray-900',
+}: {
+  icon: React.ElementType
+  label: string
+  value: string
+  valueClassName?: string
+}) {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+      <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-xl bg-[#52B788]/12 text-[#1B4332]">
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="text-[11px] font-semibold uppercase tracking-[0.06em] text-gray-400">
+        {label}
+      </div>
+      <div className={`mt-1 text-xl font-black ${valueClassName}`}>{value}</div>
+    </div>
+  )
+}
+
+// ─── Score bar color helper ───────────────────────────────────────
+
+function scoreBarColor(score: number): string {
+  if (score >= 90) return '#22C55E'
+  if (score >= 80) return '#3B82F6'
+  if (score >= 60) return '#F59E0B'
+  return '#EF4444'
 }

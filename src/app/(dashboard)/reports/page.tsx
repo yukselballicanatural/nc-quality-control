@@ -233,6 +233,18 @@ export default async function ReportsPage({ searchParams }: PageProps) {
       }
     })
 
+  // ── Overall KPIs (from the same evalRows, no extra query) ─────────
+
+  const overallAvgScore = evalRows.length
+    ? Math.round(
+        evalRows.reduce((sum, ev) => sum + (ev.is_auto_failed ? 0 : ev.final_score), 0) /
+          evalRows.length
+      )
+    : 0
+  const totalCriticalErrors = evalRows.reduce((sum, ev) => sum + ev.critical_error_count, 0)
+  const overallWonCount = evalRows.filter(ev => ev.conversation_result === 'won').length
+  const overallWonRate = evalRows.length ? Math.round((overallWonCount / evalRows.length) * 100) : 0
+
   // ── Render ────────────────────────────────────────────────────────
 
   return (
@@ -244,6 +256,9 @@ export default async function ReportsPage({ searchParams }: PageProps) {
       criticalErrors={criticalErrors}
       salesOutcome={salesOutcome}
       totalEvaluations={evalRows.length}
+      overallAvgScore={overallAvgScore}
+      totalCriticalErrors={totalCriticalErrors}
+      overallWonRate={overallWonRate}
       filterStartDate={startDate}
       filterEndDate={endDate}
       filterConsultantId={consultantId}
