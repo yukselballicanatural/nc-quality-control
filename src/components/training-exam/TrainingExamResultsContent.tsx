@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/client'
+import { DatePicker } from '@/components/ui/DatePicker'
 import type { TrainingExam, UserRole } from '@/types/supabase'
 
 type SortKey = 'date' | 'score' | 'level'
@@ -755,7 +756,7 @@ export function TrainingExamResultsContent({
             onChange={event => updateFilter('level', event.target.value)}
             className={selectClass}
           >
-            <option value="">{isTr ? 'Seviyeye göre filtrele' : 'Filter by level'}</option>
+            <option value="">{isTr ? 'Tümü' : 'All'}</option>
             <option value="junior">Junior</option>
             <option value="senior">Senior</option>
           </select>
@@ -786,21 +787,23 @@ export function TrainingExamResultsContent({
           )}
 
           <div className="flex flex-wrap items-center gap-1.5">
-            <input
-              type="date"
-              value={filterStartDate}
-              onChange={event => updateFilter('startDate', event.target.value)}
-              className={`${selectClass} w-[130px] sm:w-36`}
-              title={t.evaluations.startDate}
-            />
+            <div className="w-[160px] sm:w-44">
+              <DatePicker
+                value={filterStartDate}
+                onChange={v => updateFilter('startDate', v)}
+                placeholder={t.evaluations.startDate}
+                maxDate={filterEndDate || undefined}
+              />
+            </div>
             <span className="text-gray-400 text-sm">-</span>
-            <input
-              type="date"
-              value={filterEndDate}
-              onChange={event => updateFilter('endDate', event.target.value)}
-              className={`${selectClass} w-[130px] sm:w-36`}
-              title={t.evaluations.endDate}
-            />
+            <div className="w-[160px] sm:w-44">
+              <DatePicker
+                value={filterEndDate}
+                onChange={v => updateFilter('endDate', v)}
+                placeholder={t.evaluations.endDate}
+                minDate={filterStartDate || undefined}
+              />
+            </div>
           </div>
         </div>
       </div>
