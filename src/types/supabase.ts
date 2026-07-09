@@ -139,6 +139,9 @@ export interface Database {
           dev_team_leader_comment: string | null
           dev_consultant_plan: string | null
           dev_recheck_date: string | null
+          recheck_done: boolean
+          recheck_done_at: string | null
+          recheck_done_by: string | null
           stage_answers: Record<string, unknown> | null
           offer_answers: Record<string, unknown> | null
           deal_answers: Record<string, unknown> | null
@@ -176,6 +179,9 @@ export interface Database {
           dev_team_leader_comment?: string | null
           dev_consultant_plan?: string | null
           dev_recheck_date?: string | null
+          recheck_done?: boolean
+          recheck_done_at?: string | null
+          recheck_done_by?: string | null
           stage_answers?: Record<string, unknown> | null
           offer_answers?: Record<string, unknown> | null
           deal_answers?: Record<string, unknown> | null
@@ -213,6 +219,9 @@ export interface Database {
           dev_team_leader_comment?: string | null
           dev_consultant_plan?: string | null
           dev_recheck_date?: string | null
+          recheck_done?: boolean
+          recheck_done_at?: string | null
+          recheck_done_by?: string | null
           stage_answers?: Record<string, unknown> | null
           offer_answers?: Record<string, unknown> | null
           deal_answers?: Record<string, unknown> | null

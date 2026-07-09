@@ -399,6 +399,7 @@ export function RecheckContent({ items: initialItems, currentUserId, role }: Pro
   const [activeFilter, setActiveFilter] = useState<Filter>('today')
   const [customDate, setCustomDate] = useState('')
   const [items, setItems] = useState<RecheckItem[]>(initialItems)
+  const [toggleError, setToggleError] = useState('')
 
   const counts = useMemo(() => {
     const pending = items.filter(i => !i.recheck_done)
@@ -436,8 +437,17 @@ export function RecheckContent({ items: initialItems, currentUserId, role }: Pro
       } as any)
       .eq('id', id)
 
-    if (error) { console.error(error); return }
+    if (error) {
+      console.error(error)
+      setToggleError(
+        tr
+          ? 'İşaretlenemedi. Supabase üzerinde scripts/add-recheck-done-columns.sql çalıştırıldığından emin olun.'
+          : 'Could not mark as done. Make sure scripts/add-recheck-done-columns.sql has been run on Supabase.'
+      )
+      return
+    }
 
+    setToggleError('')
     setItems(prev => prev.map(item => {
       if (item.id !== id) return item
       return {
@@ -447,6 +457,7 @@ export function RecheckContent({ items: initialItems, currentUserId, role }: Pro
         recheck_done_by: done ? currentUserId : null,
       }
     }))
+    window.dispatchEvent(new Event('recheck-updated'))
   }
 
   function handleTabClick(id: Filter) {
@@ -465,6 +476,18 @@ export function RecheckContent({ items: initialItems, currentUserId, role }: Pro
 
   return (
     <div className="space-y-5">
+
+      {/* Toggle error banner */}
+      <AnimatePresence>
+        {toggleError && (
+          <motion.div initial={{ opacity:0, y:-10, height:0 }} animate={{ opacity:1, y:0, height:'auto' }} exit={{ opacity:0, height:0 }} className="overflow-hidden">
+            <div className="flex items-center gap-3 px-5 py-3.5 bg-red-50 border border-red-200 rounded-2xl">
+              <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
+              <p className="text-sm font-bold text-red-700">{toggleError}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Urgent banner */}
       <AnimatePresence>

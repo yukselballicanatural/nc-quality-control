@@ -50,22 +50,28 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
   const router = useRouter()
 
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0]
-    const supabase = createBrowserClient()
-    let query = supabase
-      .from('evaluations')
-      .select('id', { count: 'exact', head: true })
-      .not('dev_recheck_date', 'is', null)
-      .lte('dev_recheck_date', today)
+    function fetchRecheckCount() {
+      const today = new Date().toISOString().split('T')[0]
+      const supabase = createBrowserClient()
+      let query = supabase
+        .from('evaluations')
+        .select('id', { count: 'exact', head: true })
+        .not('dev_recheck_date', 'is', null)
+        .lte('dev_recheck_date', today)
+        .eq('recheck_done', false)
 
-    if (isRestrictedQualityUser(profile)) {
-      query = query.eq('evaluator_id', profile.id)
-    } else if (profile.role === 'team_leader' && profile.team_id) {
-      query = query.eq('team_id', profile.team_id)
+      if (isRestrictedQualityUser(profile)) {
+        query = query.eq('evaluator_id', profile.id)
+      } else if (profile.role === 'team_leader' && profile.team_id) {
+        query = query.eq('team_id', profile.team_id)
+      }
+
+      query.then(({ count }) => setRecheckUrgentCount(count ?? 0))
     }
 
-    query
-      .then(({ count }) => setRecheckUrgentCount(count ?? 0))
+    fetchRecheckCount()
+    window.addEventListener('recheck-updated', fetchRecheckCount)
+    return () => window.removeEventListener('recheck-updated', fetchRecheckCount)
   }, [profile])
 
   useEffect(() => {
