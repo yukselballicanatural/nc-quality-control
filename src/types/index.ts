@@ -86,6 +86,7 @@ export interface EvaluationListItem {
   customer_name: string
   channel: import('./supabase').ChannelType
   conversation_date: string
+  evaluation_date: string
   conversation_result: import('./supabase').ConversationResult
   final_score: number
   is_auto_failed: boolean

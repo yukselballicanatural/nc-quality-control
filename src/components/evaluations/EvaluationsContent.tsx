@@ -234,7 +234,7 @@ export function EvaluationsContent({
     // Server-side sort
     setClientSortKey(null)
     const col =
-      key === 'date' ? 'conversation_date'
+      key === 'date' ? 'evaluation_date'
       : key === 'customer' ? 'customer_name'
       : 'final_score'
     const newDir = serverSortBy === col && serverSortDir === 'asc' ? 'desc' : 'asc'
@@ -245,7 +245,7 @@ export function EvaluationsContent({
 
   function isServerActive(key: SortKey) {
     const col =
-      key === 'date' ? 'conversation_date'
+      key === 'date' ? 'evaluation_date'
       : key === 'customer' ? 'customer_name'
       : 'final_score'
     return serverSortBy === col
@@ -353,7 +353,7 @@ export function EvaluationsContent({
                       {deleteEvaluation.consultant?.full_name ?? deleteEvaluation.customer_name}
                     </div>
                     <div className="mt-0.5 text-xs text-gray-400">
-                      {deleteEvaluation.customer_name} · {deleteEvaluation.final_score}/100 · {deleteEvaluation.conversation_date}
+                      {deleteEvaluation.customer_name} · {deleteEvaluation.final_score}/100 · {deleteEvaluation.evaluation_date}
                     </div>
                   </div>
                   {deleteError && (
@@ -553,7 +553,7 @@ export function EvaluationsContent({
                       onClick={() => handleSortClick('date')}
                       className="flex items-center font-medium text-gray-500 hover:text-gray-800 transition-colors"
                     >
-                      {t.evaluations.conversationDate}
+                      {t.evaluations.controlDate}
                       <SortIcon active={isServerActive('date')} dir={serverDir('date')} />
                     </button>
                   </th>
@@ -625,7 +625,7 @@ export function EvaluationsContent({
                       className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors"
                     >
                       <td className="px-4 py-3 whitespace-nowrap text-gray-700">
-                        {ev.conversation_date}
+                        {ev.evaluation_date}
                       </td>
 
                       {showConsultant && (

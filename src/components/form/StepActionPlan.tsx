@@ -31,6 +31,8 @@ export function StepActionPlan() {
 
   const score = getStageScore()
   const level = getScoreLevel(score)
+  // Tekrar kontrol tarihi geçmişte olamaz — bugünden öncesi seçilemez.
+  const today = new Date().toISOString().slice(0, 10)
 
   const textareaFields: Array<{ key: keyof Omit<FormStep6, 'recheckDate'>; label: string }> = [
     { key: 'strengths',         label: uiT.form.step6.strengths },
@@ -113,6 +115,7 @@ export function StepActionPlan() {
               value={step6.recheckDate}
               onChange={v => updateStep6({ recheckDate: v })}
               placeholder={uiLang === 'tr' ? 'Tarih seçin...' : 'Select date...'}
+              minDate={today}
             />
           </div>
 

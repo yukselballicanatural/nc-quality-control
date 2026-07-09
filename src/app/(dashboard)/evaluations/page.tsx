@@ -13,7 +13,7 @@ const EvaluationsContent = nextDynamic(
   { ssr: false }
 )
 
-const VALID_SORT_COLS = ['created_at', 'conversation_date', 'customer_name', 'final_score'] as const
+const VALID_SORT_COLS = ['created_at', 'evaluation_date', 'conversation_date', 'customer_name', 'final_score'] as const
 type ValidSortCol = (typeof VALID_SORT_COLS)[number]
 
 // ─── Page ─────────────────────────────────────────────────────────
@@ -55,6 +55,7 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
       customer_name,
       channel,
       conversation_date,
+      evaluation_date,
       created_at,
       conversation_result,
       final_score,
