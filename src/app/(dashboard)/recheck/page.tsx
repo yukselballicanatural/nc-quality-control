@@ -27,6 +27,7 @@ export default async function RecheckPage() {
       recheck_done,
       recheck_done_at,
       recheck_done_by,
+      consultant_name,
       consultant:profiles!evaluations_consultant_id_fkey(id, full_name),
       evaluator:profiles!evaluations_evaluator_id_fkey(id, full_name),
       doneBy:profiles!evaluations_recheck_done_by_fkey(id, full_name)
@@ -63,7 +64,8 @@ export interface RecheckItem {
   recheck_done: boolean
   recheck_done_at: string | null
   recheck_done_by: string | null
-  consultant: { id: string; full_name: string }
+  consultant_name: string | null
+  consultant: { id: string; full_name: string } | null
   evaluator: { id: string; full_name: string }
   doneBy: { id: string; full_name: string } | null
 }

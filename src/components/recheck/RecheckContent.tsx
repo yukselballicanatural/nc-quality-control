@@ -119,6 +119,7 @@ function Card({
     diff === 1 ? 'from-amber-400' : diff <= 7 ? 'from-[#52B788]' : 'from-gray-200'
 
   const stage = stageLabel(item.lead_id)
+  const consultantName = item.consultant?.full_name ?? item.consultant_name ?? '—'
 
   async function handleToggle() {
     setPending(true)
@@ -144,16 +145,16 @@ function Card({
       <div className="flex items-center gap-4 px-6 pt-5 pb-4">
         {/* Avatar */}
         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 text-sm font-black shadow-sm transition-all ${
-          isDone ? 'bg-emerald-100 text-emerald-700' : avatarColor(item.consultant.full_name)
+          isDone ? 'bg-emerald-100 text-emerald-700' : avatarColor(consultantName)
         }`}>
-          {isDone ? <Check className="w-5 h-5" /> : initials(item.consultant.full_name)}
+          {isDone ? <Check className="w-5 h-5" /> : initials(consultantName)}
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className={`text-[15px] font-bold leading-tight truncate ${isDone ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
-              {item.consultant.full_name}
+              {consultantName}
             </span>
             {stage && (
               <span className="text-[10px] font-bold text-[#1B4332] bg-[#1B4332]/8 px-2 py-0.5 rounded-full">{stage}</span>
