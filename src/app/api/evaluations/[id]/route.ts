@@ -74,11 +74,11 @@ export async function DELETE(
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, role, email')
+    .select('id, role, email, team_id')
     .eq('id', user.id)
     .single()
 
-  if (!profile || !['quality_team', 'manager'].includes(profile.role)) {
+  if (!profile || !['quality_team', 'manager', 'team_leader'].includes(profile.role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
   if (!SERVICE_KEY || !SUPABASE_URL) {
@@ -86,7 +86,7 @@ export async function DELETE(
   }
 
   const evalRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/evaluations?id=eq.${encodeURIComponent(params.id)}&select=id,evaluator_id,customer_name,final_score,status`,
+    `${SUPABASE_URL}/rest/v1/evaluations?id=eq.${encodeURIComponent(params.id)}&select=id,evaluator_id,team_id,customer_name,final_score,status`,
     { headers: adminHeaders(), cache: 'no-store' }
   )
 
@@ -95,12 +95,16 @@ export async function DELETE(
     return NextResponse.json({ error: body || 'Evaluation could not be checked' }, { status: 500 })
   }
 
-  const evaluations = await evalRes.json() as Array<{ id: string; evaluator_id: string; customer_name?: string; final_score?: number; status?: string }>
+  const evaluations = await evalRes.json() as Array<{ id: string; evaluator_id: string; team_id: string | null; customer_name?: string; final_score?: number; status?: string }>
   const evaluation = evaluations[0]
   if (!evaluation) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   if (isRestrictedQualityUser(profile)) {
     if (!evaluation || evaluation.evaluator_id !== profile.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+  } else if (profile.role === 'team_leader') {
+    if (!profile.team_id || evaluation.team_id !== profile.team_id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
   }

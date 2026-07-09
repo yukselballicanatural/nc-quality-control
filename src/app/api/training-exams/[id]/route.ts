@@ -38,7 +38,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
     return NextResponse.json({ error: 'Supabase admin configuration is missing' }, { status: 500 })
   }
 
-  if (!['quality_team', 'manager'].includes(caller.role)) {
+  if (!['quality_team', 'manager', 'team_leader'].includes(caller.role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -56,7 +56,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
   const exam = exams[0]
   if (!exam) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  if (caller.role === 'quality_team' && exam.evaluator_id !== caller.id) {
+  if (caller.role !== 'manager' && exam.evaluator_id !== caller.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
