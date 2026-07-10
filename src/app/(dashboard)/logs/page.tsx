@@ -22,6 +22,7 @@ const PAGE_SIZE = 100
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString('tr-TR', {
+    timeZone: 'Europe/Istanbul',
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
