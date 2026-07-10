@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { calculateFinalScore } from '@/lib/scoring'
+import { WHATSAPP_QUESTIONS, CALL_QUESTIONS } from '@/lib/constants'
 import type {
   ChannelType,
   SalesStage,
@@ -118,7 +119,7 @@ export interface FormStore {
   dealAnswers: FormDealAnswers
   secondVisitAnswers: FormSecondVisitAnswers
   criteriaScores: Record<number, FormCriteriaEntry> // key = criteriaNumber 1-10
-  channelChecks: Record<number, FormChannelCheck>   // key = questionNumber 1-10
+  channelChecks: Partial<Record<ChannelType, Record<number, FormChannelCheck>>> // per-channel, key = questionNumber
   criticalErrors: FormCriticalError[]
   isAutoFailed: boolean
   step5: FormStep5
@@ -143,7 +144,7 @@ export interface FormStore {
   setCriteriaComment: (criteriaNumber: number, comment: string) => void
 
   // Step 3 — Channel checks
-  setChannelAnswer: (questionNumber: number, answer: CheckAnswer) => void
+  setChannelAnswer: (channel: ChannelType, questionNumber: number, answer: CheckAnswer) => void
 
   // Step 4 — Critical errors
   toggleCriticalError: (errorType: CriticalErrorType) => void
@@ -289,7 +290,15 @@ export const useFormStore = create<FormStore>()((set, get) => ({
 
   isCriteriaComplete: () => Object.keys(get().criteriaScores).length === 10,
 
-  isChannelChecksComplete: () => Object.keys(get().channelChecks).length === 10,
+  isChannelChecksComplete: () => {
+    const { step1, channelChecks } = get()
+    if (step1.channels.length === 0) return false
+    return step1.channels.every(ch => {
+      const questions = ch === 'whatsapp' ? WHATSAPP_QUESTIONS : CALL_QUESTIONS
+      const answered = channelChecks[ch] ?? {}
+      return Object.keys(answered).length === questions.length
+    })
+  },
 
   hasCriticalError: (errorType) =>
     get().criticalErrors.some(e => e.errorType === errorType),
@@ -463,11 +472,14 @@ export const useFormStore = create<FormStore>()((set, get) => ({
 
   // ── Step 3 — Channel checks ─────────────────────────────────────
 
-  setChannelAnswer: (questionNumber, answer) =>
+  setChannelAnswer: (channel, questionNumber, answer) =>
     set(state => ({
       channelChecks: {
         ...state.channelChecks,
-        [questionNumber]: { questionNumber, answer },
+        [channel]: {
+          ...state.channelChecks[channel],
+          [questionNumber]: { questionNumber, answer },
+        },
       },
     })),
 
@@ -516,9 +528,11 @@ export const useFormStore = create<FormStore>()((set, get) => ({
       }
     })
 
-    const channelChecks: Record<number, FormChannelCheck> = {}
+    const channelChecks: Partial<Record<ChannelType, Record<number, FormChannelCheck>>> = {}
     ev.channel_checks.forEach(cc => {
-      channelChecks[cc.question_number] = {
+      const chKey = cc.channel as ChannelType
+      if (!channelChecks[chKey]) channelChecks[chKey] = {}
+      channelChecks[chKey]![cc.question_number] = {
         questionNumber: cc.question_number,
         answer: cc.answer,
       }

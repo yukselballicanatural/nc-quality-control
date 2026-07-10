@@ -5,7 +5,7 @@ import { AlertCircle, MessageSquare, Phone, Check } from 'lucide-react'
 import { useFormStore } from '@/stores/formStore'
 import { useLanguage } from '@/lib/i18n'
 import { WHATSAPP_QUESTIONS, CALL_QUESTIONS, CHECK_ANSWER_OPTIONS } from '@/lib/constants'
-import type { CheckAnswer } from '@/types/supabase'
+import type { CheckAnswer, ChannelType } from '@/types/supabase'
 
 const ANSWER_CONFIG: Record<CheckAnswer, {
   icon: string; activeBg: string; activeText: string; activeBorder: string; activeShadow: string; idleHover: string
@@ -32,30 +32,18 @@ const ANSWER_CONFIG: Record<CheckAnswer, {
   },
 }
 
-export function StepChannelChecks() {
-  const { lang, t } = useLanguage()
-  const { step1, channelChecks, setChannelAnswer, isChannelChecksComplete } = useFormStore()
-  const channel = step1.channels[0] ?? null
-
-  if (!channel) {
-    return (
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
-        <AlertCircle className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-        <p className="text-sm text-gray-400">
-          {lang === 'tr' ? "Adım 1'de görüşme kanalı seçilmedi." : 'No channel selected in Step 1.'}
-        </p>
-      </div>
-    )
-  }
-
+function ChannelSection({ channel }: { channel: ChannelType }) {
+  const { lang } = useLanguage()
+  const { channelChecks, setChannelAnswer } = useFormStore()
   const questions = channel === 'whatsapp' ? WHATSAPP_QUESTIONS : CALL_QUESTIONS
-  const answeredCount = Object.keys(channelChecks).length
+  const answers = channelChecks[channel] ?? {}
+  const answeredCount = Object.keys(answers).length
   const pct = Math.round((answeredCount / questions.length) * 100)
   const isWA = channel === 'whatsapp'
+  const isComplete = answeredCount === questions.length
 
   return (
     <div className="space-y-3">
-
       {/* ── Header card ─────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4">
         <div className="flex items-center justify-between mb-3">
@@ -77,7 +65,7 @@ export function StepChannelChecks() {
               </p>
             </div>
           </div>
-          <div className={`text-right transition-colors ${answeredCount === questions.length ? (isWA ? 'text-emerald-600' : 'text-blue-600') : 'text-gray-400'}`}>
+          <div className={`text-right transition-colors ${isComplete ? (isWA ? 'text-emerald-600' : 'text-blue-600') : 'text-gray-400'}`}>
             <p className="text-2xl font-black tabular-nums leading-none">{answeredCount}</p>
             <p className="text-xs font-medium">/ {questions.length}</p>
           </div>
@@ -93,7 +81,7 @@ export function StepChannelChecks() {
         </div>
 
         <AnimatePresence>
-          {isChannelChecksComplete() && (
+          {isComplete && (
             <motion.div
               initial={{ opacity: 0, height: 0, marginTop: 0 }}
               animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
@@ -111,7 +99,7 @@ export function StepChannelChecks() {
 
       {/* ── Questions ────────────────────────────────────────── */}
       {questions.map((q, idx) => {
-        const check = channelChecks[q.number]
+        const check = answers[q.number]
         const questionLabel = lang === 'tr' ? q.labelTr : q.labelEn
         const answered = !!check
 
@@ -152,7 +140,7 @@ export function StepChannelChecks() {
                     <button
                       key={opt.value}
                       type="button"
-                      onClick={() => setChannelAnswer(q.number, opt.value as CheckAnswer)}
+                      onClick={() => setChannelAnswer(channel, q.number, opt.value as CheckAnswer)}
                       className={`flex flex-col items-center justify-center gap-2 py-4 sm:py-5 rounded-2xl border-2 font-bold transition-all duration-200 ${
                         isSelected
                           ? `${cfg.activeBg} ${cfg.activeText} ${cfg.activeBorder} shadow-lg ${cfg.activeShadow} scale-[1.02]`
@@ -175,6 +163,30 @@ export function StepChannelChecks() {
           </motion.div>
         )
       })}
+    </div>
+  )
+}
+
+export function StepChannelChecks() {
+  const { lang } = useLanguage()
+  const { step1 } = useFormStore()
+
+  if (step1.channels.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+        <AlertCircle className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+        <p className="text-sm text-gray-400">
+          {lang === 'tr' ? "Adım 1'de görüşme kanalı seçilmedi." : 'No channel selected in Step 1.'}
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-5">
+      {step1.channels.map(channel => (
+        <ChannelSection key={channel} channel={channel} />
+      ))}
     </div>
   )
 }

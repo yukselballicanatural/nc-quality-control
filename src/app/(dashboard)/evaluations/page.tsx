@@ -84,7 +84,17 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
 
   // Filters
   if (q) query = query.or(`customer_name.ilike.%${q}%,consultant_name.ilike.%${q}%`)
-  if (channel) query = query.eq('channel', channel as ChannelType)
+  if (channel) {
+    // An evaluation can have a secondary channel recorded only in
+    // channel_checks, so match either the primary channel or that.
+    const { data: matchedChecks } = await supabase
+      .from('channel_checks')
+      .select('evaluation_id')
+      .eq('channel', channel as ChannelType)
+    const matchedIds = (matchedChecks ?? []).map(m => m.evaluation_id)
+    const idList = matchedIds.length ? matchedIds.join(',') : '00000000-0000-0000-0000-000000000000'
+    query = query.or(`channel.eq.${channel},id.in.(${idList})`)
+  }
   if (status) query = query.eq('status', status as EvaluationStatus)
   if (result) query = query.eq('conversation_result', result as ConversationResult)
   if (evaluatorId && profile.role === 'manager') query = query.eq('evaluator_id', evaluatorId)

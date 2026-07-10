@@ -15,6 +15,7 @@ import { useFormStore } from '@/stores/formStore'
 import { useLanguage } from '@/lib/i18n'
 import { useEvaluation } from '@/hooks/useEvaluation'
 import { StepBasicInfo } from './StepBasicInfo'
+import { StepChannelChecks } from './StepChannelChecks'
 import { StepStageQuestions } from './StepStageQuestions'
 import { StepOfferQuestions } from './StepOfferQuestions'
 import { StepDealQuestions } from './StepDealQuestions'
@@ -78,6 +79,7 @@ export function FormStepper({
     isOfferQuestionsComplete,
     isDealQuestionsComplete,
     isSecondVisitQuestionsComplete,
+    isChannelChecksComplete,
     initFromEvaluation,
     resetForm,
   } = useFormStore()
@@ -86,7 +88,7 @@ export function FormStepper({
   const isExtendedStage    = EXTENDED_STAGES.includes(step1.stage as typeof EXTENDED_STAGES[number])
   const isDealStage        = step1.stage === 'deal'
   const isSecondVisitStage = step1.stage === SECOND_VISIT_STAGE
-  const totalSteps         = isExtendedStage ? 4 : 3
+  const totalSteps         = isExtendedStage ? 5 : 4
 
   const [direction, setDirection] = useState(1)
   const [validationError, setValidationError] = useState<string | null>(null)
@@ -125,16 +127,19 @@ export function FormStepper({
       if (!step1.controlDate) return lang === 'tr' ? 'Kontrol tarihi zorunludur.' : 'Control date is required.'
       if (!step1.stage) return lang === 'tr' ? 'Satış süreci (stage) seçilmedi.' : 'Sales stage not selected.'
     }
-    if (step === 2 && isDealStage && !isDealQuestionsComplete()) {
+    if (step === 2 && !isChannelChecksComplete()) {
+      return lang === 'tr' ? 'Tüm kanal kontrol soruları yanıtlanmalıdır.' : 'All channel check questions must be answered.'
+    }
+    if (step === 3 && isDealStage && !isDealQuestionsComplete()) {
       return lang === 'tr' ? 'Tüm deal soruları yanıtlanmalıdır.' : 'All deal questions must be answered.'
     }
-    if (step === 2 && isSecondVisitStage && !isSecondVisitQuestionsComplete()) {
+    if (step === 3 && isSecondVisitStage && !isSecondVisitQuestionsComplete()) {
       return lang === 'tr' ? 'Soruyu yanıtlamanız gerekiyor.' : 'Please answer the question.'
     }
-    if (step === 2 && (isEarlyStage || isExtendedStage) && !isStageQuestionsComplete()) {
+    if (step === 3 && (isEarlyStage || isExtendedStage) && !isStageQuestionsComplete()) {
       return lang === 'tr' ? 'Tüm stage soruları yanıtlanmalıdır.' : 'All stage questions must be answered.'
     }
-    if (step === 3 && isExtendedStage && !isOfferQuestionsComplete()) {
+    if (step === 4 && isExtendedStage && !isOfferQuestionsComplete()) {
       return lang === 'tr' ? 'Tüm teklif soruları yanıtlanmalıdır.' : 'All offer questions must be answered.'
     }
     return null
@@ -165,7 +170,7 @@ export function FormStepper({
   }
 
   async function handleSubmit() {
-    const stepsToValidate = isExtendedStage ? [1, 2, 3] : isDealStage ? [1, 2] : [1, 2]
+    const stepsToValidate = isExtendedStage ? [1, 2, 3, 4] : [1, 2, 3]
     for (const step of stepsToValidate) {
       const err = getStepError(step)
       if (err) {
@@ -180,6 +185,8 @@ export function FormStepper({
     await submit()
   }
 
+  const channelQTitle = lang === 'tr' ? 'Kanal Kontrolleri' : 'Channel Checks'
+  const channelQDesc  = lang === 'tr' ? 'Seçilen görüşme kanalı/kanalları için kontrol sorularını yanıtlayın.' : 'Answer the check questions for the selected channel(s).'
   const stageQTitle = lang === 'tr' ? 'Stage Soruları'   : 'Stage Questions'
   const stageQDesc  = lang === 'tr' ? 'Seçilen stage\'e göre değerlendirme sorularını yanıtlayın.' : 'Answer the evaluation questions for the selected stage.'
   const offerQTitle = lang === 'tr' ? 'Teklif Soruları'  : 'Offer Questions'
@@ -190,30 +197,31 @@ export function FormStepper({
   const svQDesc    = lang === 'tr' ? 'İkinci ziyaret takip sorusunu yanıtlayın (100 puan).' : 'Answer the second visit follow-up question (100 pts).'
 
   const stepTitles = isExtendedStage
-    ? [t.form.step1.title, stageQTitle, offerQTitle, t.form.step6.title]
+    ? [t.form.step1.title, channelQTitle, stageQTitle, offerQTitle, t.form.step6.title]
     : isDealStage
-    ? [t.form.step1.title, dealQTitle, t.form.step6.title]
+    ? [t.form.step1.title, channelQTitle, dealQTitle, t.form.step6.title]
     : isSecondVisitStage
-    ? [t.form.step1.title, svQTitle, t.form.step6.title]
-    : [t.form.step1.title, stageQTitle, t.form.step6.title]
+    ? [t.form.step1.title, channelQTitle, svQTitle, t.form.step6.title]
+    : [t.form.step1.title, channelQTitle, stageQTitle, t.form.step6.title]
 
   const stepDescriptions = isExtendedStage
-    ? [t.form.step1.description, stageQDesc, offerQDesc, t.form.step6.description]
+    ? [t.form.step1.description, channelQDesc, stageQDesc, offerQDesc, t.form.step6.description]
     : isDealStage
-    ? [t.form.step1.description, dealQDesc, t.form.step6.description]
+    ? [t.form.step1.description, channelQDesc, dealQDesc, t.form.step6.description]
     : isSecondVisitStage
-    ? [t.form.step1.description, svQDesc, t.form.step6.description]
-    : [t.form.step1.description, stageQDesc, t.form.step6.description]
+    ? [t.form.step1.description, channelQDesc, svQDesc, t.form.step6.description]
+    : [t.form.step1.description, channelQDesc, stageQDesc, t.form.step6.description]
 
   function renderStep() {
     switch (currentStep) {
       case 1: return <StepBasicInfo role={role} evaluatorId={evaluatorId} evaluatorName={evaluatorName} agents={agents} teamLeaders={teamLeaders} teams={teams} evaluators={evaluators} />
-      case 2:
+      case 2: return <StepChannelChecks />
+      case 3:
         if (isDealStage)        return <StepDealQuestions />
         if (isSecondVisitStage) return <StepSecondVisitQuestions />
         return <StepStageQuestions />
-      case 3: return isExtendedStage ? <StepOfferQuestions /> : <StepActionPlan />
-      case 4: return <StepActionPlan />
+      case 4: return isExtendedStage ? <StepOfferQuestions /> : <StepActionPlan />
+      case 5: return <StepActionPlan />
       default: return null
     }
   }
