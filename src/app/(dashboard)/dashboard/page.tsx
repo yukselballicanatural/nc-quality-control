@@ -24,6 +24,10 @@ const DashboardContent = nextDynamic(
   { ssr: false }
 )
 
+interface PageProps {
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
 const STAGE_LABELS_TR: Record<string, string> = {
   fresh_lead:              'Fresh Lead',
   new_sales_opportunities: 'New Sales Opp.',
@@ -35,16 +39,23 @@ const STAGE_LABELS_TR: Record<string, string> = {
   second_visit:            'Second Visit',
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: PageProps) {
   const { user, profile, supabase } = await getCurrentProfile()
 
   if (!user) redirect('/login')
 
   if (!profile) redirect('/login')
 
-  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+  const defaultSince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     .toISOString()
     .split('T')[0]
+  const today = new Date().toISOString().split('T')[0]
+
+  const sp = searchParams
+  const filterStartDate = typeof sp.startDate === 'string' ? sp.startDate : ''
+  const filterEndDate = typeof sp.endDate === 'string' ? sp.endDate : ''
+  const since = filterStartDate || defaultSince
+  const until = filterEndDate || today
 
   // ─── Consultant view ─────────────────────────────────────────────
 
@@ -106,6 +117,7 @@ export default async function DashboardPage() {
       'id, consultant_id, consultant_name, evaluator_id, final_score, critical_error_count, conversation_result, channel, customer_name, status, conversation_date, lead_id'
     )
     .gte('conversation_date', since)
+    .lte('conversation_date', until)
 
   if (isTeamLeader) allEvalsQuery = allEvalsQuery.eq('team_id', profile.team_id!)
   if (restrictedQuality) allEvalsQuery = allEvalsQuery.eq('evaluator_id', profile.id)
@@ -250,6 +262,7 @@ export default async function DashboardPage() {
     .from('training_exams')
     .select('*')
     .gte('created_at', `${since}T00:00:00.000Z`)
+    .lte('created_at', `${until}T23:59:59.999Z`)
     .order('created_at', { ascending: false })
 
   if (restrictedQuality) examQuery = examQuery.eq('evaluator_id', profile.id)
@@ -395,6 +408,8 @@ export default async function DashboardPage() {
       stageDist={stageDist}
       weeklyTrend={weeklyTrend}
       trainingExamSummary={trainingExamSummary}
+      filterStartDate={filterStartDate}
+      filterEndDate={filterEndDate}
     />
   )
 }

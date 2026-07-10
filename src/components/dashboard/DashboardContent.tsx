@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import type { ReactNode } from 'react'
+import { useRouter } from 'next/navigation'
+import { useTransition, type ReactNode } from 'react'
 import {
   Bar,
   BarChart,
@@ -31,16 +32,19 @@ import {
   Layers,
   MessageSquare,
   Phone,
+  SlidersHorizontal,
   Target,
   TrendingUp,
   Trophy,
   UserCheck,
   Users,
+  X,
   XCircle,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import { getScoreLevel } from '@/lib/scoring'
+import { DatePicker } from '@/components/ui/DatePicker'
 import type { ChannelType, ConversationResult, EvaluationStatus, UserRole } from '@/types/supabase'
 
 export interface RecentEval {
@@ -150,6 +154,8 @@ interface DashboardContentProps {
   stageDist?: StageDist[]
   weeklyTrend?: WeeklyTrend[]
   trainingExamSummary?: TrainingExamSummary
+  filterStartDate?: string
+  filterEndDate?: string
 }
 
 const emptyStats: AdminStats = {
@@ -329,8 +335,30 @@ export function DashboardContent({
   stageDist,
   weeklyTrend,
   trainingExamSummary,
+  filterStartDate = '',
+  filterEndDate = '',
 }: DashboardContentProps) {
   const { lang, t } = useLanguage()
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+
+  function updateDateFilter(key: 'startDate' | 'endDate', value: string) {
+    const params = new URLSearchParams()
+    const current = { startDate: filterStartDate, endDate: filterEndDate, [key]: value }
+    Object.entries(current).forEach(([k, v]) => { if (v) params.set(k, v) })
+    startTransition(() => {
+      router.replace(`/dashboard${params.toString() ? `?${params.toString()}` : ''}`)
+    })
+  }
+
+  function clearDateFilter() {
+    startTransition(() => { router.replace('/dashboard') })
+  }
+
+  const hasDateFilter = Boolean(filterStartDate || filterEndDate)
+  const rangeLabel = hasDateFilter
+    ? `${filterStartDate || '…'} → ${filterEndDate || '…'}`
+    : t.dashboard.last30Days
 
   if (role === 'consultant' && consultantData) {
     const level = getScoreLevel(consultantData.myAverageScore)
@@ -424,21 +452,61 @@ export function DashboardContent({
     }))
 
   const topCards = [
-    { icon: ClipboardList, label: t.dashboard.totalEvaluations, value: s.totalEvaluations, sub: t.dashboard.last30Days, tone: 'green' as const },
+    { icon: ClipboardList, label: t.dashboard.totalEvaluations, value: s.totalEvaluations, sub: rangeLabel, tone: 'green' as const },
     { icon: TrendingUp, label: t.dashboard.averageScore, value: s.averageScore, sub: lang === 'tr' ? avgLevel.label : avgLevel.labelEn, tone: 'blue' as const },
     { icon: CheckCircle2, label: localText(lang, 'Başarı Oranı', 'Pass Rate'), value: `${passRate}%`, sub: `${s.passedCount}/${s.totalEvaluations}`, tone: 'green' as const },
-    { icon: Trophy, label: t.dashboard.wonRate, value: `${s.wonRate}%`, sub: t.dashboard.last30Days, tone: 'purple' as const },
+    { icon: Trophy, label: t.dashboard.wonRate, value: `${s.wonRate}%`, sub: rangeLabel, tone: 'purple' as const },
     { icon: GraduationCap, label: localText(lang, 'Sınav Başarısı', 'Exam Pass Rate'), value: `${exam.passRate}%`, sub: `${exam.passed}/${exam.total}`, tone: 'amber' as const },
   ]
 
   return (
-    <div className="space-y-5">
+    <div className={`space-y-5 transition-opacity duration-150 ${isPending ? 'opacity-60' : ''}`}>
+      <div className="flex flex-wrap items-center gap-2.5 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+        <div className="flex items-center gap-2 text-gray-400 flex-shrink-0">
+          <SlidersHorizontal className="w-4 h-4" />
+          <span className="text-xs font-semibold uppercase tracking-wide hidden sm:inline">
+            {localText(lang, 'Tarih Aralığı', 'Date Range')}
+          </span>
+        </div>
+        <div className="w-[160px] sm:w-44">
+          <DatePicker
+            value={filterStartDate}
+            onChange={v => updateDateFilter('startDate', v)}
+            placeholder={t.evaluations.startDate}
+            maxDate={filterEndDate || undefined}
+          />
+        </div>
+        <span className="text-gray-400 text-sm">-</span>
+        <div className="w-[160px] sm:w-44">
+          <DatePicker
+            value={filterEndDate}
+            onChange={v => updateDateFilter('endDate', v)}
+            placeholder={t.evaluations.endDate}
+            minDate={filterStartDate || undefined}
+          />
+        </div>
+        {hasDateFilter && (
+          <button
+            onClick={clearDateFilter}
+            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors flex-shrink-0"
+          >
+            <X className="w-4 h-4" />
+            <span className="hidden sm:inline">{t.common.clear}</span>
+          </button>
+        )}
+        {!hasDateFilter && (
+          <span className="text-xs text-gray-400 ml-auto hidden sm:inline">
+            {localText(lang, 'Varsayılan: son 30 gün', 'Default: last 30 days')}
+          </span>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {topCards.map(card => <StatCard key={card.label} {...card} />)}
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard icon={AlertTriangle} label={t.dashboard.criticalErrors} value={s.totalCriticalErrors} sub={t.dashboard.last30Days} tone="red" />
+        <StatCard icon={AlertTriangle} label={t.dashboard.criticalErrors} value={s.totalCriticalErrors} sub={rangeLabel} tone="red" />
         <StatCard icon={Clock} label={localText(lang, 'Onay Bekliyor', 'Pending Approval')} value={s.pendingCount} sub={localText(lang, 'Gönderilmiş kayıtlar', 'Submitted records')} tone="amber" />
         <StatCard icon={FileEdit} label={localText(lang, 'Taslak', 'Drafts')} value={s.draftCount} sub={localText(lang, 'Henüz gönderilmedi', 'Not submitted yet')} tone="slate" />
         <StatCard icon={XCircle} label={localText(lang, 'Başarısız Kayıt', 'Failed Records')} value={s.failedCount} sub={`${100 - passRate}% ${localText(lang, 'başarısızlık', 'fail rate')}`} tone="red" />
