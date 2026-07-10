@@ -484,6 +484,7 @@ export function EvaluationsContent({
               options={[
                 { value: 'whatsapp', label: 'WhatsApp' },
                 { value: 'call', label: t.channel.call },
+                { value: 'both', label: lang === 'tr' ? 'WhatsApp + Arama' : 'WhatsApp + Call' },
               ]}
               placeholder={lang === 'tr' ? 'Kanal: Tümü' : 'Channel: All'}
               icon={Radio}

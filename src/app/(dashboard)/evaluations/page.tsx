@@ -15,7 +15,7 @@ function sanitizeForOrFilter(value: string) {
   return value.replace(/[,()]/g, '')
 }
 
-const VALID_CHANNELS = new Set(['whatsapp', 'call'])
+const VALID_CHANNELS = new Set(['whatsapp', 'call', 'both'])
 
 const PAGE_SIZE = 20
 const EvaluationsContent = nextDynamic(
@@ -97,7 +97,27 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
     const safeQ = sanitizeForOrFilter(q)
     query = query.or(`customer_name.ilike.%${safeQ}%,consultant_name.ilike.%${safeQ}%`)
   }
-  if (channel) {
+  if (channel === 'both') {
+    // Evaluations where both WhatsApp and Call were selected — a channel
+    // can show up either as the primary `channel` column or as a
+    // secondary entry in channel_checks.
+    const [{ data: waChecks }, { data: callChecks }, { data: waPrimary }, { data: callPrimary }] = await Promise.all([
+      supabase.from('channel_checks').select('evaluation_id').eq('channel', 'whatsapp'),
+      supabase.from('channel_checks').select('evaluation_id').eq('channel', 'call'),
+      supabase.from('evaluations').select('id').eq('channel', 'whatsapp'),
+      supabase.from('evaluations').select('id').eq('channel', 'call'),
+    ])
+    const waSet = new Set([
+      ...(waChecks ?? []).map(c => c.evaluation_id),
+      ...(waPrimary ?? []).map(e => e.id),
+    ])
+    const callSet = new Set([
+      ...(callChecks ?? []).map(c => c.evaluation_id),
+      ...(callPrimary ?? []).map(e => e.id),
+    ])
+    const bothIds = Array.from(waSet).filter(id => callSet.has(id))
+    query = query.in('id', bothIds.length ? bothIds : ['00000000-0000-0000-0000-000000000000'])
+  } else if (channel) {
     // An evaluation can have a secondary channel recorded only in
     // channel_checks, so match either the primary channel or that.
     const { data: matchedChecks } = await supabase
