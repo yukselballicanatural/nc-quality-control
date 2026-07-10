@@ -37,6 +37,7 @@ function emptyResultProps(params: {
   level: string
   result: string
   evaluator: string
+  consultant: string
   startDate: string
   endDate: string
   sortBy: ValidSortCol
@@ -51,6 +52,7 @@ function emptyResultProps(params: {
     filterLevel: params.level,
     filterResult: params.result,
     filterEvaluator: params.evaluator,
+    filterConsultant: params.consultant,
     filterStartDate: params.startDate,
     filterEndDate: params.endDate,
     sortBy: params.sortBy,
@@ -72,6 +74,7 @@ export default async function TrainingExamResultsPage({ searchParams }: PageProp
   const level = typeof sp.level === 'string' ? sp.level : ''
   const result = typeof sp.result === 'string' ? sp.result : ''
   const evaluatorId = typeof sp.evaluator === 'string' ? sp.evaluator : ''
+  const filterConsultantId = typeof sp.consultant === 'string' ? sp.consultant : ''
   const startDate = typeof sp.startDate === 'string' ? sp.startDate : ''
   const endDate = typeof sp.endDate === 'string' ? sp.endDate : ''
   const page = typeof sp.page === 'string' ? Math.max(1, parseInt(sp.page) || 1) : 1
@@ -95,16 +98,21 @@ export default async function TrainingExamResultsPage({ searchParams }: PageProp
     consultantScopeIds = (teamMembers ?? []).map(member => member.id)
   }
 
+  let searchMatchedProfileIds: string[] = []
   if (q) {
     const { data: matchedProfiles } = await supabase
       .from('profiles')
       .select('id')
       .ilike('full_name', `%${q}%`)
 
-    const matchedIds = new Set((matchedProfiles ?? []).map(item => item.id))
-    consultantScopeIds = consultantScopeIds
-      ? consultantScopeIds.filter(id => matchedIds.has(id))
-      : Array.from(matchedIds)
+    searchMatchedProfileIds = (matchedProfiles ?? []).map(item => item.id)
+
+    // Team leaders are hard-scoped to their own team's linked consultants, so
+    // their search can only narrow within that set (no free-text agent names).
+    if (consultantScopeIds) {
+      const matchedSet = new Set(searchMatchedProfileIds)
+      consultantScopeIds = consultantScopeIds.filter(id => matchedSet.has(id))
+    }
   }
 
   const emptyProps = emptyResultProps({
@@ -113,6 +121,7 @@ export default async function TrainingExamResultsPage({ searchParams }: PageProp
     level,
     result,
     evaluator: evaluatorId,
+    consultant: filterConsultantId,
     startDate,
     endDate,
     sortBy,
@@ -154,7 +163,18 @@ export default async function TrainingExamResultsPage({ searchParams }: PageProp
     .from('training_exams')
     .select('*', { count: 'exact' })
 
-  if (consultantScopeIds) query = query.in('consultant_id', consultantScopeIds)
+  if (consultantScopeIds) {
+    // Team-leader search already narrowed consultantScopeIds above.
+    query = query.in('consultant_id', consultantScopeIds)
+  } else if (q) {
+    // Unscoped roles (manager/quality team) can also match the free-text
+    // consultant_name used for agent-sourced exams that have no profile row.
+    const idList = searchMatchedProfileIds.length
+      ? searchMatchedProfileIds.join(',')
+      : '00000000-0000-0000-0000-000000000000'
+    query = query.or(`consultant_id.in.(${idList}),consultant_name.ilike.%${q}%`)
+  }
+  if (filterConsultantId) query = query.eq('consultant_id', filterConsultantId)
   if (isRestrictedQualityUser(profile)) query = query.eq('evaluator_id', profile.id)
   if (evaluatorId && profile.role === 'manager') query = query.eq('evaluator_id', evaluatorId)
   if (level === 'junior' || level === 'senior') query = query.eq('level', level)
@@ -204,6 +224,7 @@ export default async function TrainingExamResultsPage({ searchParams }: PageProp
       filterLevel={level}
       filterResult={result}
       filterEvaluator={evaluatorId}
+      filterConsultant={filterConsultantId}
       filterStartDate={startDate}
       filterEndDate={endDate}
       sortBy={sortBy}

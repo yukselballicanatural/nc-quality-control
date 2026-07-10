@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import nextDynamic from 'next/dynamic'
 import { getCurrentProfile } from '@/lib/current-profile'
 import { canCreateEvaluation, isRestrictedQualityUser } from '@/lib/access-control'
+import { isTeamLeaderRole } from '@/lib/agents'
 import type { ChannelType, ConversationResult, EvaluationStatus } from '@/types/supabase'
 import type { EvaluationListItem } from '@/types'
 
@@ -35,6 +36,7 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
   const status = typeof sp.status === 'string' ? sp.status : ''
   const result = typeof sp.result === 'string' ? sp.result : ''
   const evaluatorId = typeof sp.evaluator === 'string' ? sp.evaluator : ''
+  const filterAgentId = typeof sp.consultant === 'string' ? sp.consultant : ''
   const startDate = typeof sp.startDate === 'string' ? sp.startDate : ''
   const endDate = typeof sp.endDate === 'string' ? sp.endDate : ''
   const page = typeof sp.page === 'string' ? Math.max(1, parseInt(sp.page) || 1) : 1
@@ -81,22 +83,31 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
   }
 
   // Filters
-  if (q) query = query.ilike('customer_name', `%${q}%`)
+  if (q) query = query.or(`customer_name.ilike.%${q}%,consultant_name.ilike.%${q}%`)
   if (channel) query = query.eq('channel', channel as ChannelType)
   if (status) query = query.eq('status', status as EvaluationStatus)
   if (result) query = query.eq('conversation_result', result as ConversationResult)
   if (evaluatorId && profile.role === 'manager') query = query.eq('evaluator_id', evaluatorId)
+  if (filterAgentId) query = query.eq('agent_id', filterAgentId)
   if (startDate) query = query.gte('conversation_date', startDate)
   if (endDate) query = query.lte('conversation_date', endDate)
 
-  const evaluatorsResult = profile.role === 'manager'
-    ? await supabase
-        .from('profiles')
-        .select('id, full_name, email')
-        .in('role', ['quality_team', 'team_leader', 'manager'])
-        .eq('is_active', true)
-        .order('full_name')
-    : { data: [] }
+  const [evaluatorsResult, agentsResult] = await Promise.all([
+    profile.role === 'manager'
+      ? supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('role', ['quality_team', 'team_leader', 'manager'])
+          .eq('is_active', true)
+          .order('full_name')
+      : Promise.resolve({ data: [] }),
+    profile.role !== 'consultant'
+      ? supabase
+          .from('agents')
+          .select('id, first_name, last_name, role')
+          .order('first_name')
+      : Promise.resolve({ data: [] }),
+  ])
 
   // Pagination
   const from = (page - 1) * PAGE_SIZE
@@ -105,6 +116,10 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
   const { data: evals, count } = await query
     .order(sortBy, { ascending })
     .range(from, to)
+
+  const consultantOptions = (agentsResult.data ?? [])
+    .filter(a => !isTeamLeaderRole(a.role))
+    .map(a => ({ id: a.id, fullName: [a.first_name, a.last_name].filter(Boolean).join(' ').trim() || a.id }))
 
   return (
     <EvaluationsContent
@@ -118,10 +133,12 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
       filterStatus={status}
       filterResult={result}
       filterEvaluator={evaluatorId}
+      filterConsultant={filterAgentId}
       filterStartDate={startDate}
       filterEndDate={endDate}
       searchQuery={q}
       evaluatorOptions={evaluatorsResult.data ?? []}
+      consultantOptions={consultantOptions}
       sortBy={sortBy}
       sortDir={ascending ? 'asc' : 'desc'}
     />

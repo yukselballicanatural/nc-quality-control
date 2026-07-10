@@ -20,10 +20,15 @@ import {
   Trash2,
   Save,
   User,
+  SlidersHorizontal,
+  Layers,
+  Target,
+  UserCog,
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/client'
 import { DatePicker } from '@/components/ui/DatePicker'
+import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import type { TrainingExam, UserRole } from '@/types/supabase'
 
 type SortKey = 'date' | 'score' | 'level'
@@ -50,6 +55,7 @@ interface Props {
   filterLevel: string
   filterResult: string
   filterEvaluator: string
+  filterConsultant: string
   filterStartDate: string
   filterEndDate: string
   sortBy: string
@@ -58,9 +64,6 @@ interface Props {
   consultants: ProfileSummary[]
   evaluatorOptions: ProfileSummary[]
 }
-
-const selectClass =
-  'appearance-none w-full text-sm font-medium text-gray-700 border border-gray-200 rounded-xl bg-gray-50 pl-3.5 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 focus:border-[#1B4332] hover:border-gray-300 transition-colors cursor-pointer truncate'
 
 const PASS_THRESHOLDS = { junior: 32, senior: 35 } as const
 const CRITERIA_EN = [
@@ -129,6 +132,7 @@ export function TrainingExamResultsContent({
   filterLevel,
   filterResult,
   filterEvaluator,
+  filterConsultant,
   filterStartDate,
   filterEndDate,
   sortBy: serverSortBy,
@@ -179,6 +183,7 @@ export function TrainingExamResultsContent({
       level: filterLevel,
       result: filterResult,
       evaluator: filterEvaluator,
+      consultant: filterConsultant,
       startDate: filterStartDate,
       endDate: filterEndDate,
       sortBy: serverSortBy,
@@ -393,7 +398,7 @@ export function TrainingExamResultsContent({
   }
 
   const hasFilters =
-    localSearch || filterLevel || filterResult || filterEvaluator || filterStartDate || filterEndDate
+    localSearch || filterLevel || filterResult || filterEvaluator || filterConsultant || filterStartDate || filterEndDate
   const totalPages = Math.ceil(totalCount / pageSize)
   const visibleResults = results.filter(result => !deletedIds.has(result.id))
   const deleteResult = deletingId
@@ -718,15 +723,21 @@ export function TrainingExamResultsContent({
         )}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
-        <div className="flex gap-3">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3.5">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 text-gray-400 flex-shrink-0">
+            <SlidersHorizontal className="w-4 h-4" />
+            <span className="text-xs font-semibold uppercase tracking-wide hidden sm:inline">
+              {isTr ? 'Filtreler' : 'Filters'}
+            </span>
+          </div>
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             <input
               value={localSearch}
               onChange={event => setLocalSearch(event.target.value)}
               placeholder={isTr ? 'Danışman adına göre ara...' : 'Search by consultant name...'}
-              className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 focus:border-[#1B4332] transition-colors"
+              className="w-full pl-10 pr-9 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#1B4332]/15 focus:border-[#1B4332] transition-all"
             />
             {localSearch && (
               <button
@@ -742,7 +753,7 @@ export function TrainingExamResultsContent({
             <button
               type="button"
               onClick={clearFilters}
-              className="flex items-center gap-1.5 px-3 py-2.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors flex-shrink-0"
+              className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors flex-shrink-0"
             >
               <X className="w-4 h-4" />
               <span className="hidden sm:inline">{t.common.clear}</span>
@@ -751,47 +762,55 @@ export function TrainingExamResultsContent({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <div className="relative w-[110px] flex-shrink-0">
-            <select
+          <div className="w-[130px] flex-shrink-0">
+            <SearchableSelect
               value={filterLevel}
-              onChange={event => updateFilter('level', event.target.value)}
-              className={selectClass}
-            >
-              <option value="">{isTr ? 'Tümü' : 'All'}</option>
-              <option value="junior">Junior</option>
-              <option value="senior">Senior</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+              onChange={v => updateFilter('level', v)}
+              options={[
+                { value: 'junior', label: 'Junior' },
+                { value: 'senior', label: 'Senior' },
+              ]}
+              placeholder={isTr ? 'Seviye: Tümü' : 'Level: All'}
+              icon={Layers}
+            />
           </div>
 
-          <div className="relative w-[150px] flex-shrink-0">
-            <select
+          <div className="w-[168px] flex-shrink-0">
+            <SearchableSelect
               value={filterResult}
-              onChange={event => updateFilter('result', event.target.value)}
-              className={selectClass}
-            >
-              <option value="">{isTr ? 'Sonuç: Tümü' : 'Result: All'}</option>
-              <option value="passed">{isTr ? 'Geçti' : 'Passed'}</option>
-              <option value="failed">{isTr ? 'Kaldı' : 'Failed'}</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+              onChange={v => updateFilter('result', v)}
+              options={[
+                { value: 'passed', label: isTr ? 'Geçti' : 'Passed' },
+                { value: 'failed', label: isTr ? 'Kaldı' : 'Failed' },
+              ]}
+              placeholder={isTr ? 'Sonuç: Tümü' : 'Result: All'}
+              icon={Target}
+            />
           </div>
+
+          {consultants.length > 0 && (
+            <div className="w-[200px] flex-shrink-0">
+              <SearchableSelect
+                value={filterConsultant}
+                onChange={v => updateFilter('consultant', v)}
+                options={consultants.map(c => ({ value: c.id, label: c.full_name || c.id }))}
+                placeholder={isTr ? 'Danışman: Tümü' : 'Consultant: All'}
+                icon={User}
+              />
+            </div>
+          )}
 
           {role === 'manager' && (
-            <div className="relative w-[190px] flex-shrink-0">
-              <select
+            <div className="w-[200px] flex-shrink-0">
+              <SearchableSelect
                 value={filterEvaluator}
-                onChange={event => updateFilter('evaluator', event.target.value)}
-                className={selectClass}
-              >
-                <option value="">{isTr ? 'Değerlendiren: Tümü' : 'Evaluator: All'}</option>
-                {evaluatorOptions.map(evaluator => (
-                  <option key={evaluator.id} value={evaluator.id}>
-                    {evaluator.full_name || evaluator.email || 'Natural Clinic'}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                onChange={v => updateFilter('evaluator', v)}
+                options={evaluatorOptions.map(evaluator => ({
+                  value: evaluator.id, label: evaluator.full_name || evaluator.email || 'Natural Clinic',
+                }))}
+                placeholder={isTr ? 'Değerlendiren: Tümü' : 'Evaluator: All'}
+                icon={UserCog}
+              />
             </div>
           )}
 

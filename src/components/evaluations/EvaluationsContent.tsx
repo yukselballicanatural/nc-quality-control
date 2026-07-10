@@ -7,11 +7,12 @@ import Link from 'next/link'
 import {
   Search, X, Plus, ChevronLeft, ChevronRight, Eye, Pencil, Trash2,
   MessageSquare, Phone, ChevronsUpDown, ChevronUp, ChevronDown,
-  CheckCircle2,
+  CheckCircle2, SlidersHorizontal, Radio, Flag, Target, UserCog, User,
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import { getScoreLevel } from '@/lib/scoring'
 import { DatePicker } from '@/components/ui/DatePicker'
+import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import type { UserRole, ChannelType, ConversationResult, EvaluationStatus } from '@/types/supabase'
 import type { EvaluationListItem, EvaluationWithRelations } from '@/types'
 import { EvaluationViewModal } from './EvaluationViewModal'
@@ -27,6 +28,8 @@ type ProfileOption = {
   email?: string | null
 }
 
+type ConsultantOption = { id: string; fullName: string }
+
 interface Props {
   evaluations: EvaluationListItem[]
   totalCount: number
@@ -38,10 +41,12 @@ interface Props {
   filterStatus: string
   filterResult: string
   filterEvaluator: string
+  filterConsultant: string
   filterStartDate: string
   filterEndDate: string
   searchQuery: string
   evaluatorOptions: ProfileOption[]
+  consultantOptions: ConsultantOption[]
   sortBy: string
   sortDir: string
 }
@@ -64,9 +69,6 @@ const RESULT_STYLES: Record<ConversationResult, string> = {
   lost:      'bg-red-100 text-red-700',
   no_answer: 'bg-gray-100 text-gray-600',
 }
-
-const selectClass =
-  'appearance-none w-full text-sm font-medium text-gray-700 border border-gray-200 rounded-xl bg-gray-50 pl-3.5 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 focus:border-[#1B4332] hover:border-gray-300 transition-colors cursor-pointer truncate'
 
 // ─── Sort icon helper ─────────────────────────────────────────────
 
@@ -121,10 +123,12 @@ export function EvaluationsContent({
   filterStatus,
   filterResult,
   filterEvaluator,
+  filterConsultant,
   filterStartDate,
   filterEndDate,
   searchQuery,
   evaluatorOptions,
+  consultantOptions,
   sortBy: serverSortBy,
   sortDir: serverSortDir,
 }: Props) {
@@ -191,6 +195,7 @@ export function EvaluationsContent({
       status: filterStatus,
       result: filterResult,
       evaluator: filterEvaluator,
+      consultant: filterConsultant,
       startDate: filterStartDate,
       endDate: filterEndDate,
       sortBy: serverSortBy,
@@ -323,7 +328,7 @@ export function EvaluationsContent({
   // ── Derived ────────────────────────────────────────────────────
 
   const hasFilters =
-    localSearch || filterChannel || filterStatus || filterResult || filterEvaluator || filterStartDate || filterEndDate
+    localSearch || filterChannel || filterStatus || filterResult || filterEvaluator || filterConsultant || filterStartDate || filterEndDate
   const totalPages = Math.ceil(totalCount / pageSize)
   const deleteEvaluation = deletingId
     ? evaluations.find(evaluation => evaluation.id === deletingId) ?? null
@@ -435,15 +440,21 @@ export function EvaluationsContent({
       </div>
 
       {/* ── Filters ────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
-        <div className="flex gap-3">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3.5">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 text-gray-400 flex-shrink-0">
+            <SlidersHorizontal className="w-4 h-4" />
+            <span className="text-xs font-semibold uppercase tracking-wide hidden sm:inline">
+              {lang === 'tr' ? 'Filtreler' : 'Filters'}
+            </span>
+          </div>
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             <input
               value={localSearch}
               onChange={e => setLocalSearch(e.target.value)}
               placeholder={t.evaluations.searchPlaceholder}
-              className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 focus:border-[#1B4332] transition-colors"
+              className="w-full pl-10 pr-9 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#1B4332]/15 focus:border-[#1B4332] transition-all"
             />
             {localSearch && (
               <button
@@ -457,7 +468,7 @@ export function EvaluationsContent({
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="flex items-center gap-1.5 px-3 py-2.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors flex-shrink-0"
+              className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors flex-shrink-0"
             >
               <X className="w-4 h-4" />
               <span className="hidden sm:inline">{t.common.clear}</span>
@@ -466,62 +477,66 @@ export function EvaluationsContent({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <div className="relative w-[150px] flex-shrink-0">
-            <select
+          <div className="w-[168px] flex-shrink-0">
+            <SearchableSelect
               value={filterChannel}
-              onChange={e => updateFilter('channel', e.target.value)}
-              className={selectClass}
-            >
-              <option value="">{lang === 'tr' ? 'Kanal: Tümü' : 'Channel: All'}</option>
-              <option value="whatsapp">WhatsApp</option>
-              <option value="call">{t.channel.call}</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+              onChange={v => updateFilter('channel', v)}
+              options={[
+                { value: 'whatsapp', label: 'WhatsApp' },
+                { value: 'call', label: t.channel.call },
+              ]}
+              placeholder={lang === 'tr' ? 'Kanal: Tümü' : 'Channel: All'}
+              icon={Radio}
+            />
           </div>
 
-          <div className="relative w-[150px] flex-shrink-0">
-            <select
+          <div className="w-[168px] flex-shrink-0">
+            <SearchableSelect
               value={filterStatus}
-              onChange={e => updateFilter('status', e.target.value)}
-              className={selectClass}
-            >
-              <option value="">{lang === 'tr' ? 'Durum: Tümü' : 'Status: All'}</option>
-              {(['draft', 'submitted', 'approved', 'rejected'] as EvaluationStatus[]).map(s => (
-                <option key={s} value={s}>{t.status[s]}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+              onChange={v => updateFilter('status', v)}
+              options={(['draft', 'submitted', 'approved', 'rejected'] as EvaluationStatus[]).map(s => ({
+                value: s, label: t.status[s],
+              }))}
+              placeholder={lang === 'tr' ? 'Durum: Tümü' : 'Status: All'}
+              icon={Flag}
+            />
           </div>
 
-          <div className="relative w-[160px] flex-shrink-0">
-            <select
+          <div className="w-[176px] flex-shrink-0">
+            <SearchableSelect
               value={filterResult}
-              onChange={e => updateFilter('result', e.target.value)}
-              className={selectClass}
-            >
-              <option value="">{lang === 'tr' ? 'Sonuç: Tümü' : 'Result: All'}</option>
-              {(['won', 'open', 'follow_up', 'lost', 'no_answer'] as ConversationResult[]).map(r => (
-                <option key={r} value={r}>{t.conversationResult[r]}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+              onChange={v => updateFilter('result', v)}
+              options={(['won', 'open', 'follow_up', 'lost', 'no_answer'] as ConversationResult[]).map(r => ({
+                value: r, label: t.conversationResult[r],
+              }))}
+              placeholder={lang === 'tr' ? 'Sonuç: Tümü' : 'Result: All'}
+              icon={Target}
+            />
           </div>
 
           {showEvaluator && (
-            <div className="relative w-[190px] flex-shrink-0">
-              <select
+            <div className="w-[200px] flex-shrink-0">
+              <SearchableSelect
                 value={filterEvaluator}
-                onChange={e => updateFilter('evaluator', e.target.value)}
-                className={selectClass}
-              >
-                <option value="">{lang === 'tr' ? 'Değerlendiren: Tümü' : 'Evaluator: All'}</option>
-                {evaluatorOptions.map(evaluator => (
-                  <option key={evaluator.id} value={evaluator.id}>
-                    {evaluator.full_name || evaluator.email || 'Natural Clinic'}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                onChange={v => updateFilter('evaluator', v)}
+                options={evaluatorOptions.map(evaluator => ({
+                  value: evaluator.id, label: evaluator.full_name || evaluator.email || 'Natural Clinic',
+                }))}
+                placeholder={lang === 'tr' ? 'Değerlendiren: Tümü' : 'Evaluator: All'}
+                icon={UserCog}
+              />
+            </div>
+          )}
+
+          {showConsultant && consultantOptions.length > 0 && (
+            <div className="w-[200px] flex-shrink-0">
+              <SearchableSelect
+                value={filterConsultant}
+                onChange={v => updateFilter('consultant', v)}
+                options={consultantOptions.map(c => ({ value: c.id, label: c.fullName }))}
+                placeholder={lang === 'tr' ? 'Danışman: Tümü' : 'Consultant: All'}
+                icon={User}
+              />
             </div>
           )}
 
