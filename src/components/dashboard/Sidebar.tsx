@@ -181,17 +181,21 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
   }
 
   async function handleLogout() {
+    // Fire-and-forget: don't block the redirect on the audit log write.
+    fetch('/api/audit-log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'logout', entityType: 'auth' }),
+      keepalive: true,
+    }).catch(() => null)
+
     try {
       const supabase = createClient()
-      await fetch('/api/audit-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'logout', entityType: 'auth' }),
-      }).catch(() => null)
       await supabase.auth.signOut()
-      router.push('/login')
     } catch (err) {
       console.error('Logout error:', err)
+    } finally {
+      window.location.href = '/login'
     }
   }
 
