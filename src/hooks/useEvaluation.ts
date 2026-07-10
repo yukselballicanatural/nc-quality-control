@@ -50,6 +50,7 @@ export function useEvaluation(editingId: string | null = null) {
       // Minimum required fields (DB constraints)
       if (
         !step1.consultantId ||
+        !step1.evaluatorId ||
         !step1.customerPhone.trim() ||
         step1.channels.length === 0 ||
         !step1.reviewStartDate
@@ -215,7 +216,12 @@ export function useEvaluation(editingId: string | null = null) {
       return evalId
     } catch (err) {
       console.error('useEvaluation save error:', err)
-      const msg = err instanceof Error ? err.message : 'Kayıt sırasında bir hata oluştu.'
+      const msg =
+        err instanceof Error
+          ? err.message
+          : (err && typeof err === 'object' && 'message' in err && typeof err.message === 'string' && err.message)
+            ? err.message
+            : 'Kayıt sırasında bir hata oluştu.'
       setSaveError(msg)
       return null
     } finally {

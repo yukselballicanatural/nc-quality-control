@@ -164,6 +164,14 @@ export function FormStepper({
   }
 
   async function handleSaveDraft() {
+    const step1Error = getStepError(1)
+    if (step1Error) {
+      setDirection(currentStep > 1 ? -1 : 1)
+      setCurrentStep(1)
+      setValidationError(step1Error)
+      return
+    }
+    setValidationError(null)
     clearError()
     const ok = await saveDraft()
     if (ok) { setSavedOk(true); setTimeout(() => setSavedOk(false), 2500) }
