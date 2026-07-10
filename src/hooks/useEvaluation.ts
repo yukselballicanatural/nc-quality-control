@@ -160,7 +160,7 @@ export function useEvaluation(editingId: string | null = null) {
 
       if (step1.channels.length > 0) {
         const checkRows = step1.channels.flatMap(ch =>
-          Object.values(channelChecks[ch] ?? {}).map(c => ({
+          Object.values(channelChecks).map(c => ({
             evaluation_id: evalId!,
             channel: ch as ChannelType,
             question_number: c.questionNumber,

@@ -36,7 +36,7 @@ function ChannelSection({ channel }: { channel: ChannelType }) {
   const { lang } = useLanguage()
   const { channelChecks, setChannelAnswer } = useFormStore()
   const questions = channel === 'whatsapp' ? WHATSAPP_QUESTIONS : CALL_QUESTIONS
-  const answers = channelChecks[channel] ?? {}
+  const answers = channelChecks
   const answeredCount = Object.keys(answers).length
   const pct = Math.round((answeredCount / questions.length) * 100)
   const isWA = channel === 'whatsapp'
@@ -140,7 +140,7 @@ function ChannelSection({ channel }: { channel: ChannelType }) {
                     <button
                       key={opt.value}
                       type="button"
-                      onClick={() => setChannelAnswer(channel, q.number, opt.value as CheckAnswer)}
+                      onClick={() => setChannelAnswer(q.number, opt.value as CheckAnswer)}
                       className={`flex flex-col items-center justify-center gap-2 py-4 sm:py-5 rounded-2xl border-2 font-bold transition-all duration-200 ${
                         isSelected
                           ? `${cfg.activeBg} ${cfg.activeText} ${cfg.activeBorder} shadow-lg ${cfg.activeShadow} scale-[1.02]`
@@ -182,11 +182,18 @@ export function StepChannelChecks() {
     )
   }
 
+  const primaryChannel = step1.channels[0]
+
   return (
-    <div className="space-y-5">
-      {step1.channels.map(channel => (
-        <ChannelSection key={channel} channel={channel} />
-      ))}
+    <div className="space-y-3">
+      {step1.channels.length > 1 && (
+        <p className="text-xs text-gray-400 px-1">
+          {lang === 'tr'
+            ? 'Birden fazla kanal seçildi; aynı kontrol soruları her ikisi için de geçerli sayılır.'
+            : 'Multiple channels selected; the same check answers apply to both.'}
+        </p>
+      )}
+      <ChannelSection channel={primaryChannel} />
     </div>
   )
 }
