@@ -55,7 +55,6 @@ interface Props {
   filterLevel: string
   filterResult: string
   filterEvaluator: string
-  filterConsultant: string
   filterStartDate: string
   filterEndDate: string
   sortBy: string
@@ -132,7 +131,6 @@ export function TrainingExamResultsContent({
   filterLevel,
   filterResult,
   filterEvaluator,
-  filterConsultant,
   filterStartDate,
   filterEndDate,
   sortBy: serverSortBy,
@@ -183,7 +181,6 @@ export function TrainingExamResultsContent({
       level: filterLevel,
       result: filterResult,
       evaluator: filterEvaluator,
-      consultant: filterConsultant,
       startDate: filterStartDate,
       endDate: filterEndDate,
       sortBy: serverSortBy,
@@ -398,7 +395,7 @@ export function TrainingExamResultsContent({
   }
 
   const hasFilters =
-    localSearch || filterLevel || filterResult || filterEvaluator || filterConsultant || filterStartDate || filterEndDate
+    localSearch || filterLevel || filterResult || filterEvaluator || filterStartDate || filterEndDate
   const totalPages = Math.ceil(totalCount / pageSize)
   const visibleResults = results.filter(result => !deletedIds.has(result.id))
   const deleteResult = deletingId
@@ -787,18 +784,6 @@ export function TrainingExamResultsContent({
               icon={Target}
             />
           </div>
-
-          {consultants.length > 0 && (
-            <div className="w-[200px] flex-shrink-0">
-              <SearchableSelect
-                value={filterConsultant}
-                onChange={v => updateFilter('consultant', v)}
-                options={consultants.map(c => ({ value: c.id, label: c.full_name || c.id }))}
-                placeholder={isTr ? 'Danışman: Tümü' : 'Consultant: All'}
-                icon={User}
-              />
-            </div>
-          )}
 
           {role === 'manager' && (
             <div className="w-[200px] flex-shrink-0">

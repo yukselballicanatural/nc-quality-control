@@ -37,7 +37,6 @@ function emptyResultProps(params: {
   level: string
   result: string
   evaluator: string
-  consultant: string
   startDate: string
   endDate: string
   sortBy: ValidSortCol
@@ -52,7 +51,6 @@ function emptyResultProps(params: {
     filterLevel: params.level,
     filterResult: params.result,
     filterEvaluator: params.evaluator,
-    filterConsultant: params.consultant,
     filterStartDate: params.startDate,
     filterEndDate: params.endDate,
     sortBy: params.sortBy,
@@ -74,7 +72,6 @@ export default async function TrainingExamResultsPage({ searchParams }: PageProp
   const level = typeof sp.level === 'string' ? sp.level : ''
   const result = typeof sp.result === 'string' ? sp.result : ''
   const evaluatorId = typeof sp.evaluator === 'string' ? sp.evaluator : ''
-  const filterConsultantId = typeof sp.consultant === 'string' ? sp.consultant : ''
   const startDate = typeof sp.startDate === 'string' ? sp.startDate : ''
   const endDate = typeof sp.endDate === 'string' ? sp.endDate : ''
   const page = typeof sp.page === 'string' ? Math.max(1, parseInt(sp.page) || 1) : 1
@@ -121,7 +118,6 @@ export default async function TrainingExamResultsPage({ searchParams }: PageProp
     level,
     result,
     evaluator: evaluatorId,
-    consultant: filterConsultantId,
     startDate,
     endDate,
     sortBy,
@@ -174,7 +170,6 @@ export default async function TrainingExamResultsPage({ searchParams }: PageProp
       : '00000000-0000-0000-0000-000000000000'
     query = query.or(`consultant_id.in.(${idList}),consultant_name.ilike.%${q}%`)
   }
-  if (filterConsultantId) query = query.eq('consultant_id', filterConsultantId)
   if (isRestrictedQualityUser(profile)) query = query.eq('evaluator_id', profile.id)
   if (evaluatorId && profile.role === 'manager') query = query.eq('evaluator_id', evaluatorId)
   if (level === 'junior' || level === 'senior') query = query.eq('level', level)
@@ -224,7 +219,6 @@ export default async function TrainingExamResultsPage({ searchParams }: PageProp
       filterLevel={level}
       filterResult={result}
       filterEvaluator={evaluatorId}
-      filterConsultant={filterConsultantId}
       filterStartDate={startDate}
       filterEndDate={endDate}
       sortBy={sortBy}
