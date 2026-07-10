@@ -15,6 +15,7 @@ export interface StepBasicInfoProps {
   agents: AgentOption[]
   teamLeaders: { id: string; full_name: string }[]
   teams: { id: string; name: string }[]
+  evaluators: { id: string; full_name: string }[]
 }
 
 const TODAY = new Date().toISOString().slice(0, 10)
@@ -46,7 +47,7 @@ const STAGES: SalesStage[] = [
   'second_visit',
 ]
 
-export function StepBasicInfo({ evaluatorId, evaluatorName, agents, teamLeaders }: StepBasicInfoProps) {
+export function StepBasicInfo({ role, evaluatorId, evaluatorName, agents, teamLeaders, evaluators }: StepBasicInfoProps) {
   const { lang, t } = useLanguage()
   const { step1, updateStep1 } = useFormStore()
 
@@ -54,6 +55,8 @@ export function StepBasicInfo({ evaluatorId, evaluatorName, agents, teamLeaders 
     evaluatorName ||
     teamLeaders.find(tl => tl.id === evaluatorId)?.full_name ||
     t.auth.title
+
+  const isManager = role === 'manager'
 
   function selectAgent(agentId: string) {
     const agent = agents.find(a => a.id === agentId)
@@ -117,13 +120,27 @@ export function StepBasicInfo({ evaluatorId, evaluatorName, agents, teamLeaders 
           </div>
 
           <div>
-            <label className={labelCls}>{t.form.step1.evaluator}</label>
-            <div className="relative">
-              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
-              <div className={`${inputCls} pl-10 bg-gray-50 text-gray-400 cursor-default`}>
-                {displayEvaluatorName}
+            <label className={labelCls}>
+              {t.form.step1.evaluator}
+              {isManager && <span className="text-red-400 normal-case tracking-normal"> *</span>}
+            </label>
+            {isManager ? (
+              <SearchableSelect
+                value={step1.evaluatorId}
+                onChange={v => updateStep1({ evaluatorId: v })}
+                options={evaluators.map(e => ({ value: e.id, label: e.full_name }))}
+                placeholder={lang === 'tr' ? 'Değerlendiren kişi seçin' : 'Select evaluator'}
+                icon={User}
+                required
+              />
+            ) : (
+              <div className="relative">
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
+                <div className={`${inputCls} pl-10 bg-gray-50 text-gray-400 cursor-default`}>
+                  {displayEvaluatorName}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

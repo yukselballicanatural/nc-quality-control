@@ -32,6 +32,7 @@ export interface FormStepperProps {
   agents: AgentOption[]
   teamLeaders: { id: string; full_name: string }[]
   teams: { id: string; name: string }[]
+  evaluators: { id: string; full_name: string }[]
   initialEvaluation?: EvaluationWithRelations
 }
 
@@ -62,6 +63,7 @@ export function FormStepper({
   agents,
   teamLeaders,
   teams,
+  evaluators,
   initialEvaluation,
 }: FormStepperProps) {
   const { lang, t } = useLanguage()
@@ -102,7 +104,9 @@ export function FormStepper({
       initFromEvaluation(initialEvaluation)
     } else {
       resetForm()
-      updateStep1({ evaluatorId })
+      if (role !== 'manager') {
+        updateStep1({ evaluatorId })
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -113,6 +117,7 @@ export function FormStepper({
   function getStepError(step: number): string | null {
     if (step === 1) {
       if (!step1.consultantId) return lang === 'tr' ? 'Danışman seçilmedi.' : 'No consultant selected.'
+      if (role === 'manager' && !step1.evaluatorId) return lang === 'tr' ? 'Değerlendiren kişi seçilmedi.' : 'No evaluator selected.'
       if (!step1.customerPhone.trim()) return lang === 'tr' ? 'Müşteri telefon numarası zorunludur.' : 'Customer phone number is required.'
       if (step1.channels.length === 0) return lang === 'tr' ? 'Görüşme kanalı seçilmedi.' : 'Channel not selected.'
       if (!step1.reviewStartDate) return lang === 'tr' ? 'İncelenen dönem başlangıç tarihi zorunludur.' : 'Review period start date is required.'
@@ -202,7 +207,7 @@ export function FormStepper({
 
   function renderStep() {
     switch (currentStep) {
-      case 1: return <StepBasicInfo role={role} evaluatorId={evaluatorId} evaluatorName={evaluatorName} agents={agents} teamLeaders={teamLeaders} teams={teams} />
+      case 1: return <StepBasicInfo role={role} evaluatorId={evaluatorId} evaluatorName={evaluatorName} agents={agents} teamLeaders={teamLeaders} teams={teams} evaluators={evaluators} />
       case 2:
         if (isDealStage)        return <StepDealQuestions />
         if (isSecondVisitStage) return <StepSecondVisitQuestions />

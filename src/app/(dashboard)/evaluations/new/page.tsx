@@ -23,7 +23,7 @@ export default async function NewEvaluationPage() {
   }
 
   // Fetch dropdown data in parallel
-  const [agentsResult, teamLeadersResult, teamsResult] = await Promise.all([
+  const [agentsResult, teamLeadersResult, teamsResult, evaluatorsResult] = await Promise.all([
     supabase
       .from('agents')
       .select('id, first_name, last_name, role, region')
@@ -35,6 +35,12 @@ export default async function NewEvaluationPage() {
       .eq('is_active', true)
       .order('full_name'),
     supabase.from('teams').select('id, name').order('name'),
+    supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('role', ['manager', 'quality_team', 'team_leader'])
+      .eq('is_active', true)
+      .order('full_name'),
   ])
 
   const agents = (agentsResult.data ?? [])
@@ -50,6 +56,7 @@ export default async function NewEvaluationPage() {
       agents={agents}
       teamLeaders={teamLeadersResult.data ?? []}
       teams={teamsResult.data ?? []}
+      evaluators={evaluatorsResult.data ?? []}
     />
   )
 }
