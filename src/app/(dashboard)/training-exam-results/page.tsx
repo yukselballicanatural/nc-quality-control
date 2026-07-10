@@ -6,6 +6,13 @@ import type { TrainingExam, UserRole } from '@/types/supabase'
 
 export const dynamic = 'force-dynamic'
 
+// Strips characters that are significant in PostgREST's `.or()` filter
+// grammar (commas separate conditions, parens group them) so user-supplied
+// search text can't inject extra filter conditions.
+function sanitizeForOrFilter(value: string) {
+  return value.replace(/[,()]/g, '')
+}
+
 const PAGE_SIZE = 20
 const TrainingExamResultsContent = nextDynamic(
   () => import('@/components/training-exam/TrainingExamResultsContent').then(m => m.TrainingExamResultsContent),
@@ -168,7 +175,7 @@ export default async function TrainingExamResultsPage({ searchParams }: PageProp
     const idList = searchMatchedProfileIds.length
       ? searchMatchedProfileIds.join(',')
       : '00000000-0000-0000-0000-000000000000'
-    query = query.or(`consultant_id.in.(${idList}),consultant_name.ilike.%${q}%`)
+    query = query.or(`consultant_id.in.(${idList}),consultant_name.ilike.%${sanitizeForOrFilter(q)}%`)
   }
   if (isRestrictedQualityUser(profile)) query = query.eq('evaluator_id', profile.id)
   if (evaluatorId && profile.role === 'manager') query = query.eq('evaluator_id', evaluatorId)

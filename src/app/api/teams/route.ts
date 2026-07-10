@@ -106,7 +106,7 @@ export async function DELETE(request: Request) {
     )
   }
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/teams?id=eq.${id}`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/teams?id=eq.${encodeURIComponent(id)}`, {
     method: 'DELETE',
     headers: { ...adminHeaders(), Prefer: 'return=minimal' },
   })

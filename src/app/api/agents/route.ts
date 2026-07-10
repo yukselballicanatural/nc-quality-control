@@ -126,7 +126,7 @@ export async function PATCH(request: Request) {
 
   const role = buildRole(kind, fullName, teamLeaderName ?? '')
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/agents?id=eq.${id}`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/agents?id=eq.${encodeURIComponent(id)}`, {
     method: 'PATCH',
     headers: { ...adminHeaders(), Prefer: 'return=minimal' },
     body: JSON.stringify({
@@ -164,7 +164,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'Geçersiz kayıt' }, { status: 400 })
   }
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/agents?id=eq.${id}`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/agents?id=eq.${encodeURIComponent(id)}`, {
     method: 'DELETE',
     headers: { ...adminHeaders(), Prefer: 'return=minimal' },
   })

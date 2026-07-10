@@ -8,6 +8,15 @@ import type { EvaluationListItem } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
+// Strips characters that are significant in PostgREST's `.or()` filter
+// grammar (commas separate conditions, parens group them) so user-supplied
+// search text can't inject extra filter conditions.
+function sanitizeForOrFilter(value: string) {
+  return value.replace(/[,()]/g, '')
+}
+
+const VALID_CHANNELS = new Set(['whatsapp', 'call'])
+
 const PAGE_SIZE = 20
 const EvaluationsContent = nextDynamic(
   () => import('@/components/evaluations/EvaluationsContent').then(m => m.EvaluationsContent),
@@ -32,7 +41,8 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
 
   const sp = searchParams
   const q = typeof sp.q === 'string' ? sp.q.trim() : ''
-  const channel = typeof sp.channel === 'string' ? sp.channel : ''
+  const rawChannel = typeof sp.channel === 'string' ? sp.channel : ''
+  const channel = VALID_CHANNELS.has(rawChannel) ? rawChannel : ''
   const status = typeof sp.status === 'string' ? sp.status : ''
   const result = typeof sp.result === 'string' ? sp.result : ''
   const evaluatorId = typeof sp.evaluator === 'string' ? sp.evaluator : ''
@@ -83,7 +93,10 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
   }
 
   // Filters
-  if (q) query = query.or(`customer_name.ilike.%${q}%,consultant_name.ilike.%${q}%`)
+  if (q) {
+    const safeQ = sanitizeForOrFilter(q)
+    query = query.or(`customer_name.ilike.%${safeQ}%,consultant_name.ilike.%${safeQ}%`)
+  }
   if (channel) {
     // An evaluation can have a secondary channel recorded only in
     // channel_checks, so match either the primary channel or that.

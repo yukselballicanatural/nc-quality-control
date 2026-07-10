@@ -143,7 +143,7 @@ export async function PATCH(request: Request) {
     if (typeof password !== 'string' || password.length < 6) {
       return NextResponse.json({ error: 'Şifre en az 6 karakter olmalı' }, { status: 400 })
     }
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${id}`, {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${encodeURIComponent(id)}`, {
       method: 'PUT',
       headers: adminHeaders(),
       body: JSON.stringify({ password }),
@@ -169,7 +169,7 @@ export async function PATCH(request: Request) {
   if (typeof updates.role === 'string' && VALID_ROLES.has(updates.role)) allowedUpdates.role = updates.role
   if (typeof updates.team_id === 'string' || updates.team_id === null) allowedUpdates.team_id = updates.team_id || null
   if (typeof updates.is_active === 'boolean') allowedUpdates.is_active = updates.is_active
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${id}`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(id)}`, {
     method: 'PATCH',
     headers: { ...adminHeaders(), Prefer: 'return=minimal' },
     body: JSON.stringify(allowedUpdates),
@@ -208,7 +208,7 @@ export async function DELETE(request: Request) {
   }
 
   // Auth kullanıcıyı sil (profile cascade'de silinir)
-  const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${id}`, {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${encodeURIComponent(id)}`, {
     method: 'DELETE',
     headers: adminHeaders(),
   })
@@ -226,7 +226,7 @@ export async function DELETE(request: Request) {
   }
 
   // Profile tablosundan da sil (cascade yoksa)
-  await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${id}`, {
+  await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(id)}`, {
     method: 'DELETE',
     headers: adminHeaders(),
   })
