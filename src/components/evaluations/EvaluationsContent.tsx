@@ -153,6 +153,12 @@ export function EvaluationsContent({
   const [deleteSuccess, setDeleteSuccess] = useState('')
   const [deletedIds, setDeletedIds] = useState<Set<string>>(() => new Set())
 
+  // ── Bulk select / delete ────────────────────────────────────────
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false)
+  const [bulkDeleteError, setBulkDeleteError] = useState('')
+
   const canEdit   = role === 'quality_team' || role === 'team_leader' || role === 'manager'
   const canDelete = role === 'quality_team' || role === 'manager'
   const showConsultant = role !== 'consultant'
@@ -162,6 +168,11 @@ export function EvaluationsContent({
   useEffect(() => {
     setLocalSearch(searchQuery)
   }, [searchQuery])
+
+  // Clear selection whenever the underlying page/filtered list changes
+  useEffect(() => {
+    setSelectedIds(new Set())
+  }, [evaluations])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -325,6 +336,78 @@ export function EvaluationsContent({
     }
   }
 
+  function toggleSelected(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds(prev =>
+      prev.size === sortedEvaluations.length
+        ? new Set()
+        : new Set(sortedEvaluations.map(ev => ev.id))
+    )
+  }
+
+  async function handleBulkDelete() {
+    setBulkDeleteLoading(true)
+    setBulkDeleteError('')
+    const ids = Array.from(selectedIds)
+    try {
+      const results = await Promise.all(
+        ids.map(async id => {
+          const res = await fetch(`/api/evaluations/${id}`, { method: 'DELETE' })
+          return { id, ok: res.ok }
+        })
+      )
+      const succeeded = results.filter(r => r.ok).map(r => r.id)
+      const failedCount = results.length - succeeded.length
+
+      if (succeeded.length > 0) {
+        setDeletedIds(prev => {
+          const next = new Set(prev)
+          succeeded.forEach(id => next.add(id))
+          return next
+        })
+        const successMessage =
+          failedCount > 0
+            ? (lang === 'tr' ? `${succeeded.length} değerlendirme silindi, ${failedCount} tanesi silinemedi.` : `${succeeded.length} evaluations deleted, ${failedCount} failed.`)
+            : (lang === 'tr' ? `${succeeded.length} değerlendirme silindi.` : `${succeeded.length} evaluations deleted.`)
+        setDeleteSuccess(successMessage)
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.setItem(DELETE_SUCCESS_STORAGE_KEY, successMessage)
+        }
+        setTimeout(() => setDeleteSuccess(''), 2500)
+      }
+
+      if (failedCount > 0 && succeeded.length === 0) {
+        setBulkDeleteError(
+          lang === 'tr'
+            ? 'Seçilen değerlendirmeler silinemedi. Yetki veya bağlantı problemi olabilir.'
+            : 'Selected evaluations could not be deleted. There may be a permission or connection issue.'
+        )
+        return
+      }
+
+      setSelectedIds(new Set())
+      setBulkDeleteOpen(false)
+      startTransition(() => { router.refresh() })
+    } catch (error) {
+      console.error('Bulk delete error:', error)
+      setBulkDeleteError(
+        lang === 'tr'
+          ? 'Seçilen değerlendirmeler silinemedi. Yetki veya bağlantı problemi olabilir.'
+          : 'Selected evaluations could not be deleted. There may be a permission or connection issue.'
+      )
+    } finally {
+      setBulkDeleteLoading(false)
+    }
+  }
+
   // ── Derived ────────────────────────────────────────────────────
 
   const hasFilters =
@@ -398,6 +481,64 @@ export function EvaluationsContent({
         document.body
       )}
 
+      {bulkDeleteOpen && typeof document !== 'undefined' && createPortal(
+        (
+        <div className="fixed inset-0 z-[100] bg-black/40">
+          <div className="fixed left-1/2 top-1/2 w-[calc(100vw-2rem)] max-w-md max-h-[calc(100dvh-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="p-5">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-500">
+                  <Trash2 className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-base font-bold text-gray-950">
+                    {lang === 'tr'
+                      ? `${selectedIds.size} değerlendirme silinsin mi?`
+                      : `Delete ${selectedIds.size} evaluations?`}
+                  </h2>
+                  <p className="mt-1 text-sm leading-6 text-gray-500">
+                    {lang === 'tr'
+                      ? 'Bu işlem geri alınamaz. Seçili değerlendirmeler sistemden kalıcı olarak silinecek.'
+                      : 'This cannot be undone. The selected evaluations will be permanently removed.'}
+                  </p>
+                  {bulkDeleteError && (
+                    <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
+                      {bulkDeleteError}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setBulkDeleteOpen(false)
+                  setBulkDeleteError('')
+                }}
+                disabled={bulkDeleteLoading}
+                className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50"
+              >
+                {lang === 'tr' ? 'Vazgeç' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleteLoading}
+                className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+              >
+                <Trash2 className="h-4 w-4" />
+                {bulkDeleteLoading
+                  ? (lang === 'tr' ? 'Siliniyor...' : 'Deleting...')
+                  : (lang === 'tr' ? `Evet, ${selectedIds.size} kaydı sil` : `Yes, delete ${selectedIds.size}`)}
+              </button>
+            </div>
+          </div>
+        </div>
+        ),
+        document.body
+      )}
+
       {deleteSuccess && (
         <div className="fixed bottom-6 right-6 z-[110] flex items-center gap-3 rounded-2xl bg-[#1B4332] px-5 py-3.5 text-sm font-semibold text-white shadow-2xl shadow-[#1B4332]/30">
           <CheckCircle2 className="h-5 w-5 text-[#52B788]" />
@@ -438,6 +579,30 @@ export function EvaluationsContent({
           </Link>
         )}
       </div>
+
+      {/* ── Bulk actions ───────────────────────────────────── */}
+      {canDelete && selectedIds.size > 0 && (
+        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#1B4332]/5 border border-[#1B4332]/15 rounded-2xl">
+          <span className="text-sm font-medium text-[#1B4332]">
+            {lang === 'tr' ? `${selectedIds.size} kayıt seçildi` : `${selectedIds.size} selected`}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              {lang === 'tr' ? 'Seçimi temizle' : 'Clear selection'}
+            </button>
+            <button
+              onClick={() => { setBulkDeleteError(''); setBulkDeleteOpen(true) }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              {lang === 'tr' ? 'Seçilenleri Sil' : 'Delete Selected'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Filters ────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3.5">
@@ -578,6 +743,16 @@ export function EvaluationsContent({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/60">
+                  {canDelete && (
+                    <th className="px-4 py-3 w-8">
+                      <input
+                        type="checkbox"
+                        checked={sortedEvaluations.length > 0 && selectedIds.size === sortedEvaluations.length}
+                        onChange={toggleSelectAll}
+                        className="w-4 h-4 rounded border-gray-300 text-[#1B4332] focus:ring-[#1B4332]/30 cursor-pointer"
+                      />
+                    </th>
+                  )}
                   {/* Date */}
                   <th className="text-left px-4 py-3 whitespace-nowrap">
                     <button
@@ -653,8 +828,20 @@ export function EvaluationsContent({
                   return (
                     <tr
                       key={ev.id}
-                      className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors"
+                      className={`border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors ${
+                        selectedIds.has(ev.id) ? 'bg-[#1B4332]/[0.03]' : ''
+                      }`}
                     >
+                      {canDelete && (
+                        <td className="px-4 py-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(ev.id)}
+                            onChange={() => toggleSelected(ev.id)}
+                            className="w-4 h-4 rounded border-gray-300 text-[#1B4332] focus:ring-[#1B4332]/30 cursor-pointer"
+                          />
+                        </td>
+                      )}
                       <td className="px-4 py-3 whitespace-nowrap text-gray-700">
                         {ev.evaluation_date}
                       </td>
