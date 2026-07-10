@@ -15,11 +15,12 @@ import {
 } from 'recharts'
 import {
   Download, X, MessageSquare, Phone, Users, BarChart2, AlertCircle, Award,
-  ClipboardList, Gauge, ShieldAlert, Trophy, ChevronDown,
+  ClipboardList, Gauge, ShieldAlert, Trophy, User, Building2, Radio, Target,
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import { getScoreLevel } from '@/lib/scoring'
 import { DatePicker } from '@/components/ui/DatePicker'
+import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import type { UserRole, ConversationResult, CriticalErrorType } from '@/types/supabase'
 import type { ConsultantPerfRow, ChannelCompRow, CriticalErrorRow, SalesOutcomeRow } from '@/types'
 
@@ -78,9 +79,6 @@ const RESULT_COLORS: Record<ConversationResult, string> = {
   lost: 'bg-red-100 text-red-700',
   no_answer: 'bg-gray-100 text-gray-600',
 }
-
-const selectClass =
-  'appearance-none w-full text-sm font-medium text-gray-700 border border-gray-200 rounded-xl bg-gray-50 pl-3.5 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 focus:border-[#1B4332] hover:border-gray-300 transition-colors cursor-pointer truncate'
 
 // ─── Props ────────────────────────────────────────────────────────
 
@@ -331,72 +329,54 @@ export function ReportsContent({
           </div>
 
           {/* Consultant */}
-          <div className="relative w-[170px] flex-shrink-0">
-            <select
+          <div className="w-[190px] flex-shrink-0">
+            <SearchableSelect
               value={filterConsultantId}
-              onChange={e => pushParams({ consultantId: e.target.value })}
-              className={selectClass}
-            >
-              <option value="">{t.reports.consultant}</option>
-              {consultants.map(c => (
-                <option key={c.id} value={c.id}>
-                  {c.full_name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+              onChange={v => pushParams({ consultantId: v })}
+              options={consultants.map(c => ({ value: c.id, label: c.full_name }))}
+              placeholder={t.reports.consultant}
+              icon={User}
+            />
           </div>
 
           {/* Team (quality_team + manager only) */}
           {(role === 'quality_team' || role === 'manager') && (
-            <div className="relative w-[150px] flex-shrink-0">
-              <select
+            <div className="w-[170px] flex-shrink-0">
+              <SearchableSelect
                 value={filterTeamId}
-                onChange={e => pushParams({ teamId: e.target.value })}
-                className={selectClass}
-              >
-                <option value="">{t.reports.team}</option>
-                {teams.map(tm => (
-                  <option key={tm.id} value={tm.id}>
-                    {tm.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                onChange={v => pushParams({ teamId: v })}
+                options={teams.map(tm => ({ value: tm.id, label: tm.name }))}
+                placeholder={t.reports.team}
+                icon={Building2}
+              />
             </div>
           )}
 
           {/* Channel */}
-          <div className="relative w-[140px] flex-shrink-0">
-            <select
+          <div className="w-[160px] flex-shrink-0">
+            <SearchableSelect
               value={filterChannel}
-              onChange={e => pushParams({ channel: e.target.value })}
-              className={selectClass}
-            >
-              <option value="">{t.reports.channel}</option>
-              <option value="whatsapp">WhatsApp</option>
-              <option value="call">{t.channel.call}</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+              onChange={v => pushParams({ channel: v })}
+              options={[
+                { value: 'whatsapp', label: 'WhatsApp' },
+                { value: 'call', label: t.channel.call },
+              ]}
+              placeholder={t.reports.channel}
+              icon={Radio}
+            />
           </div>
 
           {/* Result */}
-          <div className="relative w-[150px] flex-shrink-0">
-            <select
+          <div className="w-[170px] flex-shrink-0">
+            <SearchableSelect
               value={filterResult}
-              onChange={e => pushParams({ result: e.target.value })}
-              className={selectClass}
-            >
-              <option value="">{t.reports.result}</option>
-              {(
-                ['won', 'open', 'follow_up', 'lost', 'no_answer'] as ConversationResult[]
-              ).map(r => (
-                <option key={r} value={r}>
-                  {resultLabels[r]}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+              onChange={v => pushParams({ result: v })}
+              options={(['won', 'open', 'follow_up', 'lost', 'no_answer'] as ConversationResult[]).map(r => ({
+                value: r, label: resultLabels[r],
+              }))}
+              placeholder={t.reports.result}
+              icon={Target}
+            />
           </div>
 
           {/* Clear */}
