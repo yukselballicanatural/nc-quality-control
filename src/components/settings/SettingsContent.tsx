@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useTransition } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -1045,6 +1046,11 @@ function Modal({ title, icon, onClose, children }: {
   title: string; icon?: React.ReactNode; onClose: () => void; children: React.ReactNode
 }) {
   const boxRef = useRef<HTMLDivElement>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const prevOverflow = document.body.style.overflow
@@ -1057,7 +1063,9 @@ function Modal({ title, icon, onClose, children }: {
     firstField?.focus({ preventScroll: true })
   }, [])
 
-  return (
+  if (!mounted) return null
+
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto">
       <div ref={boxRef} className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-fade-up my-auto max-h-[calc(100vh-2rem)] flex flex-col">
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0">
@@ -1071,7 +1079,8 @@ function Modal({ title, icon, onClose, children }: {
         </div>
         <div className="px-6 py-5 overflow-y-auto">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
