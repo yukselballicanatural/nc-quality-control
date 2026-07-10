@@ -780,7 +780,7 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         <Modal title="Kullanıcı Ekle" icon={<ShieldCheck className="w-5 h-5 text-[#1B4332]" />} onClose={() => { setShowAddUser(false); setAddError(null); setAddForm(initAddForm) }}>
           <form onSubmit={handleAddUser} className="space-y-4">
             <Field label="Ad Soyad">
-              <input type="text" required autoFocus value={addForm.full_name}
+              <input type="text" required value={addForm.full_name}
                 onChange={e => setAddForm(f => ({ ...f, full_name: e.target.value }))}
                 placeholder="Örn: Ahmet Yılmaz" className={inputCls} />
             </Field>
@@ -872,7 +872,7 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
               <div className="relative">
                 <input type={showNewPw ? 'text' : 'password'} required minLength={6}
                   value={newPw} onChange={e => setNewPw(e.target.value)}
-                  placeholder="En az 6 karakter" autoFocus className={`${inputCls} pr-11`} />
+                  placeholder="En az 6 karakter" className={`${inputCls} pr-11`} />
                 <PwToggle show={showNewPw} onToggle={() => setShowNewPw(v => !v)} />
               </div>
             </Field>
@@ -911,7 +911,7 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         <Modal title="Region Ekle" icon={<Globe2 className="w-5 h-5 text-[#1B4332]" />} onClose={() => { setShowAddTeam(false); setTeamError(null) }}>
           <form onSubmit={handleAddTeam} className="space-y-4">
             <Field label="Region Adı">
-              <input type="text" required autoFocus value={teamName}
+              <input type="text" required value={teamName}
                 onChange={e => setTeamName(e.target.value)}
                 placeholder="Örn: Morocco" className={inputCls} />
             </Field>
@@ -955,7 +955,7 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         >
           <form onSubmit={handleSaveAgent} className="space-y-4">
             <Field label="Ad Soyad">
-              <input type="text" required autoFocus value={agentForm.fullName}
+              <input type="text" required value={agentForm.fullName}
                 onChange={e => setAgentForm(f => ({ ...f, fullName: e.target.value }))}
                 placeholder="Örn: Yüksel Ballıca" className={inputCls} />
             </Field>
@@ -1044,15 +1044,22 @@ const selectCls =
 function Modal({ title, icon, onClose, children }: {
   title: string; icon?: React.ReactNode; onClose: () => void; children: React.ReactNode
 }) {
+  const boxRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = prevOverflow }
   }, [])
 
+  useEffect(() => {
+    const firstField = boxRef.current?.querySelector<HTMLElement>('input, select, textarea')
+    firstField?.focus({ preventScroll: true })
+  }, [])
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-fade-up my-auto max-h-[calc(100vh-2rem)] flex flex-col">
+      <div ref={boxRef} className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-fade-up my-auto max-h-[calc(100vh-2rem)] flex flex-col">
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center gap-2">
             {icon}
