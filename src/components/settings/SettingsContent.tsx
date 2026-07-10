@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   Users,
-  Building2,
+  Globe2,
+  Headset,
   Plus,
   X,
   Eye,
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react'
 import type { UserRole } from '@/types/supabase'
 import { canManageUsers } from '@/lib/access-control'
+import { isTeamLeaderRole, deriveTeamLeaderName } from '@/lib/agents'
 
 interface UserRow {
   id: string
@@ -37,10 +39,25 @@ interface Team {
   name: string
 }
 
+interface AgentRow {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  role: string | null
+  region: string | null
+}
+
 interface Props {
   currentProfile: UserRow
   users: UserRow[]
   teams: Team[]
+  agents: AgentRow[]
+}
+
+const REGION_OPTIONS = ['Istanbul', 'Morocco']
+
+function agentFullName(a: Pick<AgentRow, 'first_name' | 'last_name'>) {
+  return [a.first_name, a.last_name].filter(Boolean).join(' ').trim()
 }
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -64,13 +81,19 @@ const CREATABLE_ROLES: { value: UserRole; label: string }[] = [
   { value: 'manager', label: 'Yönetici / Admin' },
 ]
 
-type Tab = 'users' | 'teams' | 'account'
+type Tab = 'users' | 'teams' | 'agents' | 'account'
 
 function initAddForm() {
   return { full_name: '', email: '', password: '', role: 'consultant' as UserRole, team_id: '' }
 }
 
-export default function SettingsContent({ currentProfile, users, teams }: Props) {
+type AgentKind = 'leader' | 'member'
+
+function initAgentForm() {
+  return { fullName: '', kind: 'member' as AgentKind, teamLeaderName: '', region: REGION_OPTIONS[0] }
+}
+
+export default function SettingsContent({ currentProfile, users, teams, agents }: Props) {
   const canManage = canManageUsers(currentProfile)
 
   const router = useRouter()
@@ -113,6 +136,18 @@ export default function SettingsContent({ currentProfile, users, teams }: Props)
   const [deleteTeamLoading, setDeleteTeamLoading] = useState(false)
   const [deleteTeamError, setDeleteTeamError] = useState<string | null>(null)
 
+  // ── Add/Edit Agent ──────────────────────────────────────────────────
+  const [showAgentForm, setShowAgentForm] = useState(false)
+  const [editAgent, setEditAgent] = useState<AgentRow | null>(null)
+  const [agentForm, setAgentForm] = useState(initAgentForm)
+  const [agentLoading, setAgentLoading] = useState(false)
+  const [agentError, setAgentError] = useState<string | null>(null)
+
+  // ── Delete Agent ────────────────────────────────────────────────────
+  const [deleteAgent, setDeleteAgent] = useState<AgentRow | null>(null)
+  const [deleteAgentLoading, setDeleteAgentLoading] = useState(false)
+  const [deleteAgentError, setDeleteAgentError] = useState<string | null>(null)
+
   // ── My Account ──────────────────────────────────────────────────────
   const [selfPw, setSelfPw] = useState({ current: '', newPw: '', confirm: '' })
   const [showSelfPw, setShowSelfPw] = useState(false)
@@ -120,6 +155,15 @@ export default function SettingsContent({ currentProfile, users, teams }: Props)
   const [selfPwMsg, setSelfPwMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
   const teamMap = new Map(teams.map(t => [t.id, t.name]))
+
+  const existingTeamLeaderNames = Array.from(
+    new Set(
+      agents
+        .filter(a => isTeamLeaderRole(a.role))
+        .map(a => agentFullName(a))
+        .filter(Boolean)
+    )
+  ).sort()
 
   function refresh() {
     startTransition(() => router.refresh())
@@ -248,6 +292,62 @@ export default function SettingsContent({ currentProfile, users, teams }: Props)
     finally { setDeleteTeamLoading(false) }
   }
 
+  function openAddAgent() {
+    setEditAgent(null)
+    setAgentForm(initAgentForm())
+    setAgentError(null)
+    setShowAgentForm(true)
+  }
+
+  function openEditAgent(a: AgentRow) {
+    setEditAgent(a)
+    setAgentForm({
+      fullName: agentFullName(a),
+      kind: isTeamLeaderRole(a.role) ? 'leader' : 'member',
+      teamLeaderName: isTeamLeaderRole(a.role) ? '' : (deriveTeamLeaderName(a) ?? ''),
+      region: a.region ?? REGION_OPTIONS[0],
+    })
+    setAgentError(null)
+    setShowAgentForm(true)
+  }
+
+  async function handleSaveAgent(e: React.FormEvent) {
+    e.preventDefault()
+    setAgentError(null)
+    setAgentLoading(true)
+    try {
+      const res = await fetch('/api/agents', {
+        method: editAgent ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editAgent?.id, ...agentForm }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setAgentError(data.error ?? 'Bir hata oluştu'); return }
+      setShowAgentForm(false)
+      setEditAgent(null)
+      refresh()
+    } catch { setAgentError('Bağlantı hatası') }
+    finally { setAgentLoading(false) }
+  }
+
+  async function handleDeleteAgent() {
+    if (!deleteAgent) return
+    setDeleteAgentLoading(true)
+    setDeleteAgentError(null)
+    try {
+      const res = await fetch('/api/agents', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: deleteAgent.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setDeleteAgentError(data.error ?? 'Silinemedi'); return }
+      setDeleteAgent(null)
+      refresh()
+    } catch { setDeleteAgentError('Bağlantı hatası') }
+    finally { setDeleteAgentLoading(false) }
+  }
+
   async function handleSelfPassword(e: React.FormEvent) {
     e.preventDefault()
     setSelfPwMsg(null)
@@ -280,7 +380,8 @@ export default function SettingsContent({ currentProfile, users, teams }: Props)
   const tabs = canManage
     ? [
         { key: 'users' as Tab, label: 'Kullanıcılar', Icon: Users },
-        { key: 'teams' as Tab, label: 'Takımlar', Icon: Building2 },
+        { key: 'agents' as Tab, label: 'Danışman & Takım Lideri', Icon: Headset },
+        { key: 'teams' as Tab, label: 'Regionlar', Icon: Globe2 },
         { key: 'account' as Tab, label: 'Hesabım', Icon: UserCircle },
       ]
     : [{ key: 'account' as Tab, label: 'Hesabım', Icon: UserCircle }]
@@ -333,7 +434,7 @@ export default function SettingsContent({ currentProfile, users, teams }: Props)
             <table className="w-full min-w-[580px]">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/60">
-                  {['Kullanıcı', 'Rol', 'Takım', 'Durum', 'İşlemler'].map(h => (
+                  {['Kullanıcı', 'Rol', 'Region', 'Durum', 'İşlemler'].map(h => (
                     <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider first:pl-5 last:pr-5">
                       {h}
                     </th>
@@ -428,35 +529,35 @@ export default function SettingsContent({ currentProfile, users, teams }: Props)
         </div>
       )}
 
-      {/* ════════════════ TEAMS TAB ════════════════ */}
+      {/* ════════════════ REGIONS TAB ════════════════ */}
       {activeTab === 'teams' && canManage && (
         <div>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900">Takımlar</h2>
-              <p className="text-sm text-gray-500">{teams.length} takım</p>
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">Regionlar</h2>
+              <p className="text-sm text-gray-500">{teams.length} region</p>
             </div>
             <button
               onClick={() => setShowAddTeam(true)}
               className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#1B4332] text-white rounded-xl text-sm font-semibold hover:bg-[#163728] transition-colors flex-shrink-0"
             >
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Takım Ekle</span>
+              <span className="hidden sm:inline">Region Ekle</span>
               <span className="sm:hidden">Ekle</span>
             </button>
           </div>
 
           {teams.length === 0 ? (
             <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center">
-              <Building2 className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-              <p className="text-sm text-gray-400">Henüz takım oluşturulmamış</p>
+              <Globe2 className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+              <p className="text-sm text-gray-400">Henüz region oluşturulmamış</p>
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden overflow-x-auto">
               <table className="w-full min-w-[360px]">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50/60">
-                    {['Takım Adı', 'Üye Sayısı', ''].map((h, i) => (
+                    {['Region Adı', 'Üye Sayısı', ''].map((h, i) => (
                       <th key={i} className="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider first:pl-5 last:pr-5">
                         {h}
                       </th>
@@ -471,7 +572,7 @@ export default function SettingsContent({ currentProfile, users, teams }: Props)
                         <td className="px-6 py-3.5">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-                              <Building2 className="w-4 h-4 text-blue-500" />
+                              <Globe2 className="w-4 h-4 text-blue-500" />
                             </div>
                             <span className="text-sm font-medium text-gray-900">{team.name}</span>
                           </div>
@@ -480,11 +581,90 @@ export default function SettingsContent({ currentProfile, users, teams }: Props)
                         <td className="px-5 py-3.5 pr-6 text-right">
                           <button
                             onClick={() => { setDeleteTeam(team); setDeleteTeamError(null) }}
-                            title="Takımı sil"
+                            title="Region'u sil"
                             className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ════════════════ AGENTS TAB ════════════════ */}
+      {activeTab === 'agents' && canManage && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">Danışman & Takım Lideri</h2>
+              <p className="text-sm text-gray-500">{agents.length} kayıt · CRM senkronizasyonundan gelir, burada manuel de yönetebilirsiniz</p>
+            </div>
+            <button
+              onClick={openAddAgent}
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#1B4332] text-white rounded-xl text-sm font-semibold hover:bg-[#163728] transition-colors flex-shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Kayıt Ekle</span>
+              <span className="sm:hidden">Ekle</span>
+            </button>
+          </div>
+
+          {agents.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center">
+              <Headset className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+              <p className="text-sm text-gray-400">Henüz kayıt yok</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden overflow-x-auto">
+              <table className="w-full min-w-[560px]">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50/60">
+                    {['Ad Soyad', 'Tip', 'Takım Lideri', 'Region', ''].map((h, i) => (
+                      <th key={i} className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider first:pl-5 last:pr-5">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {agents.map(a => {
+                    const isLeader = isTeamLeaderRole(a.role)
+                    const leaderName = isLeader ? null : deriveTeamLeaderName(a)
+                    return (
+                      <tr key={a.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-5 py-3 text-sm font-medium text-gray-900">{agentFullName(a) || '—'}</td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
+                            isLeader ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'
+                          }`}>
+                            {isLeader ? 'Takım Lideri' : 'Danışman'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">{leaderName ?? '—'}</td>
+                        <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">{a.region ?? '—'}</td>
+                        <td className="px-4 py-3 pr-5">
+                          <div className="flex items-center gap-1.5 justify-end">
+                            <button
+                              onClick={() => openEditAgent(a)}
+                              title="Düzenle"
+                              className="p-1.5 text-gray-400 hover:text-[#1B4332] hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => { setDeleteAgent(a); setDeleteAgentError(null) }}
+                              title="Sil"
+                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     )
@@ -522,7 +702,7 @@ export default function SettingsContent({ currentProfile, users, teams }: Props)
               </div>
               {currentProfile.team_id && (
                 <div className="flex justify-between py-2.5">
-                  <span className="text-gray-500">Takım</span>
+                  <span className="text-gray-500">Region</span>
                   <span className="text-gray-900 font-medium">{teamMap.get(currentProfile.team_id) ?? '—'}</span>
                 </div>
               )}
@@ -632,9 +812,9 @@ export default function SettingsContent({ currentProfile, users, teams }: Props)
               </div>
             </Field>
             {teams.length > 0 && (
-              <Field label={<>Takım <span className="text-gray-400 font-normal">(opsiyonel)</span></>}>
+              <Field label={<>Region <span className="text-gray-400 font-normal">(opsiyonel)</span></>}>
                 <select value={addForm.team_id} onChange={e => setAddForm(f => ({ ...f, team_id: e.target.value }))} className={selectCls}>
-                  <option value="">Takım seçin</option>
+                  <option value="">Region seçin</option>
                   {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
               </Field>
@@ -670,9 +850,9 @@ export default function SettingsContent({ currentProfile, users, teams }: Props)
               </div>
             </Field>
             {teams.length > 0 && (
-              <Field label={<>Takım <span className="text-gray-400 font-normal">(opsiyonel)</span></>}>
+              <Field label={<>Region <span className="text-gray-400 font-normal">(opsiyonel)</span></>}>
                 <select value={editForm.team_id} onChange={e => setEditForm(f => ({ ...f, team_id: e.target.value }))} className={selectCls}>
-                  <option value="">Takım seçin</option>
+                  <option value="">Region seçin</option>
                   {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
               </Field>
@@ -725,14 +905,14 @@ export default function SettingsContent({ currentProfile, users, teams }: Props)
         </Modal>
       )}
 
-      {/* Add Team */}
+      {/* Add Region */}
       {showAddTeam && (
-        <Modal title="Takım Ekle" icon={<Building2 className="w-5 h-5 text-[#1B4332]" />} onClose={() => { setShowAddTeam(false); setTeamError(null) }}>
+        <Modal title="Region Ekle" icon={<Globe2 className="w-5 h-5 text-[#1B4332]" />} onClose={() => { setShowAddTeam(false); setTeamError(null) }}>
           <form onSubmit={handleAddTeam} className="space-y-4">
-            <Field label="Takım Adı">
+            <Field label="Region Adı">
               <input type="text" required autoFocus value={teamName}
                 onChange={e => setTeamName(e.target.value)}
-                placeholder="Örn: Satış Takımı B" className={inputCls} />
+                placeholder="Örn: Morocco" className={inputCls} />
             </Field>
             {teamError && <ErrorMsg>{teamError}</ErrorMsg>}
             <ModalActions loading={teamLoading} loadingLabel="Oluşturuluyor..." label="Oluştur"
@@ -741,14 +921,14 @@ export default function SettingsContent({ currentProfile, users, teams }: Props)
         </Modal>
       )}
 
-      {/* Delete Team Confirmation */}
+      {/* Delete Region Confirmation */}
       {deleteTeam && (
-        <Modal title="Takımı Sil" icon={<AlertTriangle className="w-5 h-5 text-red-500" />} onClose={() => setDeleteTeam(null)}>
+        <Modal title="Region'u Sil" icon={<AlertTriangle className="w-5 h-5 text-red-500" />} onClose={() => setDeleteTeam(null)}>
           <div className="space-y-4">
             <p className="text-sm text-gray-600">
-              <span className="font-semibold text-gray-900">{deleteTeam.name}</span> takımını silmek istediğinizden emin misiniz?
+              <span className="font-semibold text-gray-900">{deleteTeam.name}</span> region'unu silmek istediğinizden emin misiniz?
             </p>
-            <p className="text-xs text-gray-400">Bu takımda üye varsa silme işlemi gerçekleşmez.</p>
+            <p className="text-xs text-gray-400">Bu region'da üye varsa silme işlemi gerçekleşmez.</p>
             {deleteTeamError && <ErrorMsg>{deleteTeamError}</ErrorMsg>}
             <div className="flex gap-3">
               <button onClick={() => setDeleteTeam(null)}
@@ -759,6 +939,90 @@ export default function SettingsContent({ currentProfile, users, teams }: Props)
                 className="flex-1 px-4 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                 {deleteTeamLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                 {deleteTeamLoading ? 'Siliniyor...' : 'Evet, Sil'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Add/Edit Agent */}
+      {showAgentForm && (
+        <Modal
+          title={editAgent ? 'Kaydı Düzenle' : 'Kayıt Ekle'}
+          icon={<Headset className="w-5 h-5 text-[#1B4332]" />}
+          onClose={() => { setShowAgentForm(false); setEditAgent(null); setAgentError(null) }}
+        >
+          <form onSubmit={handleSaveAgent} className="space-y-4">
+            <Field label="Ad Soyad">
+              <input type="text" required autoFocus value={agentForm.fullName}
+                onChange={e => setAgentForm(f => ({ ...f, fullName: e.target.value }))}
+                placeholder="Örn: Yüksel Ballıca" className={inputCls} />
+            </Field>
+            <Field label="Tip">
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  { value: 'member' as AgentKind, label: 'Danışman' },
+                  { value: 'leader' as AgentKind, label: 'Takım Lideri' },
+                ]).map(({ value, label }) => (
+                  <button key={value} type="button"
+                    onClick={() => setAgentForm(f => ({ ...f, kind: value }))}
+                    className={`flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
+                      agentForm.kind === value ? 'border-[#1B4332] bg-[#1B4332]/5 text-[#1B4332]' : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    }`}>
+                    {agentForm.kind === value && <Check className="w-3.5 h-3.5" />}
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </Field>
+            {agentForm.kind === 'member' && (
+              <Field label="Takım Lideri">
+                <input type="text" required list="team-leader-names" value={agentForm.teamLeaderName}
+                  onChange={e => setAgentForm(f => ({ ...f, teamLeaderName: e.target.value }))}
+                  placeholder="Örn: Arij" className={inputCls} />
+                <datalist id="team-leader-names">
+                  {existingTeamLeaderNames.map(name => <option key={name} value={name} />)}
+                </datalist>
+              </Field>
+            )}
+            <Field label="Region">
+              <div className="grid grid-cols-2 gap-2">
+                {REGION_OPTIONS.map(r => (
+                  <button key={r} type="button"
+                    onClick={() => setAgentForm(f => ({ ...f, region: r }))}
+                    className={`flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
+                      agentForm.region === r ? 'border-[#1B4332] bg-[#1B4332]/5 text-[#1B4332]' : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    }`}>
+                    {agentForm.region === r && <Check className="w-3.5 h-3.5" />}
+                    {r}
+                  </button>
+                ))}
+              </div>
+            </Field>
+            {agentError && <ErrorMsg>{agentError}</ErrorMsg>}
+            <ModalActions loading={agentLoading} loadingLabel={editAgent ? 'Kaydediliyor...' : 'Ekleniyor...'} label={editAgent ? 'Kaydet' : 'Ekle'}
+              onCancel={() => { setShowAgentForm(false); setEditAgent(null); setAgentError(null) }} />
+          </form>
+        </Modal>
+      )}
+
+      {/* Delete Agent Confirmation */}
+      {deleteAgent && (
+        <Modal title="Kaydı Sil" icon={<AlertTriangle className="w-5 h-5 text-red-500" />} onClose={() => setDeleteAgent(null)}>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              <span className="font-semibold text-gray-900">{agentFullName(deleteAgent) || '—'}</span> kaydını kalıcı olarak silmek istediğinizden emin misiniz?
+            </p>
+            {deleteAgentError && <ErrorMsg>{deleteAgentError}</ErrorMsg>}
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteAgent(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                İptal
+              </button>
+              <button onClick={handleDeleteAgent} disabled={deleteAgentLoading}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                {deleteAgentLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {deleteAgentLoading ? 'Siliniyor...' : 'Evet, Sil'}
               </button>
             </div>
           </div>
