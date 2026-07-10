@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import nextDynamic from 'next/dynamic'
 import { getCurrentProfile } from '@/lib/current-profile'
 import { isRestrictedQualityUser } from '@/lib/access-control'
+import { isTeamLeaderRole } from '@/lib/agents'
 import type { ChannelType, ConversationResult, CriticalErrorType } from '@/types/supabase'
 import type {
   ConsultantPerfRow,
@@ -41,14 +42,17 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 
   // ── Fetch filter dropdown data ────────────────────────────────────
 
-  const [{ data: consultants }, { data: teams }] = await Promise.all([
+  const [{ data: agents }, { data: teams }] = await Promise.all([
     supabase
-      .from('profiles')
-      .select('id, full_name')
-      .eq('role', 'consultant')
-      .order('full_name'),
+      .from('agents')
+      .select('id, first_name, last_name, role')
+      .order('first_name'),
     supabase.from('teams').select('id, name').order('name'),
   ])
+
+  const consultants = (agents ?? [])
+    .filter(a => !isTeamLeaderRole(a.role))
+    .map(a => ({ id: a.id, full_name: [a.first_name, a.last_name].filter(Boolean).join(' ').trim() || a.id }))
 
   // ── Build evaluations query (submitted + approved only) ───────────
 
@@ -56,6 +60,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
     id: string
     consultant_id: string | null
     consultant_name: string | null
+    agent_id: string | null
     team_id: string | null
     channel: ChannelType
     conversation_result: ConversationResult
@@ -72,6 +77,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
       id,
       consultant_id,
       consultant_name,
+      agent_id,
       team_id,
       channel,
       conversation_result,
@@ -91,7 +97,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 
   if (startDate) evQuery = evQuery.gte('conversation_date', startDate)
   if (endDate) evQuery = evQuery.lte('conversation_date', endDate)
-  if (consultantId) evQuery = evQuery.eq('consultant_id', consultantId)
+  if (consultantId) evQuery = evQuery.eq('agent_id', consultantId)
   if (teamId) evQuery = evQuery.eq('team_id', teamId)
   if (channel) evQuery = evQuery.eq('channel', channel as ChannelType)
   if (result) evQuery = evQuery.eq('conversation_result', result as ConversationResult)
@@ -128,7 +134,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 
   for (const ev of evalRows) {
     const cname = ev.consultant?.full_name ?? ev.consultant_name ?? '—'
-    const cid = ev.consultant_id ?? cname
+    const cid = ev.consultant_id ?? ev.agent_id ?? cname
     if (!consultantMap.has(cid)) {
       consultantMap.set(cid, {
         consultantId: cid,
@@ -251,7 +257,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 
   return (
     <ReportsContent
-      consultants={(consultants ?? []) as { id: string; full_name: string }[]}
+      consultants={consultants}
       teams={(teams ?? []) as { id: string; name: string }[]}
       consultantPerf={consultantPerf}
       channelComp={channelComp}
