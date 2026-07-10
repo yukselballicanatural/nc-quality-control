@@ -80,7 +80,7 @@ export async function POST(request: Request) {
       ...splitName(fullName),
       role,
       region: region.trim(),
-      synced_at: null,
+      synced_at: new Date().toISOString(),
     }),
   })
 
