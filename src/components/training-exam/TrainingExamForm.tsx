@@ -80,6 +80,14 @@ function isMissingConsultantNameColumn(error: { code?: string; message?: string 
   )
 }
 
+function isMissingTrainingTypeColumn(error: { code?: string; message?: string } | null) {
+  return Boolean(
+    error &&
+    error.message?.includes('training_type') &&
+    (error.code === '42703' || error.code === 'PGRST204')
+  )
+}
+
 function normalizeName(value: string) {
   return value.trim().toLocaleLowerCase('tr-TR')
 }
@@ -103,6 +111,7 @@ function SectionHeader({ icon: Icon, title }: { icon: React.ElementType; title: 
 }
 
 type Level = 'junior' | 'senior'
+type TrainingType = 'pre' | 'post'
 type Phase = 'level' | 'scoring' | 'result'
 
 interface Props {
@@ -117,6 +126,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
   const router = useRouter()
 
   const [phase, setPhase] = useState<Phase>('level')
+  const [trainingType, setTrainingType] = useState<TrainingType | null>(null)
   const [level, setLevel] = useState<Level | null>(null)
   const [consultantName, setConsultantName] = useState('')
   const [scores, setScores] = useState<number[]>(Array(8).fill(0))
@@ -155,6 +165,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
   const activeStep = steps[phaseIndex]
 
   function handleStartExam() {
+    if (!trainingType) { setError(isTr ? 'Pre-training / Post-training seçilmesi zorunludur.' : 'Pre-training / Post-training selection is required.'); return }
     if (!level) { setError(isTr ? 'Seviye seçilmesi zorunludur.' : 'Level selection is required.'); return }
     if (!trimmedConsultantName) { setError(isTr ? 'Danışman adı girilmesi zorunludur.' : 'Consultant name is required.'); return }
     setError('')
@@ -169,6 +180,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
 
   function handleReset() {
     setPhase('level')
+    setTrainingType(null)
     setLevel(null)
     setConsultantName('')
     setScores(Array(8).fill(0))
@@ -214,10 +226,11 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
     try {
       const supabase = createClient()
       const matchedConsultant = findMatchingConsultant()
-      const payload = {
+      let payload: Record<string, unknown> = {
         evaluator_id: evaluatorId,
         consultant_id: matchedConsultant?.id ?? null,
         consultant_name: trimmedConsultantName,
+        training_type: trainingType,
         level,
         criteria_scores: scores.map((score, i) => ({ criteriaNumber: i + 1, score })),
         total_score: totalScore,
@@ -226,24 +239,17 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
       let savedExamId: string | null = null
       let { data: savedExam, error: err } = await supabase
         .from('training_exams')
-        .insert(payload)
+        .insert(payload as never)
         .select('id')
         .single()
       savedExamId = savedExam?.id ?? null
 
       if (isMissingTeamLeaderColumn(err)) {
-        const payloadWithoutTeamLeader = {
-          evaluator_id: payload.evaluator_id,
-          consultant_id: payload.consultant_id,
-          consultant_name: payload.consultant_name,
-          level: payload.level,
-          criteria_scores: payload.criteria_scores,
-          total_score: payload.total_score,
-          passed: payload.passed,
-        }
+        const { team_leader_id: _unused, ...rest } = payload
+        payload = rest
         const retry = await supabase
           .from('training_exams')
-          .insert(payloadWithoutTeamLeader)
+          .insert(payload as never)
           .select('id')
           .single()
         err = retry.error
@@ -251,17 +257,23 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
       }
 
       if (isMissingConsultantNameColumn(err)) {
-        const payloadWithoutConsultantName = {
-          evaluator_id: payload.evaluator_id,
-          consultant_id: matchedConsultant?.id ?? null,
-          level: payload.level,
-          criteria_scores: payload.criteria_scores,
-          total_score: payload.total_score,
-          passed: payload.passed,
-        }
+        const { consultant_name: _unused, ...rest } = payload
+        payload = rest
         const retry = await supabase
           .from('training_exams')
-          .insert(payloadWithoutConsultantName)
+          .insert(payload as never)
+          .select('id')
+          .single()
+        err = retry.error
+        savedExamId = retry.data?.id ?? null
+      }
+
+      if (isMissingTrainingTypeColumn(err)) {
+        const { training_type: _unused, ...rest } = payload
+        payload = rest
+        const retry = await supabase
+          .from('training_exams')
+          .insert(payload as never)
           .select('id')
           .single()
         err = retry.error
@@ -438,6 +450,48 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                       <div className={`${inputCls} pl-10 bg-gray-50 text-gray-400 cursor-default`}>
                         {evaluatorName}
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className={labelCls}>
+                      {isTr ? 'Eğitim Türü' : 'Training Type'} <span className="text-red-400 normal-case tracking-normal">*</span>
+                    </label>
+
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {(['pre', 'post'] as TrainingType[]).map(type => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => { setTrainingType(type); setError('') }}
+                          className={`group flex items-center gap-3 py-3.5 px-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                            trainingType === type
+                              ? 'border-[#1B4332] bg-[#1B4332]/5 text-[#1B4332] shadow-sm'
+                              : 'border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            trainingType === type ? 'bg-[#1B4332] text-white' : 'bg-gray-100 text-gray-400'
+                          }`}>
+                            <CheckCircle2 className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className={`text-sm font-bold leading-tight ${trainingType === type ? 'text-[#1B4332]' : 'text-gray-700'}`}>
+                              {type === 'pre' ? (isTr ? 'Pre-Training' : 'Pre-Training') : (isTr ? 'Post-Training' : 'Post-Training')}
+                            </p>
+                            <p className="text-[11px] text-gray-400 mt-0.5">
+                              {type === 'pre'
+                                ? (isTr ? 'Eğitim öncesi değerlendirme' : 'Assessment before training')
+                                : (isTr ? 'Eğitim sonrası değerlendirme' : 'Assessment after training')}
+                            </p>
+                          </div>
+                          {trainingType === type && (
+                            <div className="ml-auto w-5 h-5 rounded-full bg-[#1B4332] flex items-center justify-center flex-shrink-0">
+                              <Check className="w-3 h-3 text-white" />
+                            </div>
+                          )}
+                        </button>
+                      ))}
                     </div>
                   </div>
 

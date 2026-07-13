@@ -378,6 +378,7 @@ export interface Database {
           consultant_id: string | null
           consultant_name?: string | null
           team_leader_id?: string | null
+          training_type?: 'pre' | 'post' | null
           level: 'junior' | 'senior'
           criteria_scores: { criteriaNumber: number; score: number }[]
           total_score: number
@@ -390,6 +391,7 @@ export interface Database {
           consultant_id?: string | null
           consultant_name?: string | null
           team_leader_id?: string | null
+          training_type?: 'pre' | 'post' | null
           level: 'junior' | 'senior'
           criteria_scores: { criteriaNumber: number; score: number }[]
           total_score: number
@@ -402,6 +404,7 @@ export interface Database {
           consultant_id?: string | null
           consultant_name?: string | null
           team_leader_id?: string | null
+          training_type?: 'pre' | 'post' | null
           level?: 'junior' | 'senior'
           criteria_scores?: { criteriaNumber: number; score: number }[]
           total_score?: number

@@ -111,6 +111,14 @@ function isMissingConsultantNameColumn(error: { code?: string; message?: string 
   )
 }
 
+function isMissingTrainingTypeColumn(error: { code?: string; message?: string } | null) {
+  return Boolean(
+    error &&
+    error.message?.includes('training_type') &&
+    (error.code === '42703' || error.code === 'PGRST204')
+  )
+}
+
 function normalizeName(value: string) {
   return value.trim().toLocaleLowerCase('tr-TR')
 }
@@ -146,6 +154,7 @@ export function TrainingExamResultsContent({
   const [viewResult, setViewResult] = useState<TrainingExamResultItem | null>(null)
   const [editResult, setEditResult] = useState<TrainingExamResultItem | null>(null)
   const [editConsultantName, setEditConsultantName] = useState('')
+  const [editTrainingType, setEditTrainingType] = useState<'pre' | 'post' | null>(null)
   const [editLevel, setEditLevel] = useState<'junior' | 'senior'>('junior')
   const [editScores, setEditScores] = useState<number[]>(Array(8).fill(0))
   const [editError, setEditError] = useState('')
@@ -247,6 +256,7 @@ export function TrainingExamResultsContent({
   function openEdit(result: TrainingExamResultItem) {
     setEditResult(result)
     setEditConsultantName(getConsultantName(result))
+    setEditTrainingType(result.training_type ?? null)
     setEditLevel(result.level)
     setEditScores(
       Array.from({ length: 8 }, (_, index) => {
@@ -318,9 +328,10 @@ export function TrainingExamResultsContent({
     setEditLoading(true)
     try {
       const supabase = createClient()
-      const updatePayload = {
+      let updatePayload: Record<string, unknown> = {
         consultant_id: matchedConsultant?.id ?? editResult.consultant_id ?? null,
         consultant_name: trimmedConsultantName,
+        training_type: editTrainingType,
         level: editLevel,
         criteria_scores: editScores.map((score, index) => ({
           criteriaNumber: index + 1,
@@ -332,36 +343,35 @@ export function TrainingExamResultsContent({
 
       let { error } = await supabase
         .from('training_exams')
-        .update(updatePayload)
+        .update(updatePayload as never)
         .eq('id', editResult.id)
 
       if (isMissingTeamLeaderColumn(error)) {
-        const payloadWithoutTeamLeader = {
-          consultant_id: updatePayload.consultant_id,
-          consultant_name: updatePayload.consultant_name,
-          level: updatePayload.level,
-          criteria_scores: updatePayload.criteria_scores,
-          total_score: updatePayload.total_score,
-          passed: updatePayload.passed,
-        }
+        const { team_leader_id: _unused, ...rest } = updatePayload
+        updatePayload = rest
         const retry = await supabase
           .from('training_exams')
-          .update(payloadWithoutTeamLeader)
+          .update(updatePayload as never)
           .eq('id', editResult.id)
         error = retry.error
       }
 
       if (isMissingConsultantNameColumn(error)) {
-        const payloadWithoutConsultantName = {
-          consultant_id: matchedConsultant?.id ?? editResult.consultant_id ?? null,
-          level: updatePayload.level,
-          criteria_scores: updatePayload.criteria_scores,
-          total_score: updatePayload.total_score,
-          passed: updatePayload.passed,
-        }
+        const { consultant_name: _unused, ...rest } = updatePayload
+        updatePayload = rest
         const retry = await supabase
           .from('training_exams')
-          .update(payloadWithoutConsultantName)
+          .update(updatePayload as never)
+          .eq('id', editResult.id)
+        error = retry.error
+      }
+
+      if (isMissingTrainingTypeColumn(error)) {
+        const { training_type: _unused, ...rest } = updatePayload
+        updatePayload = rest
+        const retry = await supabase
+          .from('training_exams')
+          .update(updatePayload as never)
           .eq('id', editResult.id)
         error = retry.error
       }
@@ -480,6 +490,9 @@ export function TrainingExamResultsContent({
                 </h2>
                 <p className="text-sm text-gray-400 mt-0.5">
                   {getConsultantName(viewResult)} · {formatDate(viewResult.created_at)}
+                  {viewResult.training_type && (
+                    <> · {viewResult.training_type === 'pre' ? 'Pre-Training' : 'Post-Training'}</>
+                  )}
                 </p>
               </div>
               <button
@@ -599,6 +612,28 @@ export function TrainingExamResultsContent({
                       className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/15 focus:border-[#1B4332] transition-all hover:border-gray-300"
                       required
                     />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                    {isTr ? 'Eğitim Türü' : 'Training Type'}
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(['pre', 'post'] as const).map(type => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setEditTrainingType(type)}
+                        className={`px-4 py-3 rounded-xl border-2 text-left transition-all ${
+                          editTrainingType === type
+                            ? 'border-[#1B4332] bg-[#1B4332]/5 text-[#1B4332]'
+                            : 'border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        <p className="text-sm font-bold">{type === 'pre' ? 'Pre-Training' : 'Post-Training'}</p>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -904,6 +939,13 @@ export function TrainingExamResultsContent({
                           <GraduationCap className="w-3.5 h-3.5" />
                           {result.level}
                         </span>
+                        {result.training_type && (
+                          <p className="text-[11px] text-gray-400 mt-1">
+                            {result.training_type === 'pre'
+                              ? (isTr ? 'Pre-Training' : 'Pre-Training')
+                              : (isTr ? 'Post-Training' : 'Post-Training')}
+                          </p>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <span className="text-base font-bold text-gray-900">
