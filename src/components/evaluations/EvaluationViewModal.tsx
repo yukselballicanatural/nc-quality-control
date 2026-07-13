@@ -77,7 +77,7 @@ function fmtResponseTime(v: unknown, lang: string): { answer: string; score: num
 
 function fmtScore4(v: unknown): { answer: string; score: number } {
   const n = Number(v)
-  if (n === 1 || n === 5 || n === 7 || n === 10) return { answer: String(n), score: n }
+  if (n === 0 || n === 1 || n === 5 || n === 7 || n === 10) return { answer: String(n), score: n }
   return { answer: '—', score: 0 }
 }
 

@@ -18,7 +18,7 @@ export const SECOND_VISIT_STAGE: SalesStage  = 'second_visit'
 export type ResponseTimeAnswer = '<15' | '=15' | '>15' | ''
 export type DeliveryTimingAnswer = '<24h' | '>24h' | ''
 export type FollowUpCountAnswer = 0 | 1 | 2 | 3 | -1
-export type Score4Answer = 1 | 5 | 7 | 10 | -1   // -1 = seçilmedi
+export type Score4Answer = 0 | 1 | 5 | 7 | 10 | -1   // -1 = seçilmedi
 export type YesNoAnswer = 'yes' | 'no' | ''
 export type Score10Answer = 0 | 5 | 7 | 10 | -1   // -1 = seçilmedi
 export type CriteriaScore = '10' | '7' | '5' | '0'

@@ -171,6 +171,7 @@ export function StepStageQuestions() {
   ].filter(Boolean).length
 
   const score4Opts: { value: Score4Answer; label: string }[] = [
+    { value: 0,  label: '0' },
     { value: 1,  label: '1' },
     { value: 5,  label: '5' },
     { value: 7,  label: '7' },
@@ -268,7 +269,7 @@ export function StepStageQuestions() {
           answered={stageAnswers[key] !== -1}
           delay={idx * 0.04}
         >
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
             {score4Opts.map(opt => (
               <AnswerBtn
                 key={opt.value}
@@ -276,7 +277,7 @@ export function StepStageQuestions() {
                 sublabel={sub(opt.value)}
                 selected={stageAnswers[key] === opt.value}
                 onClick={() => updateStageAnswers({ [key]: opt.value } as never)}
-                variant={opt.value === 10 ? 'success' : opt.value === 1 ? 'danger' : 'default'}
+                variant={opt.value === 10 ? 'success' : opt.value <= 1 ? 'danger' : 'default'}
               />
             ))}
           </div>
