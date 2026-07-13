@@ -495,50 +495,61 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                     </div>
                   </div>
 
-                  <div className="sm:col-span-2">
-                    <div className="flex items-center justify-between gap-3 mb-2">
-                      <label className={labelCls + ' mb-0'}>
-                        {isTr ? 'Seviye' : 'Level'} <span className="text-red-400 normal-case tracking-normal">*</span>
-                      </label>
-                      <span className="text-[10px] font-semibold text-gray-400">
-                        {isTr ? 'Geçme eşiği seviyeye göre belirlenir' : 'Pass threshold depends on level'}
-                      </span>
-                    </div>
+                  <AnimatePresence>
+                    {trainingType && (
+                      <motion.div
+                        className="sm:col-span-2"
+                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                        animate={{ opacity: 1, height: 'auto', marginTop: 16 }}
+                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                        transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+                        style={{ overflow: 'hidden' }}
+                      >
+                        <div className="flex items-center justify-between gap-3 mb-2">
+                          <label className={labelCls + ' mb-0'}>
+                            {isTr ? 'Seviye' : 'Level'} <span className="text-red-400 normal-case tracking-normal">*</span>
+                          </label>
+                          <span className="text-[10px] font-semibold text-gray-400">
+                            {isTr ? 'Geçme eşiği seviyeye göre belirlenir' : 'Pass threshold depends on level'}
+                          </span>
+                        </div>
 
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      {(['junior', 'senior'] as Level[]).map(lvl => (
-                        <button
-                          key={lvl}
-                          type="button"
-                          onClick={() => { setLevel(lvl); setError('') }}
-                          className={`group flex items-center gap-3 py-3.5 px-4 rounded-xl border-2 text-left transition-all duration-200 ${
-                            level === lvl
-                              ? 'border-[#1B4332] bg-[#1B4332]/5 text-[#1B4332] shadow-sm'
-                              : 'border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
-                          }`}
-                        >
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            level === lvl ? 'bg-[#1B4332] text-white' : 'bg-gray-100 text-gray-400'
-                          }`}>
-                            <CheckCircle2 className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className={`text-sm font-bold leading-tight capitalize ${level === lvl ? 'text-[#1B4332]' : 'text-gray-700'}`}>
-                              {lvl}
-                            </p>
-                            <p className="text-[11px] text-gray-400 mt-0.5">
-                              {isTr ? `Geçme eşiği: ${PASS_THRESHOLDS[lvl]} puan` : `Pass threshold: ${PASS_THRESHOLDS[lvl]} points`}
-                            </p>
-                          </div>
-                          {level === lvl && (
-                            <div className="ml-auto w-5 h-5 rounded-full bg-[#1B4332] flex items-center justify-center flex-shrink-0">
-                              <Check className="w-3 h-3 text-white" />
-                            </div>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                          {(['junior', 'senior'] as Level[]).map(lvl => (
+                            <button
+                              key={lvl}
+                              type="button"
+                              onClick={() => { setLevel(lvl); setError('') }}
+                              className={`group flex items-center gap-3 py-3.5 px-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                                level === lvl
+                                  ? 'border-[#1B4332] bg-[#1B4332]/5 text-[#1B4332] shadow-sm'
+                                  : 'border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
+                              }`}
+                            >
+                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                                level === lvl ? 'bg-[#1B4332] text-white' : 'bg-gray-100 text-gray-400'
+                              }`}>
+                                <CheckCircle2 className="w-4 h-4" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className={`text-sm font-bold leading-tight capitalize ${level === lvl ? 'text-[#1B4332]' : 'text-gray-700'}`}>
+                                  {lvl}
+                                </p>
+                                <p className="text-[11px] text-gray-400 mt-0.5">
+                                  {isTr ? `Geçme eşiği: ${PASS_THRESHOLDS[lvl]} puan` : `Pass threshold: ${PASS_THRESHOLDS[lvl]} points`}
+                                </p>
+                              </div>
+                              {level === lvl && (
+                                <div className="ml-auto w-5 h-5 rounded-full bg-[#1B4332] flex items-center justify-center flex-shrink-0">
+                                  <Check className="w-3 h-3 text-white" />
+                                </div>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             </motion.div>
