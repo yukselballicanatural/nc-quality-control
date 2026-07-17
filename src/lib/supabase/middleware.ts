@@ -29,5 +29,11 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  return NextResponse.next({ request })
+  // Never let a page document be served from browser/proxy cache. Hashed JS/CSS
+  // under /_next/static (excluded by the matcher) keep their long immutable
+  // cache, but the HTML must always be fresh so it can never reference a chunk
+  // filename from an old deploy that no longer exists → ChunkLoadError.
+  const response = NextResponse.next({ request })
+  response.headers.set('Cache-Control', 'no-store, must-revalidate')
+  return response
 }
