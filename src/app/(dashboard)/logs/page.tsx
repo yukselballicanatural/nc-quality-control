@@ -1,10 +1,12 @@
 export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { ChevronLeft, ChevronRight, FileClock, Info } from 'lucide-react'
 import { canSeeAdminLogs } from '@/lib/access-control'
 import { getCurrentProfile } from '@/lib/current-profile'
+import type { Language } from '@/types'
 
 type AuditLogRow = {
   id: string
@@ -20,8 +22,8 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
 const PAGE_SIZE = 100
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleString('tr-TR', {
+function formatDate(value: string, lang: Language) {
+  return new Date(value).toLocaleString(lang === 'en' ? 'en-GB' : 'tr-TR', {
     timeZone: 'Europe/Istanbul',
     day: '2-digit',
     month: '2-digit',
@@ -31,8 +33,8 @@ function formatDate(value: string) {
   })
 }
 
-function actionLabel(action: string) {
-  const labels: Record<string, string> = {
+const ACTION_LABELS: Record<Language, Record<string, string>> = {
+  tr: {
     login: 'Giriş',
     logout: 'Çıkış',
     user_created: 'Kullanıcı eklendi',
@@ -50,8 +52,30 @@ function actionLabel(action: string) {
     training_exam_created: 'Sınav sonucu eklendi',
     training_exam_updated: 'Sınav sonucu güncellendi',
     training_exam_deleted: 'Sınav sonucu silindi',
-  }
-  return labels[action] ?? action
+  },
+  en: {
+    login: 'Login',
+    logout: 'Logout',
+    user_created: 'User created',
+    user_updated: 'User updated',
+    user_deleted: 'User deleted',
+    user_password_reset: 'Password reset',
+    team_created: 'Region created',
+    team_deleted: 'Region deleted',
+    agent_created: 'Consultant/team leader created',
+    agent_updated: 'Consultant/team leader updated',
+    agent_deleted: 'Consultant/team leader deleted',
+    evaluation_created: 'Evaluation created',
+    evaluation_updated: 'Evaluation updated',
+    evaluation_deleted: 'Evaluation deleted',
+    training_exam_created: 'Exam result created',
+    training_exam_updated: 'Exam result updated',
+    training_exam_deleted: 'Exam result deleted',
+  },
+}
+
+function actionLabel(action: string, lang: Language) {
+  return ACTION_LABELS[lang][action] ?? action
 }
 
 function metadataSummary(metadata: Record<string, unknown> | null) {
@@ -126,6 +150,10 @@ export default async function LogsPage({
   if (!profile) redirect('/login')
   if (!canSeeAdminLogs(profile)) redirect('/dashboard')
 
+  const cookieStore = await cookies()
+  const lang: Language = cookieStore.get('lang')?.value === 'en' ? 'en' : 'tr'
+  const L = (tr: string, en: string) => (lang === 'en' ? en : tr)
+
   const currentPage = parsePage(searchParams?.page)
   const { logs, totalCount, setupRequired } = await getLogs(currentPage)
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
@@ -138,9 +166,12 @@ export default async function LogsPage({
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold text-gray-900">Sistem Logları</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{L('Sistem Logları', 'System Logs')}</h1>
         <p className="text-sm text-gray-400">
-          Giriş, çıkış, ekleme, güncelleme ve silme işlemlerinin tüm kayıtları. Her sayfada 100 kayıt gösterilir.
+          {L(
+            'Giriş, çıkış, ekleme, güncelleme ve silme işlemlerinin tüm kayıtları. Her sayfada 100 kayıt gösterilir.',
+            'A record of all login, logout, create, update and delete actions. 100 records shown per page.'
+          )}
         </p>
       </div>
 
@@ -149,9 +180,9 @@ export default async function LogsPage({
           <div className="flex gap-3">
             <Info className="mt-0.5 h-5 w-5 flex-shrink-0" />
             <div>
-              <p className="font-bold">Log tablosu henüz kurulmamış görünüyor.</p>
+              <p className="font-bold">{L('Log tablosu henüz kurulmamış görünüyor.', 'The log table does not appear to be set up yet.')}</p>
               <p className="mt-1">
-                Supabase SQL Editor içinde <span className="font-mono">scripts/create-audit-logs.sql</span> dosyasındaki SQL'i çalıştırınca loglar burada görünür.
+                {L('Supabase SQL Editor içinde', 'Run the SQL in')} <span className="font-mono">scripts/create-audit-logs.sql</span> {L("dosyasındaki SQL'i çalıştırınca loglar burada görünür.", 'in the Supabase SQL Editor and the logs will appear here.')}
               </p>
             </div>
           </div>
@@ -164,27 +195,27 @@ export default async function LogsPage({
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-50 text-gray-300">
               <FileClock className="h-6 w-6" />
             </div>
-            <p className="text-sm font-semibold text-gray-500">Henüz log kaydı yok.</p>
+            <p className="text-sm font-semibold text-gray-500">{L('Henüz log kaydı yok.', 'No log records yet.')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/70">
-                  <th className="px-5 py-3 text-left font-semibold text-gray-500">Tarih</th>
-                  <th className="px-5 py-3 text-left font-semibold text-gray-500">İşlem</th>
-                  <th className="px-5 py-3 text-left font-semibold text-gray-500">Kullanıcı</th>
-                  <th className="px-5 py-3 text-left font-semibold text-gray-500">Kayıt</th>
-                  <th className="px-5 py-3 text-left font-semibold text-gray-500">Detay</th>
+                  <th className="px-5 py-3 text-left font-semibold text-gray-500">{L('Tarih', 'Date')}</th>
+                  <th className="px-5 py-3 text-left font-semibold text-gray-500">{L('İşlem', 'Action')}</th>
+                  <th className="px-5 py-3 text-left font-semibold text-gray-500">{L('Kullanıcı', 'User')}</th>
+                  <th className="px-5 py-3 text-left font-semibold text-gray-500">{L('Kayıt', 'Record')}</th>
+                  <th className="px-5 py-3 text-left font-semibold text-gray-500">{L('Detay', 'Details')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {logs.map(log => (
                   <tr key={log.id} className="hover:bg-gray-50/60">
-                    <td className="whitespace-nowrap px-5 py-3 text-gray-600">{formatDate(log.created_at)}</td>
+                    <td className="whitespace-nowrap px-5 py-3 text-gray-600">{formatDate(log.created_at, lang)}</td>
                     <td className="whitespace-nowrap px-5 py-3">
                       <span className="inline-flex rounded-full bg-[#1B4332]/8 px-2.5 py-1 text-xs font-bold text-[#1B4332]">
-                        {actionLabel(log.action)}
+                        {actionLabel(log.action, lang)}
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-5 py-3 text-gray-700">{log.actor_email ?? '-'}</td>
@@ -204,7 +235,9 @@ export default async function LogsPage({
       {!setupRequired && totalCount > PAGE_SIZE && (
         <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 text-sm shadow-sm sm:flex-row">
           <p className="text-gray-400">
-            {totalCount} kayıt · {startIndex}-{endIndex} arası gösteriliyor
+            {lang === 'en'
+              ? `${totalCount} records · showing ${startIndex}-${endIndex}`
+              : `${totalCount} kayıt · ${startIndex}-${endIndex} arası gösteriliyor`}
           </p>
           <div className="flex items-center gap-1.5">
             <Link
@@ -217,7 +250,7 @@ export default async function LogsPage({
               }`}
             >
               <ChevronLeft className="h-4 w-4" />
-              Önceki
+              {L('Önceki', 'Previous')}
             </Link>
 
             {Array.from({ length: Math.min(totalPages, 7) }, (_, index) => {
@@ -249,7 +282,7 @@ export default async function LogsPage({
                   : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
               }`}
             >
-              Sonraki
+              {L('Sonraki', 'Next')}
               <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
