@@ -660,7 +660,7 @@ export function EvaluationsContent({
             <SearchableSelect
               value={filterStatus}
               onChange={v => updateFilter('status', v)}
-              options={(['draft', 'submitted', 'approved', 'rejected'] as EvaluationStatus[]).map(s => ({
+              options={(['draft', 'submitted'] as EvaluationStatus[]).map(s => ({
                 value: s, label: t.status[s],
               }))}
               placeholder={lang === 'tr' ? 'Durum: Tümü' : 'Status: All'}
