@@ -95,8 +95,9 @@ export default async function ReportsPage({ searchParams }: PageProps) {
     evQuery = evQuery.eq('evaluator_id', profile.id)
   }
 
-  if (startDate) evQuery = evQuery.gte('conversation_date', startDate)
-  if (endDate) evQuery = evQuery.lte('conversation_date', endDate)
+  // Filter by evaluation_date (when the QC was done), consistent with the dashboard.
+  if (startDate) evQuery = evQuery.gte('evaluation_date', startDate)
+  if (endDate) evQuery = evQuery.lte('evaluation_date', endDate)
   if (consultantId) evQuery = evQuery.eq('agent_id', consultantId)
   if (teamId) evQuery = evQuery.eq('team_id', teamId)
   if (channel) evQuery = evQuery.eq('channel', channel as ChannelType)

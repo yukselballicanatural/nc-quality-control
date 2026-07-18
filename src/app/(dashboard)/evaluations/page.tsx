@@ -132,8 +132,10 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
   if (result) query = query.eq('conversation_result', result as ConversationResult)
   if (evaluatorId && profile.role === 'manager') query = query.eq('evaluator_id', evaluatorId)
   if (filterAgentId) query = query.eq('agent_id', filterAgentId)
-  if (startDate) query = query.gte('conversation_date', startDate)
-  if (endDate) query = query.lte('conversation_date', endDate)
+  // Date-range filter targets evaluation_date (when the QC was performed),
+  // consistent with the dashboard and reports.
+  if (startDate) query = query.gte('evaluation_date', startDate)
+  if (endDate) query = query.lte('evaluation_date', endDate)
 
   const [evaluatorsResult, agentsResult] = await Promise.all([
     profile.role === 'manager'

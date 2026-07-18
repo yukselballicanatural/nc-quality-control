@@ -114,10 +114,14 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   let allEvalsQuery = supabase
     .from('evaluations')
     .select(
-      'id, consultant_id, consultant_name, evaluator_id, final_score, critical_error_count, conversation_result, channel, customer_name, status, conversation_date, lead_id'
+      'id, consultant_id, consultant_name, evaluator_id, final_score, critical_error_count, conversation_result, channel, customer_name, status, conversation_date, evaluation_date, lead_id'
     )
-    .gte('conversation_date', since)
-    .lte('conversation_date', until)
+    // Filter by when the evaluation was performed (evaluation_date), not when the
+    // customer conversation happened (conversation_date). "Last 30 days" on a
+    // quality dashboard means QC work done recently — otherwise an evaluation
+    // entered today for an older conversation would silently vanish from view.
+    .gte('evaluation_date', since)
+    .lte('evaluation_date', until)
 
   if (isTeamLeader) allEvalsQuery = allEvalsQuery.eq('team_id', profile.team_id!)
   if (restrictedQuality) allEvalsQuery = allEvalsQuery.eq('evaluator_id', profile.id)
@@ -228,7 +232,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   // Weekly trend (last 6 weeks)
   const weeklyMap = new Map<string, { total: number; count: number }>()
   evals.forEach(e => {
-    const d = new Date(e.conversation_date)
+    const d = new Date(e.evaluation_date)
     const dayOfWeek = d.getDay()
     const monday = new Date(d)
     monday.setDate(d.getDate() - ((dayOfWeek + 6) % 7))

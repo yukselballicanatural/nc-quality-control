@@ -428,7 +428,9 @@ export function DashboardContent({
   const topEvaluator = eStats[0]
   const strongestStage = [...stages].sort((a, b) => b.avgScore - a.avgScore)[0]
   const weakestStage = [...stages].sort((a, b) => a.avgScore - b.avgScore)[0]
-  const strongestChannel = [...cs].sort((a, b) => b.averageScore - a.averageScore)[0]
+  // Only channels that actually have evaluations can be "strongest" — otherwise
+  // an empty channel (averageScore 0, count 0) could win the sort on a tie.
+  const strongestChannel = cs.filter(c => c.count > 0).sort((a, b) => b.averageScore - a.averageScore)[0]
 
   const channelChartData = [
     {
