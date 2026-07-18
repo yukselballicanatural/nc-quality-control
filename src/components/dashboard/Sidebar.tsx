@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
@@ -19,6 +19,10 @@ import {
   GraduationCap,
   Award,
   FileClock,
+  Inbox,
+  Clock,
+  AlertTriangle,
+  ArrowRight,
 } from 'lucide-react'
 import { createClient as createBrowserClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -41,24 +45,48 @@ interface DashboardShellProps {
   children: React.ReactNode
 }
 
+interface NotifItem {
+  id: string
+  customer_name: string | null
+  consultant_name: string | null
+  consultant: { full_name: string } | null
+  dev_recheck_date: string
+  final_score: number | null
+}
+
+function recheckDayDiff(dateStr: string) {
+  const a = new Date(); a.setHours(0, 0, 0, 0)
+  const b = new Date(dateStr); b.setHours(0, 0, 0, 0)
+  return Math.round((b.getTime() - a.getTime()) / 86_400_000)
+}
+
 export function DashboardShell({ profile, children }: DashboardShellProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
   const [recheckUrgentCount, setRecheckUrgentCount] = useState(0)
+  const [notifItems, setNotifItems] = useState<NotifItem[]>([])
+  const [notifOpen, setNotifOpen] = useState(false)
+  const notifRef = useRef<HTMLDivElement>(null)
   const { lang, setLang, t } = useLanguage()
   const pathname = usePathname()
   const router = useRouter()
 
+  // Consultants never see recheck notifications (they can't access the page).
+  const canSeeNotifications = profile.role !== 'consultant'
+
   useEffect(() => {
-    function fetchRecheckCount() {
+    if (!canSeeNotifications) return
+
+    function fetchRecheck() {
       const today = new Date().toISOString().split('T')[0]
       const supabase = createBrowserClient()
       let query = supabase
         .from('evaluations')
-        .select('id', { count: 'exact', head: true })
+        .select('id, customer_name, consultant_name, dev_recheck_date, final_score, consultant:profiles!evaluations_consultant_id_fkey(full_name)')
         .not('dev_recheck_date', 'is', null)
-        .lte('dev_recheck_date', today)
         .eq('recheck_done', false)
+        .order('dev_recheck_date', { ascending: true })
+        .limit(30)
 
       if (isRestrictedQualityUser(profile)) {
         query = query.eq('evaluator_id', profile.id)
@@ -66,13 +94,37 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
         query = query.eq('team_id', profile.team_id)
       }
 
-      query.then(({ count }) => setRecheckUrgentCount(count ?? 0))
+      query.then(({ data }) => {
+        const rows = (data ?? []) as unknown as NotifItem[]
+        setNotifItems(rows)
+        // "Urgent" = due today or overdue — matches the recheck nav badge.
+        setRecheckUrgentCount(rows.filter(r => r.dev_recheck_date <= today).length)
+      })
     }
 
-    fetchRecheckCount()
-    window.addEventListener('recheck-updated', fetchRecheckCount)
-    return () => window.removeEventListener('recheck-updated', fetchRecheckCount)
-  }, [profile])
+    fetchRecheck()
+    window.addEventListener('recheck-updated', fetchRecheck)
+    return () => window.removeEventListener('recheck-updated', fetchRecheck)
+  }, [profile, canSeeNotifications])
+
+  // Close the notification panel on outside click / Escape.
+  useEffect(() => {
+    if (!notifOpen) return
+    function onClick(e: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false)
+      }
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setNotifOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onClick)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [notifOpen])
 
   useEffect(() => {
     if (localStorage.getItem('nc_welcome') === '1') {
@@ -358,13 +410,154 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
               </button>
             </div>
 
-            {/* Bell (placeholder) */}
-            <button
-              className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="Notifications"
-            >
-              <Bell className="w-5 h-5" />
-            </button>
+            {/* Notifications */}
+            {canSeeNotifications && (
+              <div className="relative" ref={notifRef}>
+                <button
+                  onClick={() => setNotifOpen(o => !o)}
+                  className={`relative p-2 rounded-lg transition-colors ${
+                    notifOpen
+                      ? 'text-[#1B4332] bg-gray-100'
+                      : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                  }`}
+                  aria-label={lang === 'tr' ? 'Bildirimler' : 'Notifications'}
+                >
+                  <Bell className="w-5 h-5" />
+                  {recheckUrgentCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white">
+                      {recheckUrgentCount > 99 ? '99+' : recheckUrgentCount}
+                    </span>
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {notifOpen && (
+                    <motion.div
+                      key="notif-panel"
+                      initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                      transition={{ duration: 0.15, ease: 'easeOut' }}
+                      className="absolute right-0 mt-2 w-[340px] max-w-[calc(100vw-2rem)] origin-top-right rounded-2xl border border-gray-100 bg-white shadow-2xl shadow-gray-900/10 overflow-hidden z-50"
+                    >
+                      {/* Header */}
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                        <div>
+                          <p className="text-sm font-bold text-gray-900">
+                            {lang === 'tr' ? 'Bildirimler' : 'Notifications'}
+                          </p>
+                          <p className="text-[11px] text-gray-400 mt-0.5">
+                            {notifItems.length > 0
+                              ? lang === 'tr'
+                                ? `${notifItems.length} tekrar kontrol bekliyor`
+                                : `${notifItems.length} recheck pending`
+                              : lang === 'tr'
+                                ? 'Her şey güncel'
+                                : "You're all caught up"}
+                          </p>
+                        </div>
+                        {recheckUrgentCount > 0 && (
+                          <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-[11px] font-bold">
+                            {recheckUrgentCount} {lang === 'tr' ? 'acil' : 'urgent'}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* List */}
+                      <div className="max-h-[360px] overflow-y-auto">
+                        {notifItems.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
+                            <div className="w-11 h-11 rounded-full bg-gray-50 flex items-center justify-center">
+                              <Inbox className="w-5 h-5 text-gray-300" />
+                            </div>
+                            <p className="text-sm font-medium text-gray-500">
+                              {lang === 'tr' ? 'Yeni bildirim yok' : 'No new notifications'}
+                            </p>
+                          </div>
+                        ) : (
+                          <ul className="divide-y divide-gray-50">
+                            {notifItems.map(item => {
+                              const diff = recheckDayDiff(item.dev_recheck_date)
+                              const overdue = diff < 0
+                              const today = diff === 0
+                              const name =
+                                item.consultant?.full_name || item.consultant_name || '—'
+                              let relLabel: string
+                              if (overdue) {
+                                relLabel =
+                                  lang === 'tr'
+                                    ? `${Math.abs(diff)} gün gecikti`
+                                    : `${Math.abs(diff)}d overdue`
+                              } else if (today) {
+                                relLabel = lang === 'tr' ? 'Bugün' : 'Today'
+                              } else if (diff === 1) {
+                                relLabel = lang === 'tr' ? 'Yarın' : 'Tomorrow'
+                              } else {
+                                relLabel =
+                                  lang === 'tr' ? `${diff} gün sonra` : `in ${diff}d`
+                              }
+                              const tone = overdue
+                                ? { icon: AlertTriangle, dot: 'text-red-500 bg-red-50', label: 'text-red-600' }
+                                : today
+                                  ? { icon: Clock, dot: 'text-amber-500 bg-amber-50', label: 'text-amber-600' }
+                                  : { icon: CalendarClock, dot: 'text-gray-400 bg-gray-50', label: 'text-gray-400' }
+                              const Icon = tone.icon
+                              return (
+                                <li key={item.id}>
+                                  <button
+                                    onClick={() => {
+                                      setNotifOpen(false)
+                                      router.push('/recheck')
+                                    }}
+                                    className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                                  >
+                                    <span className={`mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${tone.dot}`}>
+                                      <Icon className="w-4 h-4" />
+                                    </span>
+                                    <span className="flex-1 min-w-0">
+                                      <span className="block text-sm font-semibold text-gray-900 truncate">
+                                        {name}
+                                      </span>
+                                      <span className="block text-xs text-gray-400 truncate">
+                                        {item.customer_name || (lang === 'tr' ? 'Müşteri belirtilmemiş' : 'No customer')}
+                                      </span>
+                                      <span className={`mt-1 inline-flex items-center gap-1 text-[11px] font-semibold ${tone.label}`}>
+                                        {relLabel}
+                                        <span className="text-gray-300 font-normal">·</span>
+                                        <span className="text-gray-400 font-normal">
+                                          {new Date(item.dev_recheck_date).toLocaleDateString(
+                                            lang === 'tr' ? 'tr-TR' : 'en-US',
+                                            { day: '2-digit', month: 'short' }
+                                          )}
+                                        </span>
+                                      </span>
+                                    </span>
+                                  </button>
+                                </li>
+                              )
+                            })}
+                          </ul>
+                        )}
+                      </div>
+
+                      {/* Footer */}
+                      {notifItems.length > 0 && (
+                        <button
+                          onClick={() => {
+                            setNotifOpen(false)
+                            router.push('/recheck')
+                          }}
+                          className="w-full flex items-center justify-center gap-1.5 px-4 py-3 border-t border-gray-100 text-sm font-semibold text-[#1B4332] hover:bg-gray-50 transition-colors"
+                        >
+                          {lang === 'tr' ? 'Tümünü gör' : 'View all'}
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
           </div>
         </header>
 
