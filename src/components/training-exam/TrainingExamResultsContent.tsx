@@ -174,6 +174,26 @@ export function TrainingExamResultsContent({
     setLocalSearch(searchQuery)
   }, [searchQuery])
 
+  // Lock background scrolling while any modal (view / edit / delete) is open,
+  // so scrolling inside the popup never moves the page behind it.
+  const anyModalOpen = Boolean(viewResult || editResult || deletingId)
+  useEffect(() => {
+    if (!anyModalOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [anyModalOpen])
+
+  // Close the view popup with the Escape key.
+  useEffect(() => {
+    if (!viewResult) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setViewResult(null)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [viewResult])
+
   useEffect(() => {
     if (localSearch === searchQuery) return
     const timer = setTimeout(() => {
@@ -481,8 +501,14 @@ export function TrainingExamResultsContent({
       )}
 
       {viewResult && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-          <div className="w-full max-w-3xl max-h-[90vh] overflow-hidden bg-white rounded-2xl shadow-2xl">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+          onClick={() => setViewResult(null)}
+        >
+          <div
+            className="w-full max-w-3xl max-h-[90vh] overflow-hidden bg-white rounded-2xl shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-bold text-gray-900">
