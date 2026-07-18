@@ -232,7 +232,10 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   // Weekly trend (last 6 weeks)
   const weeklyMap = new Map<string, { total: number; count: number }>()
   evals.forEach(e => {
-    const d = new Date(e.evaluation_date)
+    // Bucket the trend by when the conversation actually happened, so the line
+    // reflects the real performance timeline rather than the (bursty) data-entry
+    // dates. Falls back to evaluation_date if a conversation date is missing.
+    const d = new Date(e.conversation_date || e.evaluation_date)
     const dayOfWeek = d.getDay()
     const monday = new Date(d)
     monday.setDate(d.getDate() - ((dayOfWeek + 6) % 7))
