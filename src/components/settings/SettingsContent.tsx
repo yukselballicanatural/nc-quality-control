@@ -25,6 +25,8 @@ import {
 import type { UserRole } from '@/types/supabase'
 import { canManageUsers } from '@/lib/access-control'
 import { isTeamLeaderRole, deriveTeamLeaderName } from '@/lib/agents'
+import { useLanguage } from '@/lib/i18n'
+import type { Language } from '@/types'
 
 interface UserRow {
   id: string
@@ -62,11 +64,19 @@ function agentFullName(a: Pick<AgentRow, 'first_name' | 'last_name'>) {
   return [a.first_name, a.last_name].filter(Boolean).join(' ').trim()
 }
 
-const ROLE_LABELS: Record<UserRole, string> = {
-  quality_team: 'Kalite Kontrol',
-  team_leader: 'Takım Lideri',
-  manager: 'Yönetici / Admin',
-  consultant: 'Danışman',
+const ROLE_LABELS: Record<Language, Record<UserRole, string>> = {
+  tr: {
+    quality_team: 'Kalite Kontrol',
+    team_leader: 'Takım Lideri',
+    manager: 'Yönetici / Admin',
+    consultant: 'Danışman',
+  },
+  en: {
+    quality_team: 'Quality Control',
+    team_leader: 'Team Leader',
+    manager: 'Manager / Admin',
+    consultant: 'Consultant',
+  },
 }
 
 const ROLE_COLORS: Record<UserRole, string> = {
@@ -76,12 +86,7 @@ const ROLE_COLORS: Record<UserRole, string> = {
   consultant: 'bg-orange-100 text-orange-800',
 }
 
-const CREATABLE_ROLES: { value: UserRole; label: string }[] = [
-  { value: 'consultant', label: 'Danışman' },
-  { value: 'team_leader', label: 'Takım Lideri' },
-  { value: 'quality_team', label: 'Kalite Kontrol' },
-  { value: 'manager', label: 'Yönetici / Admin' },
-]
+const CREATABLE_ROLE_VALUES: UserRole[] = ['consultant', 'team_leader', 'quality_team', 'manager']
 
 type Tab = 'users' | 'teams' | 'agents' | 'account'
 
@@ -97,6 +102,11 @@ function initAgentForm() {
 
 export default function SettingsContent({ currentProfile, users, teams, agents }: Props) {
   const canManage = canManageUsers(currentProfile)
+  const { lang } = useLanguage()
+  // Local bilingual helper — same pattern as the dashboard's localText.
+  const L = (tr: string, en: string) => (lang === 'en' ? en : tr)
+  const roleLabels = ROLE_LABELS[lang]
+  const creatableRoles = CREATABLE_ROLE_VALUES.map(value => ({ value, label: roleLabels[value] }))
 
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -184,11 +194,11 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         body: JSON.stringify(addForm),
       })
       const data = await res.json()
-      if (!res.ok) { setAddError(data.error ?? 'Bir hata oluştu'); return }
+      if (!res.ok) { setAddError(data.error ?? L('Bir hata oluştu', 'An error occurred')); return }
       setShowAddUser(false)
       setAddForm(initAddForm)
       refresh()
-    } catch { setAddError('Bağlantı hatası') }
+    } catch { setAddError(L('Bağlantı hatası', 'Connection error')) }
     finally { setAddLoading(false) }
   }
 
@@ -204,10 +214,10 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         body: JSON.stringify({ id: editUser.id, full_name: editForm.full_name, role: editForm.role, team_id: editForm.team_id || null }),
       })
       const data = await res.json()
-      if (!res.ok) { setEditError(data.error ?? 'Bir hata oluştu'); return }
+      if (!res.ok) { setEditError(data.error ?? L('Bir hata oluştu', 'An error occurred')); return }
       setEditUser(null)
       refresh()
-    } catch { setEditError('Bağlantı hatası') }
+    } catch { setEditError(L('Bağlantı hatası', 'Connection error')) }
     finally { setEditLoading(false) }
   }
 
@@ -223,10 +233,10 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         body: JSON.stringify({ id: pwUser.id, password: newPw }),
       })
       const data = await res.json()
-      if (!res.ok) { setPwError(data.error ?? 'Bir hata oluştu'); return }
+      if (!res.ok) { setPwError(data.error ?? L('Bir hata oluştu', 'An error occurred')); return }
       setPwUser(null)
       setNewPw('')
-    } catch { setPwError('Bağlantı hatası') }
+    } catch { setPwError(L('Bağlantı hatası', 'Connection error')) }
     finally { setPwLoading(false) }
   }
 
@@ -241,10 +251,10 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         body: JSON.stringify({ id: deleteUser.id }),
       })
       const data = await res.json()
-      if (!res.ok) { setDeleteError(data.error ?? 'Silinemedi'); return }
+      if (!res.ok) { setDeleteError(data.error ?? L('Silinemedi', 'Could not delete')); return }
       setDeleteUser(null)
       refresh()
-    } catch { setDeleteError('Bağlantı hatası') }
+    } catch { setDeleteError(L('Bağlantı hatası', 'Connection error')) }
     finally { setDeleteLoading(false) }
   }
 
@@ -268,11 +278,11 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         body: JSON.stringify({ name: teamName }),
       })
       const data = await res.json()
-      if (!res.ok) { setTeamError(data.error ?? 'Bir hata oluştu'); return }
+      if (!res.ok) { setTeamError(data.error ?? L('Bir hata oluştu', 'An error occurred')); return }
       setShowAddTeam(false)
       setTeamName('')
       refresh()
-    } catch { setTeamError('Bağlantı hatası') }
+    } catch { setTeamError(L('Bağlantı hatası', 'Connection error')) }
     finally { setTeamLoading(false) }
   }
 
@@ -287,10 +297,10 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         body: JSON.stringify({ id: deleteTeam.id }),
       })
       const data = await res.json()
-      if (!res.ok) { setDeleteTeamError(data.error ?? 'Silinemedi'); return }
+      if (!res.ok) { setDeleteTeamError(data.error ?? L('Silinemedi', 'Could not delete')); return }
       setDeleteTeam(null)
       refresh()
-    } catch { setDeleteTeamError('Bağlantı hatası') }
+    } catch { setDeleteTeamError(L('Bağlantı hatası', 'Connection error')) }
     finally { setDeleteTeamLoading(false) }
   }
 
@@ -324,11 +334,11 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         body: JSON.stringify({ id: editAgent?.id, ...agentForm }),
       })
       const data = await res.json()
-      if (!res.ok) { setAgentError(data.error ?? 'Bir hata oluştu'); return }
+      if (!res.ok) { setAgentError(data.error ?? L('Bir hata oluştu', 'An error occurred')); return }
       setShowAgentForm(false)
       setEditAgent(null)
       refresh()
-    } catch { setAgentError('Bağlantı hatası') }
+    } catch { setAgentError(L('Bağlantı hatası', 'Connection error')) }
     finally { setAgentLoading(false) }
   }
 
@@ -343,10 +353,10 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         body: JSON.stringify({ id: deleteAgent.id }),
       })
       const data = await res.json()
-      if (!res.ok) { setDeleteAgentError(data.error ?? 'Silinemedi'); return }
+      if (!res.ok) { setDeleteAgentError(data.error ?? L('Silinemedi', 'Could not delete')); return }
       setDeleteAgent(null)
       refresh()
-    } catch { setDeleteAgentError('Bağlantı hatası') }
+    } catch { setDeleteAgentError(L('Bağlantı hatası', 'Connection error')) }
     finally { setDeleteAgentLoading(false) }
   }
 
@@ -354,11 +364,11 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
     e.preventDefault()
     setSelfPwMsg(null)
     if (selfPw.newPw !== selfPw.confirm) {
-      setSelfPwMsg({ type: 'err', text: 'Şifreler eşleşmiyor' })
+      setSelfPwMsg({ type: 'err', text: L('Şifreler eşleşmiyor', 'Passwords do not match') })
       return
     }
     if (selfPw.newPw.length < 6) {
-      setSelfPwMsg({ type: 'err', text: 'Şifre en az 6 karakter olmalı' })
+      setSelfPwMsg({ type: 'err', text: L('Şifre en az 6 karakter olmalı', 'Password must be at least 6 characters') })
       return
     }
     setSelfPwLoading(true)
@@ -368,11 +378,11 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
       if (error) {
         setSelfPwMsg({ type: 'err', text: error.message })
       } else {
-        setSelfPwMsg({ type: 'ok', text: 'Şifreniz başarıyla güncellendi.' })
+        setSelfPwMsg({ type: 'ok', text: L('Şifreniz başarıyla güncellendi.', 'Your password was updated successfully.') })
         setSelfPw({ current: '', newPw: '', confirm: '' })
       }
     } catch {
-      setSelfPwMsg({ type: 'err', text: 'Bir hata oluştu' })
+      setSelfPwMsg({ type: 'err', text: L('Bir hata oluştu', 'An error occurred') })
     } finally {
       setSelfPwLoading(false)
     }
@@ -381,19 +391,19 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
   // ── Tabs config ─────────────────────────────────────────────────────
   const tabs = canManage
     ? [
-        { key: 'users' as Tab, label: 'Kullanıcılar', Icon: Users },
-        { key: 'agents' as Tab, label: 'Danışman & Takım Lideri', Icon: Headset },
-        { key: 'teams' as Tab, label: 'Regionlar', Icon: Globe2 },
-        { key: 'account' as Tab, label: 'Hesabım', Icon: UserCircle },
+        { key: 'users' as Tab, label: L('Kullanıcılar', 'Users'), Icon: Users },
+        { key: 'agents' as Tab, label: L('Danışman & Takım Lideri', 'Consultants & Team Leaders'), Icon: Headset },
+        { key: 'teams' as Tab, label: L('Regionlar', 'Regions'), Icon: Globe2 },
+        { key: 'account' as Tab, label: L('Hesabım', 'My Account'), Icon: UserCircle },
       ]
-    : [{ key: 'account' as Tab, label: 'Hesabım', Icon: UserCircle }]
+    : [{ key: 'account' as Tab, label: L('Hesabım', 'My Account'), Icon: UserCircle }]
 
   return (
     <div className={`transition-opacity duration-150 ${isPending ? 'opacity-50 pointer-events-none' : ''}`}>
       {/* Header */}
       <div className="mb-5">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Ayarlar</h1>
-        <p className="text-sm text-gray-500 mt-1">Kullanıcı, takım ve hesap yönetimi</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{L('Ayarlar', 'Settings')}</h1>
+        <p className="text-sm text-gray-500 mt-1">{L('Kullanıcı, takım ve hesap yönetimi', 'User, team and account management')}</p>
       </div>
 
       {/* Tabs */}
@@ -419,16 +429,16 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         <div>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900">Kullanıcılar</h2>
-              <p className="text-sm text-gray-500">{users.length} kullanıcı</p>
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">{L('Kullanıcılar', 'Users')}</h2>
+              <p className="text-sm text-gray-500">{users.length} {L('kullanıcı', 'users')}</p>
             </div>
             <button
               onClick={() => setShowAddUser(true)}
               className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#1B4332] text-white rounded-xl text-sm font-semibold hover:bg-[#163728] transition-colors flex-shrink-0"
             >
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Kullanıcı Ekle</span>
-              <span className="sm:hidden">Ekle</span>
+              <span className="hidden sm:inline">{L('Kullanıcı Ekle', 'Add User')}</span>
+              <span className="sm:hidden">{L('Ekle', 'Add')}</span>
             </button>
           </div>
 
@@ -436,7 +446,7 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
             <table className="w-full min-w-[580px]">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/60">
-                  {['Kullanıcı', 'Rol', 'Region', 'Durum', 'İşlemler'].map(h => (
+                  {[L('Kullanıcı', 'User'), L('Rol', 'Role'), L('Region', 'Region'), L('Durum', 'Status'), L('İşlemler', 'Actions')].map(h => (
                     <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider first:pl-5 last:pr-5">
                       {h}
                     </th>
@@ -457,7 +467,7 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
                           <div className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
                             <span className="truncate max-w-[120px]">{u.full_name}</span>
                             {u.id === currentProfile.id && (
-                              <span className="text-[10px] text-gray-400 font-normal flex-shrink-0">(Sen)</span>
+                              <span className="text-[10px] text-gray-400 font-normal flex-shrink-0">{L('(Sen)', '(You)')}</span>
                             )}
                           </div>
                           <div className="text-xs text-gray-400 truncate max-w-[160px]">{u.email}</div>
@@ -466,7 +476,7 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
                     </td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${ROLE_COLORS[u.role]}`}>
-                        {ROLE_LABELS[u.role]}
+                        {roleLabels[u.role]}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
@@ -476,7 +486,7 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
                       <button
                         onClick={() => toggleActive(u)}
                         disabled={u.id === currentProfile.id}
-                        title={u.is_active ? 'Pasife al' : 'Aktif et'}
+                        title={u.is_active ? L('Pasife al', 'Deactivate') : L('Aktif et', 'Activate')}
                         className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
                           u.is_active ? 'bg-[#1B4332]' : 'bg-gray-200'
                         }`}
@@ -494,14 +504,14 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
                             setEditForm({ full_name: u.full_name, role: u.role, team_id: u.team_id ?? '' })
                             setEditError(null)
                           }}
-                          title="Düzenle"
+                          title={L('Düzenle', 'Edit')}
                           className="p-1.5 text-gray-400 hover:text-[#1B4332] hover:bg-gray-100 rounded-lg transition-colors"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => { setPwUser(u); setNewPw(''); setPwError(null) }}
-                          title="Şifre sıfırla"
+                          title={L('Şifre sıfırla', 'Reset password')}
                           className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         >
                           <KeyRound className="w-3.5 h-3.5" />
@@ -509,7 +519,7 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
                         {u.id !== currentProfile.id && (
                           <button
                             onClick={() => { setDeleteUser(u); setDeleteError(null) }}
-                            title="Sil"
+                            title={L('Sil', 'Delete')}
                             className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -524,7 +534,7 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
             {users.length === 0 && (
               <div className="py-12 text-center">
                 <Users className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-400">Kullanıcı bulunamadı</p>
+                <p className="text-sm text-gray-400">{L('Kullanıcı bulunamadı', 'No users found')}</p>
               </div>
             )}
           </div>
@@ -536,30 +546,30 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         <div>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900">Regionlar</h2>
-              <p className="text-sm text-gray-500">{teams.length} region</p>
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">{L('Regionlar', 'Regions')}</h2>
+              <p className="text-sm text-gray-500">{teams.length} {L('region', 'regions')}</p>
             </div>
             <button
               onClick={() => setShowAddTeam(true)}
               className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#1B4332] text-white rounded-xl text-sm font-semibold hover:bg-[#163728] transition-colors flex-shrink-0"
             >
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Region Ekle</span>
-              <span className="sm:hidden">Ekle</span>
+              <span className="hidden sm:inline">{L('Region Ekle', 'Add Region')}</span>
+              <span className="sm:hidden">{L('Ekle', 'Add')}</span>
             </button>
           </div>
 
           {teams.length === 0 ? (
             <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center">
               <Globe2 className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-              <p className="text-sm text-gray-400">Henüz region oluşturulmamış</p>
+              <p className="text-sm text-gray-400">{L('Henüz region oluşturulmamış', 'No regions created yet')}</p>
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden overflow-x-auto">
               <table className="w-full min-w-[360px]">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50/60">
-                    {['Region Adı', 'Üye Sayısı', ''].map((h, i) => (
+                    {[L('Region Adı', 'Region Name'), L('Üye Sayısı', 'Members'), ''].map((h, i) => (
                       <th key={i} className="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider first:pl-5 last:pr-5">
                         {h}
                       </th>
@@ -579,11 +589,11 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
                             <span className="text-sm font-medium text-gray-900">{team.name}</span>
                           </div>
                         </td>
-                        <td className="px-5 py-3.5 text-sm text-gray-500">{memberCount} kişi</td>
+                        <td className="px-5 py-3.5 text-sm text-gray-500">{memberCount} {L('kişi', 'people')}</td>
                         <td className="px-5 py-3.5 pr-6 text-right">
                           <button
                             onClick={() => { setDeleteTeam(team); setDeleteTeamError(null) }}
-                            title="Region'u sil"
+                            title={L("Region'u sil", 'Delete region')}
                             className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -604,30 +614,30 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         <div>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900">Danışman & Takım Lideri</h2>
-              <p className="text-sm text-gray-500">{agents.length} kayıt · CRM senkronizasyonundan gelir, burada manuel de yönetebilirsiniz</p>
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">{L('Danışman & Takım Lideri', 'Consultants & Team Leaders')}</h2>
+              <p className="text-sm text-gray-500">{agents.length} {L('kayıt · CRM senkronizasyonundan gelir, burada manuel de yönetebilirsiniz', 'records · synced from CRM, you can also manage them manually here')}</p>
             </div>
             <button
               onClick={openAddAgent}
               className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#1B4332] text-white rounded-xl text-sm font-semibold hover:bg-[#163728] transition-colors flex-shrink-0"
             >
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Kayıt Ekle</span>
-              <span className="sm:hidden">Ekle</span>
+              <span className="hidden sm:inline">{L('Kayıt Ekle', 'Add Record')}</span>
+              <span className="sm:hidden">{L('Ekle', 'Add')}</span>
             </button>
           </div>
 
           {agents.length === 0 ? (
             <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center">
               <Headset className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-              <p className="text-sm text-gray-400">Henüz kayıt yok</p>
+              <p className="text-sm text-gray-400">{L('Henüz kayıt yok', 'No records yet')}</p>
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden overflow-x-auto">
               <table className="w-full min-w-[560px]">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50/60">
-                    {['Ad Soyad', 'Tip', 'Takım Lideri', 'Region', ''].map((h, i) => (
+                    {[L('Ad Soyad', 'Full Name'), L('Tip', 'Type'), L('Takım Lideri', 'Team Leader'), L('Region', 'Region'), ''].map((h, i) => (
                       <th key={i} className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider first:pl-5 last:pr-5">
                         {h}
                       </th>
@@ -645,7 +655,7 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
                           <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
                             isLeader ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'
                           }`}>
-                            {isLeader ? 'Takım Lideri' : 'Danışman'}
+                            {isLeader ? L('Takım Lideri', 'Team Leader') : L('Danışman', 'Consultant')}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">{leaderName ?? '—'}</td>
@@ -654,14 +664,14 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
                           <div className="flex items-center gap-1.5 justify-end">
                             <button
                               onClick={() => openEditAgent(a)}
-                              title="Düzenle"
+                              title={L('Düzenle', 'Edit')}
                               className="p-1.5 text-gray-400 hover:text-[#1B4332] hover:bg-gray-100 rounded-lg transition-colors"
                             >
                               <Pencil className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => { setDeleteAgent(a); setDeleteAgentError(null) }}
-                              title="Sil"
+                              title={L('Sil', 'Delete')}
                               className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -683,7 +693,7 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         <div className="max-w-lg space-y-6">
           {/* Profil kartı */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h2 className="text-base font-semibold text-gray-900 mb-5">Profil Bilgileri</h2>
+            <h2 className="text-base font-semibold text-gray-900 mb-5">{L('Profil Bilgileri', 'Profile Information')}</h2>
             <div className="flex items-center gap-4 mb-6">
               <div className="w-14 h-14 rounded-full bg-[#1B4332]/10 flex items-center justify-center flex-shrink-0">
                 <span className="text-xl font-bold text-[#1B4332]">
@@ -693,25 +703,25 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
               <div>
                 <p className="font-semibold text-gray-900 text-base">{currentProfile.full_name}</p>
                 <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium mt-0.5 ${ROLE_COLORS[currentProfile.role]}`}>
-                  {ROLE_LABELS[currentProfile.role]}
+                  {roleLabels[currentProfile.role]}
                 </span>
               </div>
             </div>
             <div className="space-y-3 text-sm divide-y divide-gray-50">
               <div className="flex justify-between py-2.5">
-                <span className="text-gray-500">E-posta</span>
+                <span className="text-gray-500">{L('E-posta', 'Email')}</span>
                 <span className="text-gray-900 font-medium">{currentProfile.email}</span>
               </div>
               {currentProfile.team_id && (
                 <div className="flex justify-between py-2.5">
-                  <span className="text-gray-500">Region</span>
+                  <span className="text-gray-500">{L('Region', 'Region')}</span>
                   <span className="text-gray-900 font-medium">{teamMap.get(currentProfile.team_id) ?? '—'}</span>
                 </div>
               )}
               <div className="flex justify-between py-2.5">
-                <span className="text-gray-500">Durum</span>
+                <span className="text-gray-500">{L('Durum', 'Status')}</span>
                 <span className={`font-medium ${currentProfile.is_active ? 'text-emerald-600' : 'text-red-500'}`}>
-                  {currentProfile.is_active ? 'Aktif' : 'Pasif'}
+                  {currentProfile.is_active ? L('Aktif', 'Active') : L('Pasif', 'Inactive')}
                 </span>
               </div>
             </div>
@@ -719,11 +729,11 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
 
           {/* Şifre değiştir */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h2 className="text-base font-semibold text-gray-900 mb-5">Şifre Değiştir</h2>
+            <h2 className="text-base font-semibold text-gray-900 mb-5">{L('Şifre Değiştir', 'Change Password')}</h2>
             <form onSubmit={handleSelfPassword} className="space-y-4">
               {[
-                { label: 'Yeni Şifre', key: 'newPw' as const, placeholder: 'En az 6 karakter' },
-                { label: 'Yeni Şifre (Tekrar)', key: 'confirm' as const, placeholder: 'Şifreyi tekrar girin' },
+                { label: L('Yeni Şifre', 'New Password'), key: 'newPw' as const, placeholder: L('En az 6 karakter', 'At least 6 characters') },
+                { label: L('Yeni Şifre (Tekrar)', 'New Password (Confirm)'), key: 'confirm' as const, placeholder: L('Şifreyi tekrar girin', 'Re-enter password') },
               ].map(({ label, key, placeholder }) => (
                 <div key={key}>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
@@ -767,7 +777,7 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
                 className="w-full py-2.5 rounded-xl bg-[#1B4332] text-white text-sm font-semibold hover:bg-[#163728] transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
               >
                 {selfPwLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {selfPwLoading ? 'Güncelleniyor...' : 'Şifreyi Güncelle'}
+                {selfPwLoading ? L('Güncelleniyor...', 'Updating...') : L('Şifreyi Güncelle', 'Update Password')}
               </button>
             </form>
           </div>
@@ -778,30 +788,30 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
 
       {/* Add User */}
       {showAddUser && (
-        <Modal title="Kullanıcı Ekle" icon={<ShieldCheck className="w-5 h-5 text-[#1B4332]" />} onClose={() => { setShowAddUser(false); setAddError(null); setAddForm(initAddForm) }}>
+        <Modal title={L('Kullanıcı Ekle', 'Add User')} icon={<ShieldCheck className="w-5 h-5 text-[#1B4332]" />} onClose={() => { setShowAddUser(false); setAddError(null); setAddForm(initAddForm) }}>
           <form onSubmit={handleAddUser} className="space-y-4">
-            <Field label="Ad Soyad">
+            <Field label={L('Ad Soyad', 'Full Name')}>
               <input type="text" required value={addForm.full_name}
                 onChange={e => setAddForm(f => ({ ...f, full_name: e.target.value }))}
-                placeholder="Örn: Ahmet Yılmaz" className={inputCls} />
+                placeholder={L('Örn: Ahmet Yılmaz', 'e.g. John Smith')} className={inputCls} />
             </Field>
-            <Field label="E-posta">
+            <Field label={L('E-posta', 'Email')}>
               <input type="email" required value={addForm.email}
                 onChange={e => setAddForm(f => ({ ...f, email: e.target.value }))}
                 placeholder="ahmet@naturalclinic.com" className={inputCls} />
             </Field>
-            <Field label="Şifre">
+            <Field label={L('Şifre', 'Password')}>
               <div className="relative">
                 <input type={showAddPw ? 'text' : 'password'} required minLength={6}
                   value={addForm.password}
                   onChange={e => setAddForm(f => ({ ...f, password: e.target.value }))}
-                  placeholder="En az 6 karakter" className={`${inputCls} pr-11`} />
+                  placeholder={L('En az 6 karakter', 'At least 6 characters')} className={`${inputCls} pr-11`} />
                 <PwToggle show={showAddPw} onToggle={() => setShowAddPw(v => !v)} />
               </div>
             </Field>
-            <Field label="Rol">
+            <Field label={L('Rol', 'Role')}>
               <div className="grid grid-cols-2 gap-2">
-                {CREATABLE_ROLES.map(({ value, label }) => (
+                {creatableRoles.map(({ value, label }) => (
                   <button key={value} type="button"
                     onClick={() => setAddForm(f => ({ ...f, role: value }))}
                     className={`flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
@@ -814,15 +824,15 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
               </div>
             </Field>
             {teams.length > 0 && (
-              <Field label={<>Region <span className="text-gray-400 font-normal">(opsiyonel)</span></>}>
+              <Field label={<>{L('Region', 'Region')} <span className="text-gray-400 font-normal">({L('opsiyonel', 'optional')})</span></>}>
                 <select value={addForm.team_id} onChange={e => setAddForm(f => ({ ...f, team_id: e.target.value }))} className={selectCls}>
-                  <option value="">Region seçin</option>
+                  <option value="">{L('Region seçin', 'Select region')}</option>
                   {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
               </Field>
             )}
             {addError && <ErrorMsg>{addError}</ErrorMsg>}
-            <ModalActions loading={addLoading} loadingLabel="Ekleniyor..." label="Ekle"
+            <ModalActions loading={addLoading} loadingLabel={L('Ekleniyor...', 'Adding...')} label={L('Ekle', 'Add')} cancelLabel={L('İptal', 'Cancel')}
               onCancel={() => { setShowAddUser(false); setAddError(null); setAddForm(initAddForm) }} />
           </form>
         </Modal>
@@ -830,16 +840,16 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
 
       {/* Edit User */}
       {editUser && (
-        <Modal title="Kullanıcıyı Düzenle" icon={<Pencil className="w-5 h-5 text-[#1B4332]" />} onClose={() => setEditUser(null)}>
+        <Modal title={L('Kullanıcıyı Düzenle', 'Edit User')} icon={<Pencil className="w-5 h-5 text-[#1B4332]" />} onClose={() => setEditUser(null)}>
           <form onSubmit={handleEditUser} className="space-y-4">
-            <Field label="Ad Soyad">
+            <Field label={L('Ad Soyad', 'Full Name')}>
               <input type="text" required value={editForm.full_name}
                 onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))}
                 className={inputCls} />
             </Field>
-            <Field label="Rol">
+            <Field label={L('Rol', 'Role')}>
               <div className="grid grid-cols-2 gap-2">
-                {CREATABLE_ROLES.map(({ value, label }) => (
+                {creatableRoles.map(({ value, label }) => (
                   <button key={value} type="button"
                     onClick={() => setEditForm(f => ({ ...f, role: value }))}
                     className={`flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
@@ -852,55 +862,59 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
               </div>
             </Field>
             {teams.length > 0 && (
-              <Field label={<>Region <span className="text-gray-400 font-normal">(opsiyonel)</span></>}>
+              <Field label={<>{L('Region', 'Region')} <span className="text-gray-400 font-normal">({L('opsiyonel', 'optional')})</span></>}>
                 <select value={editForm.team_id} onChange={e => setEditForm(f => ({ ...f, team_id: e.target.value }))} className={selectCls}>
-                  <option value="">Region seçin</option>
+                  <option value="">{L('Region seçin', 'Select region')}</option>
                   {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
               </Field>
             )}
             {editError && <ErrorMsg>{editError}</ErrorMsg>}
-            <ModalActions loading={editLoading} loadingLabel="Kaydediliyor..." label="Kaydet" onCancel={() => setEditUser(null)} />
+            <ModalActions loading={editLoading} loadingLabel={L('Kaydediliyor...', 'Saving...')} label={L('Kaydet', 'Save')} cancelLabel={L('İptal', 'Cancel')} onCancel={() => setEditUser(null)} />
           </form>
         </Modal>
       )}
 
       {/* Reset Password */}
       {pwUser && (
-        <Modal title={`Şifre Sıfırla — ${pwUser.full_name}`} icon={<KeyRound className="w-5 h-5 text-blue-600" />} onClose={() => setPwUser(null)}>
+        <Modal title={`${L('Şifre Sıfırla', 'Reset Password')} — ${pwUser.full_name}`} icon={<KeyRound className="w-5 h-5 text-blue-600" />} onClose={() => setPwUser(null)}>
           <form onSubmit={handleResetPassword} className="space-y-4">
-            <Field label="Yeni Şifre">
+            <Field label={L('Yeni Şifre', 'New Password')}>
               <div className="relative">
                 <input type={showNewPw ? 'text' : 'password'} required minLength={6}
                   value={newPw} onChange={e => setNewPw(e.target.value)}
-                  placeholder="En az 6 karakter" className={`${inputCls} pr-11`} />
+                  placeholder={L('En az 6 karakter', 'At least 6 characters')} className={`${inputCls} pr-11`} />
                 <PwToggle show={showNewPw} onToggle={() => setShowNewPw(v => !v)} />
               </div>
             </Field>
             {pwError && <ErrorMsg>{pwError}</ErrorMsg>}
-            <ModalActions loading={pwLoading} loadingLabel="Sıfırlanıyor..." label="Şifreyi Sıfırla" onCancel={() => setPwUser(null)} />
+            <ModalActions loading={pwLoading} loadingLabel={L('Sıfırlanıyor...', 'Resetting...')} label={L('Şifreyi Sıfırla', 'Reset Password')} cancelLabel={L('İptal', 'Cancel')} onCancel={() => setPwUser(null)} />
           </form>
         </Modal>
       )}
 
       {/* Delete User Confirmation */}
       {deleteUser && (
-        <Modal title="Kullanıcıyı Sil" icon={<AlertTriangle className="w-5 h-5 text-red-500" />} onClose={() => setDeleteUser(null)}>
+        <Modal title={L('Kullanıcıyı Sil', 'Delete User')} icon={<AlertTriangle className="w-5 h-5 text-red-500" />} onClose={() => setDeleteUser(null)}>
           <div className="space-y-4">
             <p className="text-sm text-gray-600">
-              <span className="font-semibold text-gray-900">{deleteUser.full_name}</span> adlı kullanıcıyı kalıcı olarak silmek istediğinizden emin misiniz?
+              {lang === 'en' ? (
+                <>Are you sure you want to permanently delete <span className="font-semibold text-gray-900">{deleteUser.full_name}</span>?</>
+              ) : (
+                <><span className="font-semibold text-gray-900">{deleteUser.full_name}</span> adlı kullanıcıyı kalıcı olarak silmek istediğinizden emin misiniz?</>
+              )}
             </p>
-            <p className="text-xs text-gray-400">Değerlendirme kaydı varsa kullanıcı silinemez; bunun yerine pasife alabilirsiniz.</p>
+            <p className="text-xs text-gray-400">{L('Değerlendirme kaydı varsa kullanıcı silinemez; bunun yerine pasife alabilirsiniz.', 'A user with evaluation records cannot be deleted; you can deactivate them instead.')}</p>
             {deleteError && <ErrorMsg>{deleteError}</ErrorMsg>}
             <div className="flex gap-3">
               <button onClick={() => setDeleteUser(null)}
                 className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                İptal
+                {L('İptal', 'Cancel')}
               </button>
               <button onClick={handleDeleteUser} disabled={deleteLoading}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                 {deleteLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {deleteLoading ? 'Siliniyor...' : 'Evet, Sil'}
+                {deleteLoading ? L('Siliniyor...', 'Deleting...') : L('Evet, Sil', 'Yes, Delete')}
               </button>
             </div>
           </div>
@@ -909,15 +923,15 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
 
       {/* Add Region */}
       {showAddTeam && (
-        <Modal title="Region Ekle" icon={<Globe2 className="w-5 h-5 text-[#1B4332]" />} onClose={() => { setShowAddTeam(false); setTeamError(null) }}>
+        <Modal title={L('Region Ekle', 'Add Region')} icon={<Globe2 className="w-5 h-5 text-[#1B4332]" />} onClose={() => { setShowAddTeam(false); setTeamError(null) }}>
           <form onSubmit={handleAddTeam} className="space-y-4">
-            <Field label="Region Adı">
+            <Field label={L('Region Adı', 'Region Name')}>
               <input type="text" required value={teamName}
                 onChange={e => setTeamName(e.target.value)}
-                placeholder="Örn: Morocco" className={inputCls} />
+                placeholder={L('Örn: Morocco', 'e.g. Morocco')} className={inputCls} />
             </Field>
             {teamError && <ErrorMsg>{teamError}</ErrorMsg>}
-            <ModalActions loading={teamLoading} loadingLabel="Oluşturuluyor..." label="Oluştur"
+            <ModalActions loading={teamLoading} loadingLabel={L('Oluşturuluyor...', 'Creating...')} label={L('Oluştur', 'Create')} cancelLabel={L('İptal', 'Cancel')}
               onCancel={() => { setShowAddTeam(false); setTeamError(null) }} />
           </form>
         </Modal>
@@ -925,22 +939,26 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
 
       {/* Delete Region Confirmation */}
       {deleteTeam && (
-        <Modal title="Region'u Sil" icon={<AlertTriangle className="w-5 h-5 text-red-500" />} onClose={() => setDeleteTeam(null)}>
+        <Modal title={L("Region'u Sil", 'Delete Region')} icon={<AlertTriangle className="w-5 h-5 text-red-500" />} onClose={() => setDeleteTeam(null)}>
           <div className="space-y-4">
             <p className="text-sm text-gray-600">
-              <span className="font-semibold text-gray-900">{deleteTeam.name}</span> region'unu silmek istediğinizden emin misiniz?
+              {lang === 'en' ? (
+                <>Are you sure you want to delete the region <span className="font-semibold text-gray-900">{deleteTeam.name}</span>?</>
+              ) : (
+                <><span className="font-semibold text-gray-900">{deleteTeam.name}</span> region&apos;unu silmek istediğinizden emin misiniz?</>
+              )}
             </p>
-            <p className="text-xs text-gray-400">Bu region'da üye varsa silme işlemi gerçekleşmez.</p>
+            <p className="text-xs text-gray-400">{L("Bu region'da üye varsa silme işlemi gerçekleşmez.", 'The region cannot be deleted while it still has members.')}</p>
             {deleteTeamError && <ErrorMsg>{deleteTeamError}</ErrorMsg>}
             <div className="flex gap-3">
               <button onClick={() => setDeleteTeam(null)}
                 className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                İptal
+                {L('İptal', 'Cancel')}
               </button>
               <button onClick={handleDeleteTeam} disabled={deleteTeamLoading}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                 {deleteTeamLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {deleteTeamLoading ? 'Siliniyor...' : 'Evet, Sil'}
+                {deleteTeamLoading ? L('Siliniyor...', 'Deleting...') : L('Evet, Sil', 'Yes, Delete')}
               </button>
             </div>
           </div>
@@ -950,21 +968,21 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
       {/* Add/Edit Agent */}
       {showAgentForm && (
         <Modal
-          title={editAgent ? 'Kaydı Düzenle' : 'Kayıt Ekle'}
+          title={editAgent ? L('Kaydı Düzenle', 'Edit Record') : L('Kayıt Ekle', 'Add Record')}
           icon={<Headset className="w-5 h-5 text-[#1B4332]" />}
           onClose={() => { setShowAgentForm(false); setEditAgent(null); setAgentError(null) }}
         >
           <form onSubmit={handleSaveAgent} className="space-y-4">
-            <Field label="Ad Soyad">
+            <Field label={L('Ad Soyad', 'Full Name')}>
               <input type="text" required value={agentForm.fullName}
                 onChange={e => setAgentForm(f => ({ ...f, fullName: e.target.value }))}
-                placeholder="Örn: Yüksel Ballıca" className={inputCls} />
+                placeholder={L('Örn: Yüksel Ballıca', 'e.g. John Smith')} className={inputCls} />
             </Field>
-            <Field label="Tip">
+            <Field label={L('Tip', 'Type')}>
               <div className="grid grid-cols-2 gap-2">
                 {([
-                  { value: 'member' as AgentKind, label: 'Danışman' },
-                  { value: 'leader' as AgentKind, label: 'Takım Lideri' },
+                  { value: 'member' as AgentKind, label: L('Danışman', 'Consultant') },
+                  { value: 'leader' as AgentKind, label: L('Takım Lideri', 'Team Leader') },
                 ]).map(({ value, label }) => (
                   <button key={value} type="button"
                     onClick={() => setAgentForm(f => ({ ...f, kind: value }))}
@@ -978,16 +996,16 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
               </div>
             </Field>
             {agentForm.kind === 'member' && (
-              <Field label="Takım Lideri">
+              <Field label={L('Takım Lideri', 'Team Leader')}>
                 <ComboBox
                   value={agentForm.teamLeaderName}
                   onChange={v => setAgentForm(f => ({ ...f, teamLeaderName: v }))}
                   options={existingTeamLeaderNames}
-                  placeholder="Örn: Arij"
+                  placeholder={L('Örn: Arij', 'e.g. Arij')}
                 />
               </Field>
             )}
-            <Field label="Region">
+            <Field label={L('Region', 'Region')}>
               <div className="grid grid-cols-2 gap-2">
                 {REGION_OPTIONS.map(r => (
                   <button key={r} type="button"
@@ -1002,7 +1020,7 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
               </div>
             </Field>
             {agentError && <ErrorMsg>{agentError}</ErrorMsg>}
-            <ModalActions loading={agentLoading} loadingLabel={editAgent ? 'Kaydediliyor...' : 'Ekleniyor...'} label={editAgent ? 'Kaydet' : 'Ekle'}
+            <ModalActions loading={agentLoading} loadingLabel={editAgent ? L('Kaydediliyor...', 'Saving...') : L('Ekleniyor...', 'Adding...')} label={editAgent ? L('Kaydet', 'Save') : L('Ekle', 'Add')} cancelLabel={L('İptal', 'Cancel')}
               onCancel={() => { setShowAgentForm(false); setEditAgent(null); setAgentError(null) }} />
           </form>
         </Modal>
@@ -1010,21 +1028,25 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
 
       {/* Delete Agent Confirmation */}
       {deleteAgent && (
-        <Modal title="Kaydı Sil" icon={<AlertTriangle className="w-5 h-5 text-red-500" />} onClose={() => setDeleteAgent(null)}>
+        <Modal title={L('Kaydı Sil', 'Delete Record')} icon={<AlertTriangle className="w-5 h-5 text-red-500" />} onClose={() => setDeleteAgent(null)}>
           <div className="space-y-4">
             <p className="text-sm text-gray-600">
-              <span className="font-semibold text-gray-900">{agentFullName(deleteAgent) || '—'}</span> kaydını kalıcı olarak silmek istediğinizden emin misiniz?
+              {lang === 'en' ? (
+                <>Are you sure you want to permanently delete <span className="font-semibold text-gray-900">{agentFullName(deleteAgent) || '—'}</span>?</>
+              ) : (
+                <><span className="font-semibold text-gray-900">{agentFullName(deleteAgent) || '—'}</span> kaydını kalıcı olarak silmek istediğinizden emin misiniz?</>
+              )}
             </p>
             {deleteAgentError && <ErrorMsg>{deleteAgentError}</ErrorMsg>}
             <div className="flex gap-3">
               <button onClick={() => setDeleteAgent(null)}
                 className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                İptal
+                {L('İptal', 'Cancel')}
               </button>
               <button onClick={handleDeleteAgent} disabled={deleteAgentLoading}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                 {deleteAgentLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {deleteAgentLoading ? 'Siliniyor...' : 'Evet, Sil'}
+                {deleteAgentLoading ? L('Siliniyor...', 'Deleting...') : L('Evet, Sil', 'Yes, Delete')}
               </button>
             </div>
           </div>
@@ -1172,14 +1194,14 @@ function ErrorMsg({ children }: { children: React.ReactNode }) {
   )
 }
 
-function ModalActions({ loading, loadingLabel, label, onCancel }: {
-  loading: boolean; loadingLabel: string; label: string; onCancel: () => void
+function ModalActions({ loading, loadingLabel, label, onCancel, cancelLabel }: {
+  loading: boolean; loadingLabel: string; label: string; onCancel: () => void; cancelLabel: string
 }) {
   return (
     <div className="flex gap-3 pt-1">
       <button type="button" onClick={onCancel}
         className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-        İptal
+        {cancelLabel}
       </button>
       <button type="submit" disabled={loading}
         className="flex-1 px-4 py-2.5 rounded-xl bg-[#1B4332] text-white text-sm font-semibold hover:bg-[#163728] transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
