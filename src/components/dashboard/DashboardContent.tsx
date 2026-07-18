@@ -509,7 +509,7 @@ export function DashboardContent({
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard icon={AlertTriangle} label={t.dashboard.criticalErrors} value={s.totalCriticalErrors} sub={rangeLabel} tone="red" />
-        <StatCard icon={Clock} label={localText(lang, 'Onay Bekliyor', 'Pending Approval')} value={s.pendingCount} sub={localText(lang, 'Gönderilmiş kayıtlar', 'Submitted records')} tone="amber" />
+        <StatCard icon={Clock} label={localText(lang, 'Gönderilen', 'Submitted')} value={s.pendingCount} sub={localText(lang, 'Tamamlanmış değerlendirmeler', 'Completed evaluations')} tone="amber" />
         <StatCard icon={FileEdit} label={localText(lang, 'Taslak', 'Drafts')} value={s.draftCount} sub={localText(lang, 'Henüz gönderilmedi', 'Not submitted yet')} tone="slate" />
         <StatCard icon={XCircle} label={localText(lang, 'Başarısız Kayıt', 'Failed Records')} value={s.failedCount} sub={`${100 - passRate}% ${localText(lang, 'başarısızlık', 'fail rate')}`} tone="red" />
       </div>
