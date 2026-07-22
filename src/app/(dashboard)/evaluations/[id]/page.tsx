@@ -4,7 +4,7 @@ import { redirect, notFound } from 'next/navigation'
 import nextDynamic from 'next/dynamic'
 import { canCreateEvaluation, isRestrictedQualityUser } from '@/lib/access-control'
 import { getCurrentProfile } from '@/lib/current-profile'
-import { toAgentOption, isTeamLeaderRole } from '@/lib/agents'
+import { buildConsultantOptions } from '@/lib/agents'
 import type { EvaluationWithRelations } from '@/types'
 
 const FormStepper = nextDynamic(
@@ -80,9 +80,18 @@ export default async function EditEvaluationPage({
       .order('full_name'),
   ])
 
-  const agents = (agentsResult.data ?? [])
-    .filter(a => !isTeamLeaderRole(a.role))
-    .map(toAgentOption)
+  // Same consultant scoping as the new-evaluation page, but always keep the
+  // evaluation's already-selected consultant in the list so editing never
+  // drops it (even if from another region or filtered out).
+  const teams = teamsResult.data ?? []
+  const currentRegion =
+    profile.role === 'manager'
+      ? null
+      : teams.find(t => t.id === profile.team_id)?.name ?? null
+  const agents = buildConsultantOptions(agentsResult.data ?? [], {
+    region: currentRegion,
+    keepId: ev.agent_id,
+  })
 
   return (
     <FormStepper
@@ -91,7 +100,7 @@ export default async function EditEvaluationPage({
       evaluatorName={profile.full_name}
       agents={agents}
       teamLeaders={teamLeadersResult.data ?? []}
-      teams={teamsResult.data ?? []}
+      teams={teams}
       evaluators={evaluatorsResult.data ?? []}
       initialEvaluation={evaluation}
     />

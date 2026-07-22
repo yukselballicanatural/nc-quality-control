@@ -35,6 +35,42 @@ export function isTeamLeaderRole(role: string | null): boolean {
   return /^Team Leader\s*-\s*/i.test((role ?? '').trim())
 }
 
+/**
+ * A consultant ("danışman") is a member of a sales team. In the CRM-synced
+ * free-text role this always contains "Team" (e.g. "Ghazal Team",
+ * "Farah Team - Morocco", "SM- Mert Team"), while team leaders, regional
+ * managers, sales masters, executives and back-office roles do not qualify.
+ * Team leaders contain "Team Leader" and are excluded even though they match
+ * "Team". Manually-added consultants also get a "<leader> Team" role, so they
+ * are included too.
+ */
+export function isConsultantAgent(role: string | null): boolean {
+  const r = (role ?? '').trim()
+  if (!r) return false
+  if (/team\s*leader/i.test(r)) return false
+  return /team/i.test(r)
+}
+
+/**
+ * Build the consultant dropdown options: only actual consultants, optionally
+ * scoped to a region. `keepId` always keeps that one agent in the list (used
+ * on the edit form so the already-selected consultant never disappears even
+ * if they fall outside the current region/filter).
+ */
+export function buildConsultantOptions(
+  rows: Array<Pick<Agent, 'id' | 'first_name' | 'last_name' | 'role' | 'region'>>,
+  opts: { region?: string | null; keepId?: string | null } = {}
+): AgentOption[] {
+  const { region = null, keepId = null } = opts
+  return rows
+    .filter(
+      a =>
+        (keepId != null && a.id === keepId) ||
+        (isConsultantAgent(a.role) && (!region || a.region === region))
+    )
+    .map(toAgentOption)
+}
+
 export function toAgentOption(
   agent: Pick<Agent, 'id' | 'first_name' | 'last_name' | 'role' | 'region'>
 ): AgentOption {

@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import nextDynamic from 'next/dynamic'
 import { canCreateEvaluation } from '@/lib/access-control'
 import { getCurrentProfile } from '@/lib/current-profile'
-import { toAgentOption, isTeamLeaderRole } from '@/lib/agents'
+import { buildConsultantOptions } from '@/lib/agents'
 
 const FormStepper = nextDynamic(
   () => import('@/components/form/FormStepper').then(m => m.FormStepper),
@@ -43,9 +43,14 @@ export default async function NewEvaluationPage() {
       .order('full_name'),
   ])
 
-  const agents = (agentsResult.data ?? [])
-    .filter(a => !isTeamLeaderRole(a.role))
-    .map(toAgentOption)
+  // Consultant dropdown: only actual consultants, scoped to the user's region.
+  // Managers see every region; a user without a region falls back to all.
+  const teams = teamsResult.data ?? []
+  const currentRegion =
+    profile.role === 'manager'
+      ? null
+      : teams.find(t => t.id === profile.team_id)?.name ?? null
+  const agents = buildConsultantOptions(agentsResult.data ?? [], { region: currentRegion })
 
   return (
     <FormStepper
@@ -55,7 +60,7 @@ export default async function NewEvaluationPage() {
       evaluatorName={profile.full_name}
       agents={agents}
       teamLeaders={teamLeadersResult.data ?? []}
-      teams={teamsResult.data ?? []}
+      teams={teams}
       evaluators={evaluatorsResult.data ?? []}
     />
   )
