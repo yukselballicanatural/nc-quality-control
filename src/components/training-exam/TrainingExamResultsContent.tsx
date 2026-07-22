@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -128,6 +129,16 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   return dir === 'asc'
     ? <ChevronUp className="w-3.5 h-3.5 text-[#1B4332] inline ml-1" />
     : <ChevronDown className="w-3.5 h-3.5 text-[#1B4332] inline ml-1" />
+}
+
+// Renders children into <body> so `position: fixed` overlays are positioned
+// against the viewport, not the transformed (animate-fade-up) page container —
+// which otherwise pushes modals off-center on long pages.
+function Portal({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  if (!mounted) return null
+  return createPortal(children, document.body)
 }
 
 export function TrainingExamResultsContent({
@@ -442,6 +453,7 @@ export function TrainingExamResultsContent({
       )}
 
       {deleteResult && (
+        <Portal>
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
             <div className="p-5">
@@ -498,9 +510,11 @@ export function TrainingExamResultsContent({
             </div>
           </div>
         </div>
+        </Portal>
       )}
 
       {viewResult && (
+        <Portal>
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
           onClick={() => setViewResult(null)}
@@ -590,9 +604,11 @@ export function TrainingExamResultsContent({
             </div>
           </div>
         </div>
+        </Portal>
       )}
 
       {editResult && (
+        <Portal>
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
           <div className="w-full max-w-4xl max-h-[90vh] overflow-hidden bg-white rounded-2xl shadow-2xl">
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
@@ -759,6 +775,7 @@ export function TrainingExamResultsContent({
             </div>
           </div>
         </div>
+        </Portal>
       )}
 
       <div className="flex items-center justify-between gap-4">
