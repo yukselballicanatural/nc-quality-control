@@ -34,6 +34,7 @@ const STAGE_LABELS_TR: Record<string, string> = {
   warm_lead:               'Warm Lead',
   offer_created:           'Offer Created',
   offer_shared:            'Offer Shared',
+  willing_to_close:        'Willing to Close',
   platform_agents:         'Platform Agents',
   deal:                    'Deal',
   second_visit:            'Second Visit',

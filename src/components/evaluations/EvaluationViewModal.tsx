@@ -28,12 +28,13 @@ const STAGE_LABELS: Record<string, { tr: string; en: string; color: string; bg: 
   warm_lead:               { tr: 'Warm Lead',               en: 'Warm Lead',               color: 'text-amber-700',   bg: 'bg-amber-100'   },
   offer_created:           { tr: 'Offer Created',           en: 'Offer Created',           color: 'text-violet-700',  bg: 'bg-violet-100'  },
   offer_shared:            { tr: 'Offer Shared',            en: 'Offer Shared',            color: 'text-purple-700',  bg: 'bg-purple-100'  },
+  willing_to_close:        { tr: 'Willing to Close',        en: 'Willing to Close',        color: 'text-purple-700',  bg: 'bg-purple-100'  },
   platform_agents:         { tr: 'Platform Agents',         en: 'Platform Agents',         color: 'text-indigo-700',  bg: 'bg-indigo-100'  },
   deal:                    { tr: 'Deal',                    en: 'Deal',                    color: 'text-green-700',   bg: 'bg-green-100'   },
   second_visit:            { tr: 'Second Visit',            en: 'Second Visit',            color: 'text-orange-700',  bg: 'bg-orange-100'  },
 }
 const ALL_STAGE_KEYS = Object.keys(STAGE_LABELS)
-const EXTENDED_STAGES = ['offer_created', 'offer_shared', 'platform_agents']
+const EXTENDED_STAGES = ['offer_created', 'offer_shared', 'willing_to_close', 'platform_agents']
 
 // ─── Stage question definitions ──────────────────────────────────────
 

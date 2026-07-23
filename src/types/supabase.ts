@@ -7,12 +7,13 @@ export type SalesStage =
   | 'warm_lead'
   | 'offer_created'
   | 'offer_shared'
+  | 'willing_to_close'
   | 'deal'
   | 'platform_agents'
   | 'second_visit'
 
 export const EARLY_STAGES: SalesStage[] = ['fresh_lead', 'new_sales_opportunities', 'warm_lead']
-export const EXTENDED_STAGES: SalesStage[] = ['offer_created', 'offer_shared', 'platform_agents']
+export const EXTENDED_STAGES: SalesStage[] = ['offer_created', 'offer_shared', 'willing_to_close', 'platform_agents']
 export const SECOND_VISIT_STAGE: SalesStage  = 'second_visit'
 
 export type ResponseTimeAnswer = '<15' | '=15' | '>15' | ''

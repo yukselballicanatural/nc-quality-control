@@ -42,6 +42,7 @@ const STAGES: SalesStage[] = [
   'warm_lead',
   'offer_created',
   'offer_shared',
+  'willing_to_close',
   'deal',
   'platform_agents',
   'second_visit',
