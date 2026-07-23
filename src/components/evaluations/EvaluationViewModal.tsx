@@ -147,6 +147,8 @@ function Section({ title, icon, children }: { title: string; icon?: React.ReactN
 }
 
 function getChannels(ev: EvaluationWithRelations): ChannelType[] {
+  // Prefer the full selected-channels list; fall back for legacy rows.
+  if (ev.channels && ev.channels.length) return ev.channels
   const channels = new Set<ChannelType>()
   channels.add(ev.channel)
   ;(ev.channel_checks ?? []).forEach(check => channels.add(check.channel))

@@ -548,7 +548,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
         teamId: ev.team?.id ?? '',
         evaluatorId: ev.evaluator.id,
         customerPhone: ev.customer_name ?? '',
-        channels: ev.channel ? [ev.channel] : [],
+        channels: ev.channels && ev.channels.length ? ev.channels : (ev.channel ? [ev.channel] : []),
         reviewStartDate: ev.conversation_date ?? '',
         reviewEndDate: '',
         controlDate: ev.evaluation_date ?? '',

@@ -27,6 +27,7 @@ export interface EvaluationWithRelations {
   customer_name: string
   lead_id: string | null
   channel: import('./supabase').ChannelType
+  channels: import('./supabase').ChannelType[] | null
   conversation_date: string
   evaluation_date: string
   conversation_result: import('./supabase').ConversationResult
@@ -89,6 +90,7 @@ export interface EvaluationListItem {
   id: string
   customer_name: string
   channel: import('./supabase').ChannelType
+  channels: import('./supabase').ChannelType[] | null
   conversation_date: string
   evaluation_date: string
   conversation_result: import('./supabase').ConversationResult

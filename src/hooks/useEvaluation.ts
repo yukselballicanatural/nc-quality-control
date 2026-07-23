@@ -76,6 +76,7 @@ export function useEvaluation(editingId: string | null = null) {
         customer_name: step1.customerPhone,
         lead_id: step1.stage || null,
         channel: (step1.channels[0] ?? 'whatsapp') as ChannelType,
+        channels: (step1.channels.length ? step1.channels : ['whatsapp']) as ChannelType[],
         conversation_date: step1.reviewStartDate,
         evaluation_date: step1.controlDate || new Date().toISOString().slice(0, 10),
         conversation_result: 'open' as const,
@@ -112,19 +113,30 @@ export function useEvaluation(editingId: string | null = null) {
 
       const wasEditing = Boolean(targetId)
 
+      // Gracefully degrade if the `channels` column hasn't been migrated yet, so
+      // saving never breaks between a deploy and the DB migration running.
+      const isMissingChannelsColumn = (err: unknown) => {
+        const msg =
+          err && typeof err === 'object' && 'message' in err && typeof (err as { message?: unknown }).message === 'string'
+            ? (err as { message: string }).message
+            : ''
+        return /channels/i.test(msg) && /column|schema cache/i.test(msg)
+      }
+      const { channels: _channels, ...payloadNoChannels } = evalPayload
+
       if (targetId) {
-        const { error } = await supabase
-          .from('evaluations')
-          .update(evalPayload)
-          .eq('id', targetId)
+        let { error } = await supabase.from('evaluations').update(evalPayload).eq('id', targetId)
+        if (error && isMissingChannelsColumn(error)) {
+          ;({ error } = await supabase.from('evaluations').update(payloadNoChannels).eq('id', targetId))
+        }
         if (error) throw error
       } else {
-        const { data, error } = await supabase
-          .from('evaluations')
-          .insert(evalPayload)
-          .select('id')
-          .single()
+        let { data, error } = await supabase.from('evaluations').insert(evalPayload).select('id').single()
+        if (error && isMissingChannelsColumn(error)) {
+          ;({ data, error } = await supabase.from('evaluations').insert(payloadNoChannels).select('id').single())
+        }
         if (error) throw error
+        if (!data) throw new Error('Değerlendirme ID alınamadı.')
         evalId = data.id
         createdIdRef.current = evalId
         setEvaluationId(evalId)

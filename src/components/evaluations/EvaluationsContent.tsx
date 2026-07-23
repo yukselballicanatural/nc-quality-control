@@ -80,6 +80,9 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
 }
 
 function getChannels(ev: EvaluationListItem): ChannelType[] {
+  // The full set of selected channels lives in `channels`. Fall back to the
+  // primary channel (+ any channel_checks) for legacy rows without it.
+  if (ev.channels && ev.channels.length) return ev.channels
   const channels = new Set<ChannelType>()
   channels.add(ev.channel)
   ;(ev.channel_checks ?? []).forEach(check => channels.add(check.channel))

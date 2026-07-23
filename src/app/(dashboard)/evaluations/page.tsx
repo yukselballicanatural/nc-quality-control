@@ -66,6 +66,7 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
       id,
       customer_name,
       channel,
+      channels,
       conversation_date,
       evaluation_date,
       created_at,
@@ -98,35 +99,13 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
     query = query.or(`customer_name.ilike.%${safeQ}%,consultant_name.ilike.%${safeQ}%`)
   }
   if (channel === 'both') {
-    // Evaluations where both WhatsApp and Call were selected — a channel
-    // can show up either as the primary `channel` column or as a
-    // secondary entry in channel_checks.
-    const [{ data: waChecks }, { data: callChecks }, { data: waPrimary }, { data: callPrimary }] = await Promise.all([
-      supabase.from('channel_checks').select('evaluation_id').eq('channel', 'whatsapp'),
-      supabase.from('channel_checks').select('evaluation_id').eq('channel', 'call'),
-      supabase.from('evaluations').select('id').eq('channel', 'whatsapp'),
-      supabase.from('evaluations').select('id').eq('channel', 'call'),
-    ])
-    const waSet = new Set([
-      ...(waChecks ?? []).map(c => c.evaluation_id),
-      ...(waPrimary ?? []).map(e => e.id),
-    ])
-    const callSet = new Set([
-      ...(callChecks ?? []).map(c => c.evaluation_id),
-      ...(callPrimary ?? []).map(e => e.id),
-    ])
-    const bothIds = Array.from(waSet).filter(id => callSet.has(id))
-    query = query.in('id', bothIds.length ? bothIds : ['00000000-0000-0000-0000-000000000000'])
-  } else if (channel) {
-    // An evaluation can have a secondary channel recorded only in
-    // channel_checks, so match either the primary channel or that.
-    const { data: matchedChecks } = await supabase
-      .from('channel_checks')
-      .select('evaluation_id')
-      .eq('channel', channel as ChannelType)
-    const matchedIds = (matchedChecks ?? []).map(m => m.evaluation_id)
-    const idList = matchedIds.length ? matchedIds.join(',') : '00000000-0000-0000-0000-000000000000'
-    query = query.or(`channel.eq.${channel},id.in.(${idList})`)
+    // Evaluations where BOTH channels were selected — the full selection is
+    // stored in the `channels` array.
+    query = query.contains('channels', ['whatsapp', 'call'])
+  } else if (channel === 'whatsapp' || channel === 'call') {
+    // Match the channel anywhere in the selected-channels array. Also match the
+    // legacy primary `channel` column for any row not yet backfilled.
+    query = query.or(`channels.cs.{${channel}},channel.eq.${channel}`)
   }
   if (status) query = query.eq('status', status as EvaluationStatus)
   if (result) query = query.eq('conversation_result', result as ConversationResult)

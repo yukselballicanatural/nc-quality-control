@@ -122,6 +122,7 @@ export interface Database {
           customer_name: string
           lead_id: string | null
           channel: ChannelType
+          channels: ChannelType[] | null
           conversation_date: string
           evaluation_date: string
           conversation_result: ConversationResult
@@ -166,6 +167,7 @@ export interface Database {
           customer_name: string
           lead_id?: string | null
           channel: ChannelType
+          channels?: ChannelType[] | null
           conversation_date: string
           evaluation_date?: string
           conversation_result: ConversationResult
@@ -210,6 +212,7 @@ export interface Database {
           customer_name?: string
           lead_id?: string | null
           channel?: ChannelType
+          channels?: ChannelType[] | null
           conversation_date?: string
           evaluation_date?: string
           conversation_result?: ConversationResult
