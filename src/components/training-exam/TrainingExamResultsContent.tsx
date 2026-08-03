@@ -95,6 +95,7 @@ const SCORE_STYLES: Record<number, string> = {
   4: 'border-blue-400 bg-blue-50 text-blue-700',
   5: 'border-green-400 bg-green-50 text-green-700',
 }
+const MAX_NOTE_LENGTH = 150
 
 function isMissingTeamLeaderColumn(error: { code?: string; message?: string } | null) {
   return Boolean(
@@ -166,6 +167,7 @@ export function TrainingExamResultsContent({
   const [editResult, setEditResult] = useState<TrainingExamResultItem | null>(null)
   const [editConsultantName, setEditConsultantName] = useState('')
   const [editTrainingType, setEditTrainingType] = useState<'pre' | 'post' | null>(null)
+  const [editNote, setEditNote] = useState('')
   const [editLevel, setEditLevel] = useState<'junior' | 'senior'>('junior')
   const [editScores, setEditScores] = useState<number[]>(Array(8).fill(0))
   const [editError, setEditError] = useState('')
@@ -288,6 +290,7 @@ export function TrainingExamResultsContent({
     setEditResult(result)
     setEditConsultantName(getConsultantName(result))
     setEditTrainingType(result.training_type ?? null)
+    setEditNote(result.note ?? '')
     setEditLevel(result.level)
     setEditScores(
       Array.from({ length: 8 }, (_, index) => {
@@ -355,6 +358,7 @@ export function TrainingExamResultsContent({
 
     const totalScore = editScores.reduce((sum, score) => sum + score, 0)
     const passed = totalScore >= PASS_THRESHOLDS[editLevel]
+    const trimmedNote = editNote.trim()
 
     setEditLoading(true)
     try {
@@ -363,6 +367,7 @@ export function TrainingExamResultsContent({
         consultant_id: matchedConsultant?.id ?? editResult.consultant_id ?? null,
         consultant_name: trimmedConsultantName,
         training_type: editTrainingType,
+        note: trimmedNote || null,
         level: editLevel,
         criteria_scores: editScores.map((score, index) => ({
           criteriaNumber: index + 1,
@@ -576,6 +581,17 @@ export function TrainingExamResultsContent({
                 </div>
               </div>
 
+              <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400">
+                  {isTr ? 'Sınav Notu' : 'Exam Note'}
+                </p>
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-700">
+                  {viewResult.note?.trim()
+                    ? viewResult.note
+                    : (isTr ? 'Not eklenmemiş.' : 'No note added.')}
+                </p>
+              </div>
+
               <div className="rounded-2xl border border-gray-100 overflow-hidden">
                 <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
                   <p className="text-xs font-black text-gray-500 uppercase tracking-[0.14em]">
@@ -750,6 +766,30 @@ export function TrainingExamResultsContent({
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-gray-100 overflow-hidden">
+                <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                  <p className="text-xs font-black text-gray-500 uppercase tracking-[0.14em]">
+                    {isTr ? 'Sınav Notu' : 'Exam Note'}
+                  </p>
+                  <p className="text-xs font-semibold text-gray-400">
+                    {editNote.length}/{MAX_NOTE_LENGTH}
+                  </p>
+                </div>
+                <div className="p-4">
+                  <textarea
+                    value={editNote}
+                    onChange={event => {
+                      setEditNote(event.target.value.slice(0, MAX_NOTE_LENGTH))
+                      setEditError('')
+                    }}
+                    maxLength={MAX_NOTE_LENGTH}
+                    rows={4}
+                    placeholder={isTr ? 'Sınavla ilgili kısa not ekleyin...' : 'Add a short note about the exam...'}
+                    className="w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder-gray-400 transition-all hover:border-gray-300 focus:border-[#1B4332] focus:outline-none focus:ring-2 focus:ring-[#1B4332]/15"
+                  />
                 </div>
               </div>
             </div>

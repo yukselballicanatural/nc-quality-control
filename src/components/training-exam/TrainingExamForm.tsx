@@ -94,6 +94,7 @@ function normalizeName(value: string) {
 
 const SCORE_LABELS_TR: Record<number, string> = { 1: 'Çok Zayıf', 2: 'Zayıf', 3: 'Orta', 4: 'İyi', 5: 'Mükemmel' }
 const SCORE_LABELS_EN: Record<number, string> = { 1: 'Very Weak', 2: 'Weak', 3: 'Average', 4: 'Good', 5: 'Excellent' }
+const MAX_NOTE_LENGTH = 150
 const inputCls =
   'w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/15 focus:border-[#1B4332] transition-all hover:border-gray-300'
 const labelCls = 'block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2'
@@ -129,6 +130,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
   const [trainingType, setTrainingType] = useState<TrainingType | null>(null)
   const [level, setLevel] = useState<Level | null>(null)
   const [consultantName, setConsultantName] = useState('')
+  const [note, setNote] = useState('')
   const [scores, setScores] = useState<number[]>(Array(8).fill(0))
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -183,6 +185,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
     setTrainingType(null)
     setLevel(null)
     setConsultantName('')
+    setNote('')
     setScores(Array(8).fill(0))
     setError('')
     setSaved(false)
@@ -226,11 +229,13 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
     try {
       const supabase = createClient()
       const matchedConsultant = findMatchingConsultant()
+      const trimmedNote = note.trim()
       let payload: Record<string, unknown> = {
         evaluator_id: evaluatorId,
         consultant_id: matchedConsultant?.id ?? null,
         consultant_name: trimmedConsultantName,
         training_type: trainingType,
+        note: trimmedNote || null,
         level,
         criteria_scores: scores.map((score, i) => ({ criteriaNumber: i + 1, score })),
         total_score: totalScore,
@@ -773,28 +778,58 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                  <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
-                    <p className="text-xs font-black text-gray-500 uppercase tracking-[0.16em]">
-                      {isTr ? 'Kriter Detayları' : 'Criteria Breakdown'}
-                    </p>
-                    <p className="text-sm font-black text-[#1B4332]">
-                      {isTr ? `${totalScore} puan` : `${totalScore} points`}
-                    </p>
+                <div className="space-y-3">
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                      <p className="text-xs font-black text-gray-500 uppercase tracking-[0.16em]">
+                        {isTr ? 'Sınav Notu' : 'Exam Note'}
+                      </p>
+                      <p className="text-xs font-semibold text-gray-400">
+                        {note.length}/{MAX_NOTE_LENGTH}
+                      </p>
+                    </div>
+
+                    <div className="p-5">
+                      <label className={labelCls}>
+                        {isTr ? 'Not' : 'Note'}
+                      </label>
+                      <textarea
+                        value={note}
+                        onChange={event => {
+                          setNote(event.target.value.slice(0, MAX_NOTE_LENGTH))
+                          setError('')
+                        }}
+                        maxLength={MAX_NOTE_LENGTH}
+                        rows={4}
+                        placeholder={isTr ? 'Sınavla ilgili kısa not ekleyin...' : 'Add a short note about the exam...'}
+                        className={`${inputCls} min-h-[112px] resize-none`}
+                      />
+                    </div>
                   </div>
 
-                  <div className="divide-y divide-gray-50">
-                    {criteria.map((criterion, i) => (
-                      <div key={criterion} className="flex items-center gap-3 px-5 py-3.5">
-                        <span className="w-6 h-6 rounded-lg bg-gray-100 text-gray-500 text-xs font-black flex items-center justify-center flex-shrink-0">
-                          {i + 1}
-                        </span>
-                        <p className="text-sm text-gray-700 flex-1 leading-snug">{criterion}</p>
-                        <div className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center text-sm font-black flex-shrink-0 ${SCORE_STYLES[scores[i]] ?? 'border-gray-200 bg-gray-50 text-gray-400'}`}>
-                          {scores[i]}
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                      <p className="text-xs font-black text-gray-500 uppercase tracking-[0.16em]">
+                        {isTr ? 'Kriter Detayları' : 'Criteria Breakdown'}
+                      </p>
+                      <p className="text-sm font-black text-[#1B4332]">
+                        {isTr ? `${totalScore} puan` : `${totalScore} points`}
+                      </p>
+                    </div>
+
+                    <div className="divide-y divide-gray-50">
+                      {criteria.map((criterion, i) => (
+                        <div key={criterion} className="flex items-center gap-3 px-5 py-3.5">
+                          <span className="w-6 h-6 rounded-lg bg-gray-100 text-gray-500 text-xs font-black flex items-center justify-center flex-shrink-0">
+                            {i + 1}
+                          </span>
+                          <p className="text-sm text-gray-700 flex-1 leading-snug">{criterion}</p>
+                          <div className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center text-sm font-black flex-shrink-0 ${SCORE_STYLES[scores[i]] ?? 'border-gray-200 bg-gray-50 text-gray-400'}`}>
+                            {scores[i]}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
