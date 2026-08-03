@@ -84,7 +84,7 @@ export interface CriticalErrorEntry {
   description: string
 }
 
-export type Language = 'tr' | 'en'
+export type Language = 'tr' | 'en' | 'it'
 
 export interface EvaluationListItem {
   id: string

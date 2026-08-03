@@ -39,6 +39,17 @@ const CRITERIA_TR = [
   'Beklentileri Belirleme (Zaman Planı / Ziyaret Planı)',
 ]
 
+const CRITERIA_IT = [
+  'Saluto professionale / Presentazione chiara',
+  'Gestione delle obiezioni',
+  'Creazione del rapporto',
+  'Tono autorevole, ritmo e uso della lingua',
+  'Identificazione del problema principale e degli obiettivi',
+  'Raccolta foto / radiografie e informazioni mediche',
+  'Accuratezza delle informazioni mediche',
+  'Definizione delle aspettative (tempistiche / piano visita)',
+]
+
 const PASS_THRESHOLDS = { junior: 32, senior: 35 } as const
 
 const SCORE_STYLES: Record<number, string> = {
@@ -107,6 +118,7 @@ function normalizeName(value: string) {
 
 const SCORE_LABELS_TR: Record<number, string> = { 1: 'Çok Zayıf', 2: 'Zayıf', 3: 'Orta', 4: 'İyi', 5: 'Mükemmel' }
 const SCORE_LABELS_EN: Record<number, string> = { 1: 'Very Weak', 2: 'Weak', 3: 'Average', 4: 'Good', 5: 'Excellent' }
+const SCORE_LABELS_IT: Record<number, string> = { 1: 'Molto debole', 2: 'Debole', 3: 'Medio', 4: 'Buono', 5: 'Eccellente' }
 const MAX_NOTE_LENGTH = 150
 const inputCls =
   'w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/15 focus:border-[#1B4332] transition-all hover:border-gray-300'
@@ -136,7 +148,7 @@ interface Props {
 
 export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Props) {
   const { lang } = useLanguage()
-  const isTr = lang === 'tr'
+  const tx = (tr: string, en: string, it: string) => lang === 'tr' ? tr : lang === 'it' ? it : en
   const router = useRouter()
 
   const [phase, setPhase] = useState<Phase>('level')
@@ -149,8 +161,8 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
-  const criteria = isTr ? CRITERIA_TR : CRITERIA_EN
-  const scoreLabels = isTr ? SCORE_LABELS_TR : SCORE_LABELS_EN
+  const criteria = lang === 'tr' ? CRITERIA_TR : lang === 'it' ? CRITERIA_IT : CRITERIA_EN
+  const scoreLabels = lang === 'tr' ? SCORE_LABELS_TR : lang === 'it' ? SCORE_LABELS_IT : SCORE_LABELS_EN
   const totalScore = scores.reduce((sum, s) => sum + s, 0)
   const threshold = level ? PASS_THRESHOLDS[level] : 0
   const passed = totalScore >= threshold
@@ -162,33 +174,33 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
   const steps = [
     {
       phase: 'level' as Phase,
-      title: isTr ? 'Seviye Seçimi' : 'Level Selection',
-      description: isTr ? 'Danışmanı ve sınav seviyesini belirleyin.' : 'Choose the consultant and exam level.',
+      title: tx('Seviye Seçimi', 'Level Selection', 'Selezione Livello'),
+      description: tx('Danışmanı ve sınav seviyesini belirleyin.', 'Choose the consultant and exam level.', 'Scegli il consulente e il livello dell’esame.'),
     },
     {
       phase: 'scoring' as Phase,
-      title: isTr ? 'Kriter Değerlendirmesi' : 'Criteria Scoring',
-      description: isTr ? '8 kriteri 1-5 arası puanlayın.' : 'Score 8 criteria from 1 to 5.',
+      title: tx('Kriter Değerlendirmesi', 'Criteria Scoring', 'Valutazione Criteri'),
+      description: tx('8 kriteri 1-5 arası puanlayın.', 'Score 8 criteria from 1 to 5.', 'Valuta 8 criteri da 1 a 5.'),
     },
     {
       phase: 'result' as Phase,
-      title: isTr ? 'Sınav Sonucu' : 'Exam Result',
-      description: isTr ? 'Sonucu kontrol edip kaydedin.' : 'Review and save the result.',
+      title: tx('Sınav Sonucu', 'Exam Result', 'Risultato Esame'),
+      description: tx('Sonucu kontrol edip kaydedin.', 'Review and save the result.', 'Controlla e salva il risultato.'),
     },
   ]
 
   const activeStep = steps[phaseIndex]
 
   function handleStartExam() {
-    if (!trainingType) { setError(isTr ? 'Pre-training / Post-training seçilmesi zorunludur.' : 'Pre-training / Post-training selection is required.'); return }
-    if (!level) { setError(isTr ? 'Seviye seçilmesi zorunludur.' : 'Level selection is required.'); return }
-    if (!trimmedConsultantName) { setError(isTr ? 'Danışman adı girilmesi zorunludur.' : 'Consultant name is required.'); return }
+    if (!trainingType) { setError(tx('Pre-training / Post-training seçilmesi zorunludur.', 'Pre-training / Post-training selection is required.', 'La selezione Pre-training / Post-training è obbligatoria.')); return }
+    if (!level) { setError(tx('Seviye seçilmesi zorunludur.', 'Level selection is required.', 'La selezione del livello è obbligatoria.')); return }
+    if (!trimmedConsultantName) { setError(tx('Danışman adı girilmesi zorunludur.', 'Consultant name is required.', 'Il nome del consulente è obbligatorio.')); return }
     setError('')
     setPhase('scoring')
   }
 
   function handleFinish() {
-    if (scores.some(s => s === 0)) { setError(isTr ? 'Tüm 8 kriter puanlanmalıdır.' : 'All 8 criteria must be scored.'); return }
+    if (scores.some(s => s === 0)) { setError(tx('Tüm 8 kriter puanlanmalıdır.', 'All 8 criteria must be scored.', 'Tutti gli 8 criteri devono essere valutati.')); return }
     setError('')
     setPhase('result')
   }
@@ -321,9 +333,11 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
           ? err.message
           : ''
       setError(
-        isTr
-          ? `Kayit sirasinda hata olustu${message ? `: ${message}` : '.'}`
-          : `Error saving result${message ? `: ${message}` : '.'}`
+        tx(
+          `Kayit sirasinda hata olustu${message ? `: ${message}` : '.'}`,
+          `Error saving result${message ? `: ${message}` : '.'}`,
+          `Errore durante il salvataggio del risultato${message ? `: ${message}` : '.'}`
+        )
       )
     } finally {
       setSaving(false)
@@ -332,14 +346,14 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
 
   const primaryLabel =
     phase === 'level'
-      ? (isTr ? 'Değerlendirmeyi Başlat' : 'Start Evaluation')
+      ? tx('Değerlendirmeyi Başlat', 'Start Evaluation', 'Avvia Valutazione')
       : phase === 'scoring'
-        ? (isTr ? 'Sonucu Görüntüle' : 'View Result')
+        ? tx('Sonucu Görüntüle', 'View Result', 'Visualizza Risultato')
         : saved
-          ? (isTr ? 'Kaydedildi' : 'Saved')
+          ? tx('Kaydedildi', 'Saved', 'Salvato')
           : saving
-            ? (isTr ? 'Kaydediliyor...' : 'Saving...')
-            : (isTr ? 'Sonucu Kaydet' : 'Save Result')
+            ? tx('Kaydediliyor...', 'Saving...', 'Salvataggio...')
+            : tx('Sonucu Kaydet', 'Save Result', 'Salva Risultato')
 
   return (
     <div className="w-full space-y-3">
@@ -400,15 +414,15 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
             className="flex-shrink-0 min-w-[68px] sm:min-w-[84px] text-center px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl border border-transparent bg-[#1B4332]/8"
           >
             <div className="text-[9px] font-bold uppercase tracking-[0.12em] text-gray-400 mb-0.5 sm:mb-1">
-              {isTr ? 'Canlı Skor' : 'Live Score'}
+              {tx('Canlı Skor', 'Live Score', 'Punteggio Live')}
             </div>
             <div className="text-2xl sm:text-3xl font-black leading-none tabular-nums text-[#1B4332]">
               {totalScore}
             </div>
             <div className="text-[10px] font-semibold mt-1 sm:mt-1.5 text-[#1B4332]/60">
               {threshold
-                ? (isTr ? `Geçme: ${threshold}` : `Pass: ${threshold}`)
-                : (isTr ? 'Seviye seçin' : 'Select level')}
+                ? tx(`Geçme: ${threshold}`, `Pass: ${threshold}`, `Soglia: ${threshold}`)
+                : tx('Seviye seçin', 'Select level', 'Seleziona livello')}
             </div>
           </motion.div>
         </div>
@@ -442,12 +456,12 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
               transition={{ type: 'spring', stiffness: 360, damping: 32 }}
             >
               <div className={sectionCls}>
-                <SectionHeader icon={Users} title={isTr ? 'Kişiler' : 'People'} />
+                <SectionHeader icon={Users} title={tx('Kişiler', 'People', 'Persone')} />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className={labelCls}>
-                      {isTr ? 'Danışman' : 'Consultant'} <span className="text-red-400 normal-case tracking-normal">*</span>
+                      {tx('Danışman', 'Consultant', 'Consulente')} <span className="text-red-400 normal-case tracking-normal">*</span>
                     </label>
                     <div className="relative">
                       <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
@@ -457,7 +471,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                           setConsultantName(event.target.value)
                           setError('')
                         }}
-                        placeholder={isTr ? 'Danışman adını girin' : 'Enter consultant name'}
+                        placeholder={tx('Danışman adını girin', 'Enter consultant name', 'Inserisci il nome del consulente')}
                         className={`${inputCls} pl-10`}
                         required
                       />
@@ -466,7 +480,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
 
                   <div>
                     <label className={labelCls}>
-                      {isTr ? 'Değerlendiren Kişi' : 'Evaluator'}
+                      {tx('Değerlendiren Kişi', 'Evaluator', 'Valutatore')}
                     </label>
                     <div className="relative">
                       <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
@@ -478,7 +492,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
 
                   <div className="sm:col-span-2">
                     <label className={labelCls}>
-                      {isTr ? 'Eğitim Türü' : 'Training Type'} <span className="text-red-400 normal-case tracking-normal">*</span>
+                      {tx('Eğitim Türü', 'Training Type', 'Tipo di Formazione')} <span className="text-red-400 normal-case tracking-normal">*</span>
                     </label>
 
                     <div className="grid sm:grid-cols-2 gap-3">
@@ -500,12 +514,12 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                           </div>
                           <div className="min-w-0">
                             <p className={`text-sm font-bold leading-tight ${trainingType === type ? 'text-[#1B4332]' : 'text-gray-700'}`}>
-                              {type === 'pre' ? (isTr ? 'Pre-Training' : 'Pre-Training') : (isTr ? 'Post-Training' : 'Post-Training')}
+                              {type === 'pre' ? 'Pre-Training' : 'Post-Training'}
                             </p>
                             <p className="text-[11px] text-gray-400 mt-0.5">
                               {type === 'pre'
-                                ? (isTr ? 'Eğitim öncesi değerlendirme' : 'Assessment before training')
-                                : (isTr ? 'Eğitim sonrası değerlendirme' : 'Assessment after training')}
+                                ? tx('Eğitim öncesi değerlendirme', 'Assessment before training', 'Valutazione prima della formazione')
+                                : tx('Eğitim sonrası değerlendirme', 'Assessment after training', 'Valutazione dopo la formazione')}
                             </p>
                           </div>
                           {trainingType === type && (
@@ -530,10 +544,10 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                       >
                         <div className="flex items-center justify-between gap-3 mb-2">
                           <label className={labelCls + ' mb-0'}>
-                            {isTr ? 'Seviye' : 'Level'} <span className="text-red-400 normal-case tracking-normal">*</span>
+                            {tx('Seviye', 'Level', 'Livello')} <span className="text-red-400 normal-case tracking-normal">*</span>
                           </label>
                           <span className="text-[10px] font-semibold text-gray-400">
-                            {isTr ? 'Geçme eşiği seviyeye göre belirlenir' : 'Pass threshold depends on level'}
+                            {tx('Geçme eşiği seviyeye göre belirlenir', 'Pass threshold depends on level', 'La soglia dipende dal livello')}
                           </span>
                         </div>
 
@@ -559,7 +573,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                                   {lvl}
                                 </p>
                                 <p className="text-[11px] text-gray-400 mt-0.5">
-                                  {isTr ? `Geçme eşiği: ${PASS_THRESHOLDS[lvl]} puan` : `Pass threshold: ${PASS_THRESHOLDS[lvl]} points`}
+                                  {tx(`Geçme eşiği: ${PASS_THRESHOLDS[lvl]} puan`, `Pass threshold: ${PASS_THRESHOLDS[lvl]} points`, `Soglia: ${PASS_THRESHOLDS[lvl]} punti`)}
                                 </p>
                               </div>
                               {level === lvl && (
@@ -604,12 +618,12 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                   <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                       <p className="text-xs font-black text-gray-400 uppercase tracking-wider mb-0.5">
-                        {isTr ? 'Eğitim Sınavı Kriterleri' : 'Training Exam Criteria'}
+                        {tx('Eğitim Sınavı Kriterleri', 'Training Exam Criteria', 'Criteri Esame di Formazione')}
                       </p>
                       <p className="text-sm font-bold text-gray-700">
                         {ratedCount}
                         <span className="text-gray-400 font-medium">/8 </span>
-                        {isTr ? 'kriter puanlandı' : 'criteria scored'}
+                        {tx('kriter puanlandı', 'criteria scored', 'criteri valutati')}
                       </p>
                       <p className="text-xs text-gray-400 mt-1">
                         {trimmedConsultantName} · <span className="capitalize font-semibold text-[#1B4332]">{level}</span>
@@ -625,7 +639,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                     >
                       <p className="text-2xl font-black tabular-nums leading-none">{totalScore}</p>
                       <p className="text-[10px] font-bold mt-0.5 opacity-70">
-                        {isTr ? `Eşik ${threshold}` : `Target ${threshold}`}
+                         {tx(`Eşik ${threshold}`, `Target ${threshold}`, `Soglia ${threshold}`)}
                       </p>
                     </motion.div>
                   </div>
@@ -635,7 +649,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900">
-                      {isTr ? 'Kriter Değerlendirmesi' : 'Criteria Scoring'}
+                      {tx('Kriter Değerlendirmesi', 'Criteria Scoring', 'Valutazione Criteri')}
                     </h3>
                     <p className="text-sm text-gray-500 mt-1">
                       {trimmedConsultantName} · <span className="capitalize font-semibold text-[#1B4332]">{level}</span>
@@ -700,8 +714,8 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                               </p>
                               <p className="text-[11px] text-gray-400 font-medium mt-1">
                                 {scores[i]
-                                  ? (isTr ? `${scores[i]} puan seçildi` : `${scores[i]} points selected`)
-                                  : (isTr ? '1 ile 5 arasında bir puan seçin' : 'Select a score between 1 and 5')}
+                                  ? tx(`${scores[i]} puan seçildi`, `${scores[i]} points selected`, `${scores[i]} punti selezionati`)
+                                  : tx('1 ile 5 arasında bir puan seçin', 'Select a score between 1 and 5', 'Seleziona un punteggio da 1 a 5')}
                               </p>
                             </div>
                           </div>
@@ -771,7 +785,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                       : <XCircle className="w-16 h-16 text-red-500 mx-auto mb-3" />
                     }
                     <p className={`text-4xl font-black tracking-widest mb-2 ${passed ? 'text-green-700' : 'text-red-700'}`}>
-                      {passed ? (isTr ? 'GEÇTİ' : 'PASSED') : (isTr ? 'KALDI' : 'FAILED')}
+                      {passed ? tx('GEÇTİ', 'PASSED', 'SUPERATO') : tx('KALDI', 'FAILED', 'NON SUPERATO')}
                     </p>
                     <p className={`text-sm font-medium ${passed ? 'text-green-600' : 'text-red-600'}`}>
                       {trimmedConsultantName}
@@ -783,15 +797,15 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                   <div className="grid grid-cols-3 gap-2">
                     <div className="rounded-xl bg-white/70 p-3">
                       <p className="text-2xl font-black text-gray-900">{totalScore}</p>
-                      <p className="text-[10px] text-gray-500 font-bold mt-1">{isTr ? 'Puan' : 'Score'}</p>
+                      <p className="text-[10px] text-gray-500 font-bold mt-1">{tx('Puan', 'Score', 'Punteggio')}</p>
                     </div>
                     <div className="rounded-xl bg-white/70 p-3">
                       <p className="text-2xl font-black text-gray-900">{threshold}</p>
-                      <p className="text-[10px] text-gray-500 font-bold mt-1">{isTr ? 'Eşik' : 'Target'}</p>
+                      <p className="text-[10px] text-gray-500 font-bold mt-1">{tx('Eşik', 'Target', 'Soglia')}</p>
                     </div>
                     <div className="rounded-xl bg-white/70 p-3">
                       <p className="text-2xl font-black text-gray-900">{level ? level.slice(0, 1).toUpperCase() : '-'}</p>
-                      <p className="text-[10px] text-gray-500 font-bold mt-1">{isTr ? 'Seviye' : 'Level'}</p>
+                      <p className="text-[10px] text-gray-500 font-bold mt-1">{tx('Seviye', 'Level', 'Livello')}</p>
                     </div>
                   </div>
                 </div>
@@ -800,7 +814,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                     <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
                       <p className="text-xs font-black text-gray-500 uppercase tracking-[0.16em]">
-                        {isTr ? 'Sınav Notu' : 'Exam Note'}
+                         {tx('Sınav Notu', 'Exam Note', 'Nota Esame')}
                       </p>
                       <p className="text-xs font-semibold text-gray-400">
                         {note.length}/{MAX_NOTE_LENGTH}
@@ -809,7 +823,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
 
                     <div className="p-5">
                       <label className={labelCls}>
-                        {isTr ? 'Not' : 'Note'}
+                         {tx('Not', 'Note', 'Nota')}
                       </label>
                       <textarea
                         value={note}
@@ -819,7 +833,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                         }}
                         maxLength={MAX_NOTE_LENGTH}
                         rows={4}
-                        placeholder={isTr ? 'Sınavla ilgili kısa not ekleyin...' : 'Add a short note about the exam...'}
+                         placeholder={tx('Sınavla ilgili kısa not ekleyin...', 'Add a short note about the exam...', 'Aggiungi una breve nota sull’esame...')}
                         className={`${inputCls} min-h-[112px] resize-none`}
                       />
                     </div>
@@ -828,10 +842,10 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                     <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
                       <p className="text-xs font-black text-gray-500 uppercase tracking-[0.16em]">
-                        {isTr ? 'Kriter Detayları' : 'Criteria Breakdown'}
+                         {tx('Kriter Detayları', 'Criteria Breakdown', 'Dettaglio Criteri')}
                       </p>
                       <p className="text-sm font-black text-[#1B4332]">
-                        {isTr ? `${totalScore} puan` : `${totalScore} points`}
+                         {tx(`${totalScore} puan`, `${totalScore} points`, `${totalScore} punti`)}
                       </p>
                     </div>
 
@@ -864,7 +878,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
           className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-900 border border-transparent hover:border-gray-200 hover:bg-gray-50 rounded-xl transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-          <span className="hidden sm:inline">{isTr ? 'Geri' : 'Back'}</span>
+           <span className="hidden sm:inline">{tx('Geri', 'Back', 'Indietro')}</span>
         </button>
 
         <div className="flex items-center gap-2">
@@ -876,7 +890,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
               className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium text-[#1B4332] hover:bg-[#1B4332]/8 rounded-xl transition-all disabled:opacity-50"
             >
               <RotateCcw className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{isTr ? 'Yeni Sınav' : 'New Exam'}</span>
+              <span className="hidden sm:inline">{tx('Yeni Sınav', 'New Exam', 'Nuovo Esame')}</span>
             </button>
           )}
 

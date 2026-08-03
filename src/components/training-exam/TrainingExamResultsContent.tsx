@@ -88,6 +88,17 @@ const CRITERIA_TR = [
   'Beklentileri Belirleme (Zaman Planı / Ziyaret Planı)',
 ]
 
+const CRITERIA_IT = [
+  'Saluto professionale / Presentazione chiara',
+  'Gestione delle obiezioni',
+  'Creazione del rapporto',
+  'Tono autorevole, ritmo e uso della lingua',
+  'Identificazione del problema principale e degli obiettivi',
+  'Raccolta foto / radiografie e informazioni mediche',
+  'Accuratezza delle informazioni mediche',
+  'Definizione delle aspettative (tempistiche / piano visita)',
+]
+
 const SCORE_STYLES: Record<number, string> = {
   1: 'border-red-400 bg-red-50 text-red-700',
   2: 'border-orange-400 bg-orange-50 text-orange-700',
@@ -205,8 +216,9 @@ export function TrainingExamResultsContent({
   const [deleteSuccess, setDeleteSuccess] = useState('')
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deletedIds, setDeletedIds] = useState<Set<string>>(() => new Set())
-  const isTr = lang === 'tr'
-  const criteria = isTr ? CRITERIA_TR : CRITERIA_EN
+  const tx = (tr: string, en: string, it: string) => lang === 'tr' ? tr : lang === 'it' ? it : en
+  const locale = lang === 'tr' ? 'tr-TR' : lang === 'it' ? 'it-IT' : 'en-US'
+  const criteria = lang === 'tr' ? CRITERIA_TR : lang === 'it' ? CRITERIA_IT : CRITERIA_EN
   const canCreate = role === 'quality_team' || role === 'team_leader' || role === 'manager'
   const canEdit = role === 'quality_team' || role === 'team_leader' || role === 'manager'
   const canDelete = role === 'quality_team' || role === 'manager'
@@ -303,7 +315,7 @@ export function TrainingExamResultsContent({
   }
 
   function formatDate(value: string) {
-    return new Date(value).toLocaleDateString(isTr ? 'tr-TR' : 'en-US', {
+    return new Date(value).toLocaleDateString(locale, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -345,7 +357,7 @@ export function TrainingExamResultsContent({
 
       setDeletingId(null)
       setDeletedIds(prev => new Set(prev).add(id))
-      setDeleteSuccess(isTr ? 'Sınav sonucu silindi.' : 'Exam result deleted.')
+      setDeleteSuccess(tx('Sınav sonucu silindi.', 'Exam result deleted.', 'Risultato esame eliminato.'))
       setTimeout(() => setDeleteSuccess(''), 2500)
       startTransition(() => {
         router.refresh()
@@ -353,9 +365,11 @@ export function TrainingExamResultsContent({
     } catch (error) {
       console.error('Training exam delete error:', error)
       setDeleteError(
-        isTr
-          ? 'Sınav sonucu silinemedi. Yetki veya bağlantı problemi olabilir.'
-          : 'Exam result could not be deleted. There may be a permission or connection issue.'
+        tx(
+          'Sınav sonucu silinemedi. Yetki veya bağlantı problemi olabilir.',
+          'Exam result could not be deleted. There may be a permission or connection issue.',
+          'Impossibile eliminare il risultato esame. Potrebbe esserci un problema di autorizzazione o connessione.'
+        )
       )
     } finally {
       setDeleteLoading(false)
@@ -376,11 +390,11 @@ export function TrainingExamResultsContent({
     }
 
     if (!trimmedConsultantName) {
-      setEditError(isTr ? 'Danışman adı girilmesi zorunludur.' : 'Consultant name is required.')
+      setEditError(tx('Danışman adı girilmesi zorunludur.', 'Consultant name is required.', 'Il nome del consulente è obbligatorio.'))
       return
     }
     if (editScores.some(score => score < 1 || score > 5)) {
-      setEditError(isTr ? 'Tüm kriterler 1-5 arası puanlanmalıdır.' : 'All criteria must be scored from 1 to 5.')
+      setEditError(tx('Tüm kriterler 1-5 arası puanlanmalıdır.', 'All criteria must be scored from 1 to 5.', 'Tutti i criteri devono essere valutati da 1 a 5.'))
       return
     }
 
@@ -469,7 +483,7 @@ export function TrainingExamResultsContent({
       })
     } catch (error) {
       console.error('Training exam update error:', error)
-      setEditError(isTr ? 'Güncelleme sırasında hata oluştu.' : 'Error updating result.')
+      setEditError(tx('Güncelleme sırasında hata oluştu.', 'Error updating result.', 'Errore durante l’aggiornamento del risultato.'))
     } finally {
       setEditLoading(false)
     }
@@ -503,12 +517,14 @@ export function TrainingExamResultsContent({
                 </div>
                 <div className="min-w-0 flex-1">
                   <h2 className="text-base font-bold text-gray-950">
-                    {isTr ? 'Sınav sonucu silinsin mi?' : 'Delete exam result?'}
+                    {tx('Sınav sonucu silinsin mi?', 'Delete exam result?', 'Eliminare il risultato esame?')}
                   </h2>
                   <p className="mt-1 text-sm leading-6 text-gray-500">
-                    {isTr
-                      ? 'Bu işlem geri alınamaz. Seçili sınav sonucu sistemden kalıcı olarak silinecek.'
-                      : 'This cannot be undone. The selected exam result will be permanently removed.'}
+                    {tx(
+                      'Bu işlem geri alınamaz. Seçili sınav sonucu sistemden kalıcı olarak silinecek.',
+                      'This cannot be undone. The selected exam result will be permanently removed.',
+                      'Questa azione non può essere annullata. Il risultato selezionato sarà eliminato definitivamente.'
+                    )}
                   </p>
                   <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
                     <div className="truncate text-sm font-semibold text-gray-900">
@@ -536,7 +552,7 @@ export function TrainingExamResultsContent({
                 disabled={deleteLoading}
                 className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50"
               >
-                {isTr ? 'Vazgeç' : 'Cancel'}
+                {tx('Vazgeç', 'Cancel', 'Annulla')}
               </button>
               <button
                 type="button"
@@ -545,7 +561,7 @@ export function TrainingExamResultsContent({
                 className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
               >
                 <Trash2 className="h-4 w-4" />
-                {deleteLoading ? (isTr ? 'Siliniyor...' : 'Deleting...') : (isTr ? 'Evet, sil' : 'Yes, delete')}
+                {deleteLoading ? tx('Siliniyor...', 'Deleting...', 'Eliminazione...') : tx('Evet, sil', 'Yes, delete', 'Sì, elimina')}
               </button>
             </div>
           </div>
@@ -566,7 +582,7 @@ export function TrainingExamResultsContent({
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-bold text-gray-900">
-                  {isTr ? 'Sınav Sonucu' : 'Exam Result'}
+                  {tx('Sınav Sonucu', 'Exam Result', 'Risultato Esame')}
                 </h2>
                 <p className="text-sm text-gray-400 mt-0.5">
                   {getConsultantName(viewResult)} · {formatDate(viewResult.created_at)}
@@ -588,19 +604,19 @@ export function TrainingExamResultsContent({
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400">
-                    {isTr ? 'Seviye' : 'Level'}
+                    {tx('Seviye', 'Level', 'Livello')}
                   </p>
                   <p className="text-lg font-black text-gray-900 capitalize mt-1">{viewResult.level}</p>
                 </div>
                 <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400">
-                    {isTr ? 'Toplam Puan' : 'Total Score'}
+                    {tx('Toplam Puan', 'Total Score', 'Punteggio Totale')}
                   </p>
                   <p className="text-lg font-black text-gray-900 mt-1">{viewResult.total_score}</p>
                 </div>
                 <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400">
-                    {isTr ? 'Eşik' : 'Target'}
+                    {tx('Eşik', 'Target', 'Soglia')}
                   </p>
                   <p className="text-lg font-black text-gray-900 mt-1">{PASS_THRESHOLDS[viewResult.level]}</p>
                 </div>
@@ -611,26 +627,26 @@ export function TrainingExamResultsContent({
                     {t.evaluations.result}
                   </p>
                   <p className={`text-lg font-black mt-1 ${viewResult.passed ? 'text-green-700' : 'text-red-700'}`}>
-                    {viewResult.passed ? (isTr ? 'GEÇTİ' : 'PASSED') : (isTr ? 'KALDI' : 'FAILED')}
+                    {viewResult.passed ? tx('GEÇTİ', 'PASSED', 'SUPERATO') : tx('KALDI', 'FAILED', 'NON SUPERATO')}
                   </p>
                 </div>
               </div>
 
               <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400">
-                  {isTr ? 'Sınav Notu' : 'Exam Note'}
+                  {tx('Sınav Notu', 'Exam Note', 'Nota Esame')}
                 </p>
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-700">
                   {getStoredExamNote(viewResult)
                     ? getStoredExamNote(viewResult)
-                    : (isTr ? 'Not eklenmemiş.' : 'No note added.')}
+                    : tx('Not eklenmemiş.', 'No note added.', 'Nessuna nota aggiunta.')}
                 </p>
               </div>
 
               <div className="rounded-2xl border border-gray-100 overflow-hidden">
                 <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
                   <p className="text-xs font-black text-gray-500 uppercase tracking-[0.14em]">
-                    {isTr ? 'Kriter Detayları' : 'Criteria Breakdown'}
+                    {tx('Kriter Detayları', 'Criteria Breakdown', 'Dettaglio Criteri')}
                   </p>
                 </div>
                 <div className="divide-y divide-gray-50">
@@ -665,10 +681,10 @@ export function TrainingExamResultsContent({
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-bold text-gray-900">
-                  {isTr ? 'Sınav Sonucunu Düzenle' : 'Edit Exam Result'}
+                  {tx('Sınav Sonucunu Düzenle', 'Edit Exam Result', 'Modifica Risultato Esame')}
                 </h2>
                 <p className="text-sm text-gray-400 mt-0.5">
-                  {isTr ? 'Danışman, seviye ve kriter puanlarını güncelleyin.' : 'Update consultant, level and criteria scores.'}
+                  {tx('Danışman, seviye ve kriter puanlarını güncelleyin.', 'Update consultant, level and criteria scores.', 'Aggiorna consulente, livello e punteggi dei criteri.')}
                 </p>
               </div>
               <button
@@ -701,7 +717,7 @@ export function TrainingExamResultsContent({
                         setEditConsultantName(event.target.value)
                         setEditError('')
                       }}
-                      placeholder={isTr ? 'Danışman adını girin' : 'Enter consultant name'}
+                      placeholder={tx('Danışman adını girin', 'Enter consultant name', 'Inserisci il nome del consulente')}
                       className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/15 focus:border-[#1B4332] transition-all hover:border-gray-300"
                       required
                     />
@@ -710,7 +726,7 @@ export function TrainingExamResultsContent({
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                    {isTr ? 'Eğitim Türü' : 'Training Type'}
+                    {tx('Eğitim Türü', 'Training Type', 'Tipo di Formazione')}
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     {(['pre', 'post'] as const).map(type => (
@@ -732,7 +748,7 @@ export function TrainingExamResultsContent({
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                    {isTr ? 'Seviye' : 'Level'}
+                    {tx('Seviye', 'Level', 'Livello')}
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     {(['junior', 'senior'] as const).map(level => (
@@ -748,7 +764,7 @@ export function TrainingExamResultsContent({
                       >
                         <p className="text-sm font-bold capitalize">{level}</p>
                         <p className="text-[11px] text-gray-400 mt-0.5">
-                          {isTr ? `Eşik: ${PASS_THRESHOLDS[level]}` : `Target: ${PASS_THRESHOLDS[level]}`}
+                          {tx(`Eşik: ${PASS_THRESHOLDS[level]}`, `Target: ${PASS_THRESHOLDS[level]}`, `Soglia: ${PASS_THRESHOLDS[level]}`)}
                         </p>
                       </button>
                     ))}
@@ -759,10 +775,10 @@ export function TrainingExamResultsContent({
               <div className="rounded-2xl border border-gray-100 overflow-hidden">
                 <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
                   <p className="text-xs font-black text-gray-500 uppercase tracking-[0.14em]">
-                    {isTr ? 'Kriter Puanları' : 'Criteria Scores'}
+                    {tx('Kriter Puanları', 'Criteria Scores', 'Punteggi Criteri')}
                   </p>
                   <p className="text-sm font-black text-[#1B4332]">
-                    {editScores.reduce((sum, score) => sum + score, 0)} {isTr ? 'puan' : 'points'}
+                    {editScores.reduce((sum, score) => sum + score, 0)} {tx('puan', 'points', 'punti')}
                   </p>
                 </div>
                 <div className="divide-y divide-gray-50">
@@ -807,7 +823,7 @@ export function TrainingExamResultsContent({
               <div className="rounded-2xl border border-gray-100 overflow-hidden">
                 <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
                   <p className="text-xs font-black text-gray-500 uppercase tracking-[0.14em]">
-                    {isTr ? 'Sınav Notu' : 'Exam Note'}
+                    {tx('Sınav Notu', 'Exam Note', 'Nota Esame')}
                   </p>
                   <p className="text-xs font-semibold text-gray-400">
                     {editNote.length}/{MAX_NOTE_LENGTH}
@@ -822,7 +838,7 @@ export function TrainingExamResultsContent({
                     }}
                     maxLength={MAX_NOTE_LENGTH}
                     rows={4}
-                    placeholder={isTr ? 'Sınavla ilgili kısa not ekleyin...' : 'Add a short note about the exam...'}
+                    placeholder={tx('Sınavla ilgili kısa not ekleyin...', 'Add a short note about the exam...', 'Aggiungi una breve nota sull’esame...')}
                     className="w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder-gray-400 transition-all hover:border-gray-300 focus:border-[#1B4332] focus:outline-none focus:ring-2 focus:ring-[#1B4332]/15"
                   />
                 </div>
@@ -845,7 +861,7 @@ export function TrainingExamResultsContent({
                 className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-white bg-[#1B4332] hover:bg-[#163728] rounded-xl transition-colors disabled:opacity-60"
               >
                 <Save className="w-4 h-4" />
-                {editLoading ? (isTr ? 'Kaydediliyor...' : 'Saving...') : t.common.save}
+                {editLoading ? tx('Kaydediliyor...', 'Saving...', 'Salvataggio...') : t.common.save}
               </button>
             </div>
           </div>
@@ -859,7 +875,7 @@ export function TrainingExamResultsContent({
             {t.trainingExamResults.pageTitle}
           </h1>
           <p className="text-sm text-gray-400 mt-0.5">
-            {totalCount} {isTr ? 'kayıt' : 'records'}
+            {totalCount} {tx('kayıt', 'records', 'record')}
           </p>
         </div>
         {canCreate && (
@@ -868,7 +884,7 @@ export function TrainingExamResultsContent({
             className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-[#1B4332] hover:bg-[#163728] active:bg-[#122e20] rounded-xl transition-colors flex-shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">{isTr ? 'Yeni Sınav' : 'New Exam'}</span>
+            <span className="hidden sm:inline">{tx('Yeni Sınav', 'New Exam', 'Nuovo Esame')}</span>
           </Link>
         )}
       </div>
@@ -878,7 +894,7 @@ export function TrainingExamResultsContent({
           <div className="flex items-center gap-2 text-gray-400 flex-shrink-0">
             <SlidersHorizontal className="w-4 h-4" />
             <span className="text-xs font-semibold uppercase tracking-wide hidden sm:inline">
-              {isTr ? 'Filtreler' : 'Filters'}
+              {tx('Filtreler', 'Filters', 'Filtri')}
             </span>
           </div>
           <div className="relative flex-1">
@@ -886,7 +902,7 @@ export function TrainingExamResultsContent({
             <input
               value={localSearch}
               onChange={event => setLocalSearch(event.target.value)}
-              placeholder={isTr ? 'Danışman adına göre ara...' : 'Search by consultant name...'}
+              placeholder={tx('Danışman adına göre ara...', 'Search by consultant name...', 'Cerca per nome consulente...')}
               className="w-full pl-10 pr-9 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#1B4332]/15 focus:border-[#1B4332] transition-all"
             />
             {localSearch && (
@@ -920,7 +936,7 @@ export function TrainingExamResultsContent({
                 { value: 'junior', label: 'Junior' },
                 { value: 'senior', label: 'Senior' },
               ]}
-              placeholder={isTr ? 'Seviye: Tümü' : 'Level: All'}
+              placeholder={tx('Seviye: Tümü', 'Level: All', 'Livello: Tutti')}
               icon={Layers}
             />
           </div>
@@ -930,10 +946,10 @@ export function TrainingExamResultsContent({
               value={filterResult}
               onChange={v => updateFilter('result', v)}
               options={[
-                { value: 'passed', label: isTr ? 'Geçti' : 'Passed' },
-                { value: 'failed', label: isTr ? 'Kaldı' : 'Failed' },
+                { value: 'passed', label: tx('Geçti', 'Passed', 'Superato') },
+                { value: 'failed', label: tx('Kaldı', 'Failed', 'Non superato') },
               ]}
-              placeholder={isTr ? 'Sonuç: Tümü' : 'Result: All'}
+              placeholder={tx('Sonuç: Tümü', 'Result: All', 'Risultato: Tutti')}
               icon={Target}
             />
           </div>
@@ -946,7 +962,7 @@ export function TrainingExamResultsContent({
                 options={evaluatorOptions.map(evaluator => ({
                   value: evaluator.id, label: evaluator.full_name || evaluator.email || 'Natural Clinic',
                 }))}
-                placeholder={isTr ? 'Değerlendiren: Tümü' : 'Evaluator: All'}
+                placeholder={tx('Değerlendiren: Tümü', 'Evaluator: All', 'Valutatore: Tutti')}
                 icon={UserCog}
               />
             </div>
@@ -983,7 +999,7 @@ export function TrainingExamResultsContent({
           <div className="py-20 text-center">
             <GraduationCap className="w-8 h-8 text-gray-300 mx-auto mb-3" />
             <p className="text-sm text-gray-400">
-              {isTr ? 'Henüz sınav sonucu bulunmuyor.' : 'No exam results found.'}
+              {tx('Henüz sınav sonucu bulunmuyor.', 'No exam results found.', 'Nessun risultato esame trovato.')}
             </p>
           </div>
         ) : (
@@ -997,7 +1013,7 @@ export function TrainingExamResultsContent({
                       onClick={() => handleSortClick('date')}
                       className="flex items-center font-medium text-gray-500 hover:text-gray-800 transition-colors"
                     >
-                      {isTr ? 'Sınav Tarihi' : 'Exam Date'}
+                      {tx('Sınav Tarihi', 'Exam Date', 'Data Esame')}
                       <SortIcon active={isServerActive('date')} dir={serverDir('date')} />
                     </button>
                   </th>
@@ -1010,7 +1026,7 @@ export function TrainingExamResultsContent({
                       onClick={() => handleSortClick('level')}
                       className="flex items-center font-medium text-gray-500 hover:text-gray-800 transition-colors"
                     >
-                      {isTr ? 'Seviye' : 'Level'}
+                      {tx('Seviye', 'Level', 'Livello')}
                       <SortIcon active={isServerActive('level')} dir={serverDir('level')} />
                     </button>
                   </th>
@@ -1020,7 +1036,7 @@ export function TrainingExamResultsContent({
                       onClick={() => handleSortClick('score')}
                       className="flex items-center font-medium text-gray-500 hover:text-gray-800 transition-colors ml-auto"
                     >
-                      {isTr ? 'Toplam Puan' : 'Total Score'}
+                      {tx('Toplam Puan', 'Total Score', 'Punteggio Totale')}
                       <SortIcon active={isServerActive('score')} dir={serverDir('score')} />
                     </button>
                   </th>
@@ -1060,8 +1076,8 @@ export function TrainingExamResultsContent({
                         {result.training_type && (
                           <p className="text-[11px] text-gray-400 mt-1">
                             {result.training_type === 'pre'
-                              ? (isTr ? 'Pre-Training' : 'Pre-Training')
-                              : (isTr ? 'Post-Training' : 'Post-Training')}
+                              ? 'Pre-Training'
+                              : 'Post-Training'}
                           </p>
                         )}
                       </td>
@@ -1070,7 +1086,7 @@ export function TrainingExamResultsContent({
                           {result.total_score}
                         </span>
                         <span className="text-gray-300 text-xs ml-1">
-                          {isTr ? `eşik ${threshold}` : `target ${threshold}`}
+                          {tx(`eşik ${threshold}`, `target ${threshold}`, `soglia ${threshold}`)}
                         </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
@@ -1086,8 +1102,8 @@ export function TrainingExamResultsContent({
                             : <XCircle className="w-3.5 h-3.5" />
                           }
                           {result.passed
-                            ? (isTr ? 'GEÇTİ' : 'PASSED')
-                            : (isTr ? 'KALDI' : 'FAILED')}
+                            ? tx('GEÇTİ', 'PASSED', 'SUPERATO')
+                            : tx('KALDI', 'FAILED', 'NON SUPERATO')}
                         </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap hidden md:table-cell text-gray-600">
@@ -1099,7 +1115,7 @@ export function TrainingExamResultsContent({
                             type="button"
                             onClick={() => setViewResult(result)}
                             className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium text-[#1B4332] bg-[#1B4332]/8 hover:bg-[#1B4332]/15 rounded-lg transition-colors"
-                            title={isTr ? 'Görüntüle' : 'View'}
+                            title={tx('Görüntüle', 'View', 'Visualizza')}
                           >
                             <Eye className="w-3.5 h-3.5" />
                             <span className="hidden xl:inline">{t.common.view}</span>
@@ -1110,10 +1126,10 @@ export function TrainingExamResultsContent({
                               type="button"
                               onClick={() => openEdit(result)}
                               className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-                              title={isTr ? 'Düzenle' : 'Edit'}
+                              title={tx('Düzenle', 'Edit', 'Modifica')}
                             >
                               <Pencil className="w-3.5 h-3.5" />
-                              <span className="hidden xl:inline">{isTr ? 'Düzenle' : 'Edit'}</span>
+                              <span className="hidden xl:inline">{tx('Düzenle', 'Edit', 'Modifica')}</span>
                             </button>
                           )}
 
@@ -1125,7 +1141,7 @@ export function TrainingExamResultsContent({
                                 setDeleteError('')
                               }}
                               className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-                              title={isTr ? 'Sil' : 'Delete'}
+                              title={tx('Sil', 'Delete', 'Elimina')}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -1144,9 +1160,11 @@ export function TrainingExamResultsContent({
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
           <span className="text-gray-400 text-xs sm:text-sm">
-            {isTr
-              ? `${totalCount} kayıt · Sayfa ${currentPage} / ${totalPages}`
-              : `${totalCount} records · Page ${currentPage} of ${totalPages}`}
+            {tx(
+              `${totalCount} kayıt · Sayfa ${currentPage} / ${totalPages}`,
+              `${totalCount} records · Page ${currentPage} of ${totalPages}`,
+              `${totalCount} record · Pagina ${currentPage} di ${totalPages}`
+            )}
           </span>
           <div className="flex items-center gap-1.5">
             <button

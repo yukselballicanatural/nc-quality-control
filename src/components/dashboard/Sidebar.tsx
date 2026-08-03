@@ -30,6 +30,7 @@ import type { LucideIcon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n'
 import { canSeeAdminLogs, isRestrictedQualityUser } from '@/lib/access-control'
+import { GlassLanguageToggle } from '@/components/ui/GlassLanguageToggle'
 import type { Profile } from '@/types'
 import type { UserRole } from '@/types/supabase'
 
@@ -68,6 +69,8 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
   const [notifOpen, setNotifOpen] = useState(false)
   const notifRef = useRef<HTMLDivElement>(null)
   const { lang, setLang, t } = useLanguage()
+  const tx = (tr: string, en: string, it: string) => lang === 'tr' ? tr : lang === 'it' ? it : en
+  const locale = lang === 'tr' ? 'tr-TR' : lang === 'it' ? 'it-IT' : 'en-US'
   const pathname = usePathname()
   const router = useRouter()
 
@@ -191,7 +194,7 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
     {
       href: '/logs',
       icon: FileClock,
-      label: lang === 'tr' ? 'Loglar' : 'Logs',
+      label: lang === 'tr' ? 'Loglar' : lang === 'it' ? 'Log' : 'Logs',
       allowedRoles: ['manager'] as UserRole[],
     },
   ]
@@ -228,7 +231,7 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
     if (pathname.startsWith('/training-exam')) return t.trainingExam.pageTitle
     if (pathname.startsWith('/reports')) return t.reports.pageTitle
     if (pathname.startsWith('/settings')) return t.settings.pageTitle
-    if (pathname.startsWith('/logs')) return lang === 'tr' ? 'Loglar' : 'Logs'
+    if (pathname.startsWith('/logs')) return lang === 'tr' ? 'Loglar' : lang === 'it' ? 'Log' : 'Logs'
     return 'Natural Clinic QC'
   }
 
@@ -356,10 +359,10 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
             </div>
             <div>
               <p className="text-sm font-bold leading-tight">
-                {lang === 'tr' ? 'Giriş Başarılı' : 'Login Successful'}
+                {lang === 'tr' ? 'Giriş Başarılı' : lang === 'it' ? 'Accesso riuscito' : 'Login Successful'}
               </p>
               <p className="text-[11px] text-white/55 mt-0.5">
-                {lang === 'tr' ? 'Hoş geldiniz 👋' : 'Welcome back 👋'}
+                {lang === 'tr' ? 'Hoş geldiniz 👋' : lang === 'it' ? 'Bentornato 👋' : 'Welcome back 👋'}
               </p>
             </div>
           </motion.div>
@@ -387,28 +390,7 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
           {/* Right controls */}
           <div className="flex items-center gap-2">
             {/* Language toggle */}
-            <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-1">
-              <button
-                onClick={() => setLang('tr')}
-                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
-                  lang === 'tr'
-                    ? 'bg-white text-[#1B4332] shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                TR
-              </button>
-              <button
-                onClick={() => setLang('en')}
-                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
-                  lang === 'en'
-                    ? 'bg-white text-[#1B4332] shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                EN
-              </button>
-            </div>
+            <GlassLanguageToggle value={lang} onChange={setLang} ariaLabel={t.settings.language} />
 
             {/* Notifications */}
             {canSeeNotifications && (
@@ -420,7 +402,7 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
                       ? 'text-[#1B4332] bg-gray-100'
                       : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                   }`}
-                  aria-label={lang === 'tr' ? 'Bildirimler' : 'Notifications'}
+                  aria-label={tx('Bildirimler', 'Notifications', 'Notifiche')}
                 >
                   <Bell className="w-5 h-5" />
                   {recheckUrgentCount > 0 && (
@@ -444,21 +426,21 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
                       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                         <div>
                           <p className="text-sm font-bold text-gray-900">
-                            {lang === 'tr' ? 'Bildirimler' : 'Notifications'}
+                            {tx('Bildirimler', 'Notifications', 'Notifiche')}
                           </p>
                           <p className="text-[11px] text-gray-400 mt-0.5">
                             {notifItems.length > 0
-                              ? lang === 'tr'
-                                ? `${notifItems.length} tekrar kontrol bekliyor`
-                                : `${notifItems.length} recheck pending`
-                              : lang === 'tr'
-                                ? 'Her şey güncel'
-                                : "You're all caught up"}
+                              ? tx(
+                                  `${notifItems.length} tekrar kontrol bekliyor`,
+                                  `${notifItems.length} recheck pending`,
+                                  `${notifItems.length} ricontrolli in sospeso`
+                                )
+                              : tx('Her şey güncel', "You're all caught up", 'Tutto aggiornato')}
                           </p>
                         </div>
                         {recheckUrgentCount > 0 && (
                           <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-[11px] font-bold">
-                            {recheckUrgentCount} {lang === 'tr' ? 'acil' : 'urgent'}
+                            {recheckUrgentCount} {tx('acil', 'urgent', 'urgenti')}
                           </span>
                         )}
                       </div>
@@ -471,7 +453,7 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
                               <Inbox className="w-5 h-5 text-gray-300" />
                             </div>
                             <p className="text-sm font-medium text-gray-500">
-                              {lang === 'tr' ? 'Yeni bildirim yok' : 'No new notifications'}
+                              {tx('Yeni bildirim yok', 'No new notifications', 'Nessuna nuova notifica')}
                             </p>
                           </div>
                         ) : (
@@ -484,17 +466,17 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
                                 item.consultant?.full_name || item.consultant_name || '—'
                               let relLabel: string
                               if (overdue) {
-                                relLabel =
-                                  lang === 'tr'
-                                    ? `${Math.abs(diff)} gün gecikti`
-                                    : `${Math.abs(diff)}d overdue`
+                                relLabel = tx(
+                                  `${Math.abs(diff)} gün gecikti`,
+                                  `${Math.abs(diff)}d overdue`,
+                                  `${Math.abs(diff)}g in ritardo`
+                                )
                               } else if (today) {
-                                relLabel = lang === 'tr' ? 'Bugün' : 'Today'
+                                relLabel = tx('Bugün', 'Today', 'Oggi')
                               } else if (diff === 1) {
-                                relLabel = lang === 'tr' ? 'Yarın' : 'Tomorrow'
+                                relLabel = tx('Yarın', 'Tomorrow', 'Domani')
                               } else {
-                                relLabel =
-                                  lang === 'tr' ? `${diff} gün sonra` : `in ${diff}d`
+                                relLabel = tx(`${diff} gün sonra`, `in ${diff}d`, `tra ${diff}g`)
                               }
                               const tone = overdue
                                 ? { icon: AlertTriangle, dot: 'text-red-500 bg-red-50', label: 'text-red-600' }
@@ -519,14 +501,14 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
                                         {name}
                                       </span>
                                       <span className="block text-xs text-gray-400 truncate">
-                                        {item.customer_name || (lang === 'tr' ? 'Müşteri belirtilmemiş' : 'No customer')}
+                                        {item.customer_name || tx('Müşteri belirtilmemiş', 'No customer', 'Cliente non indicato')}
                                       </span>
                                       <span className={`mt-1 inline-flex items-center gap-1 text-[11px] font-semibold ${tone.label}`}>
                                         {relLabel}
                                         <span className="text-gray-300 font-normal">·</span>
                                         <span className="text-gray-400 font-normal">
                                           {new Date(item.dev_recheck_date).toLocaleDateString(
-                                            lang === 'tr' ? 'tr-TR' : 'en-US',
+                                            locale,
                                             { day: '2-digit', month: 'short' }
                                           )}
                                         </span>
@@ -549,7 +531,7 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
                           }}
                           className="w-full flex items-center justify-center gap-1.5 px-4 py-3 border-t border-gray-100 text-sm font-semibold text-[#1B4332] hover:bg-gray-50 transition-colors"
                         >
-                          {lang === 'tr' ? 'Tümünü gör' : 'View all'}
+                          {tx('Tümünü gör', 'View all', 'Vedi tutto')}
                           <ArrowRight className="w-4 h-4" />
                         </button>
                       )}

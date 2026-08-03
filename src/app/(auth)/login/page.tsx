@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n'
+import { GlassLanguageToggle } from '@/components/ui/GlassLanguageToggle'
 
 export default function LoginPage() {
   const { lang, setLang, t } = useLanguage()
@@ -112,21 +113,7 @@ export default function LoginPage() {
           <div className="hidden lg:block" />
 
           {/* Dil toggle */}
-          <div className="flex items-center gap-0.5 p-1 bg-white/70 backdrop-blur rounded-xl shadow-sm">
-            {(['tr', 'en'] as const).map(l => (
-              <button
-                key={l}
-                onClick={() => setLang(l)}
-                className={`px-3.5 py-1.5 text-[11px] font-bold rounded-lg transition-all duration-200 ${
-                  lang === l
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-400 hover:text-gray-600'
-                }`}
-              >
-                {l.toUpperCase()}
-              </button>
-            ))}
-          </div>
+          <GlassLanguageToggle value={lang} onChange={setLang} ariaLabel={t.settings.language} />
         </div>
 
         {/* Form merkezi */}
@@ -145,12 +132,14 @@ export default function LoginPage() {
                 Quality Control
               </p>
               <h1 className="text-[2.1rem] font-black text-gray-900 tracking-tight leading-none">
-                {lang === 'tr' ? 'Giriş Yap' : 'Sign In'}
+                {lang === 'tr' ? 'Giriş Yap' : lang === 'it' ? 'Accedi' : 'Sign In'}
               </h1>
               <p className="text-sm text-gray-400 mt-2">
                 {lang === 'tr'
                   ? 'Hesabınıza erişmek için bilgilerinizi girin.'
-                  : 'Enter your credentials to access your account.'}
+                  : lang === 'it'
+                    ? 'Inserisci le credenziali per accedere al tuo account.'
+                    : 'Enter your credentials to access your account.'}
               </p>
             </div>
 
@@ -251,7 +240,7 @@ export default function LoginPage() {
                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
-                        {lang === 'tr' ? 'Giriş Başarılı!' : 'Login Successful!'}
+                        {lang === 'tr' ? 'Giriş Başarılı!' : lang === 'it' ? 'Accesso riuscito!' : 'Login Successful!'}
                       </>
                     ) : loading ? (
                       <>
