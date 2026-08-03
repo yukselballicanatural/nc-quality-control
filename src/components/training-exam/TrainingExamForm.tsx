@@ -88,6 +88,14 @@ function isMissingTrainingTypeColumn(error: { code?: string; message?: string } 
   )
 }
 
+function isMissingNoteColumn(error: { code?: string; message?: string } | null) {
+  return Boolean(
+    error &&
+    error.message?.includes('note') &&
+    (error.code === '42703' || error.code === 'PGRST204')
+  )
+}
+
 function normalizeName(value: string) {
   return value.trim().toLocaleLowerCase('tr-TR')
 }
@@ -242,12 +250,9 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
         passed,
       }
       let savedExamId: string | null = null
-      let { data: savedExam, error: err } = await supabase
+      let { error: err } = await supabase
         .from('training_exams')
         .insert(payload as never)
-        .select('id')
-        .single()
-      savedExamId = savedExam?.id ?? null
 
       if (isMissingTeamLeaderColumn(err)) {
         const { team_leader_id: _unused, ...rest } = payload
@@ -255,10 +260,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
         const retry = await supabase
           .from('training_exams')
           .insert(payload as never)
-          .select('id')
-          .single()
         err = retry.error
-        savedExamId = retry.data?.id ?? null
       }
 
       if (isMissingConsultantNameColumn(err)) {
@@ -267,10 +269,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
         const retry = await supabase
           .from('training_exams')
           .insert(payload as never)
-          .select('id')
-          .single()
         err = retry.error
-        savedExamId = retry.data?.id ?? null
       }
 
       if (isMissingTrainingTypeColumn(err)) {
@@ -279,10 +278,16 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
         const retry = await supabase
           .from('training_exams')
           .insert(payload as never)
-          .select('id')
-          .single()
         err = retry.error
-        savedExamId = retry.data?.id ?? null
+      }
+
+      if (isMissingNoteColumn(err)) {
+        const { note: _unused, ...rest } = payload
+        payload = rest
+        const retry = await supabase
+          .from('training_exams')
+          .insert(payload as never)
+        err = retry.error
       }
 
       if (err) throw err
@@ -306,7 +311,15 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
       router.refresh()
     } catch (err) {
       console.error('Training exam save error:', err)
-      setError(isTr ? 'Kayıt sırasında hata oluştu.' : 'Error saving result.')
+      const message =
+        err && typeof err === 'object' && 'message' in err && typeof err.message === 'string'
+          ? err.message
+          : ''
+      setError(
+        isTr
+          ? `Kayit sirasinda hata olustu${message ? `: ${message}` : '.'}`
+          : `Error saving result${message ? `: ${message}` : '.'}`
+      )
     } finally {
       setSaving(false)
     }

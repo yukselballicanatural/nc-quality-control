@@ -121,6 +121,14 @@ function isMissingTrainingTypeColumn(error: { code?: string; message?: string } 
   )
 }
 
+function isMissingNoteColumn(error: { code?: string; message?: string } | null) {
+  return Boolean(
+    error &&
+    error.message?.includes('note') &&
+    (error.code === '42703' || error.code === 'PGRST204')
+  )
+}
+
 function normalizeName(value: string) {
   return value.trim().toLocaleLowerCase('tr-TR')
 }
@@ -404,6 +412,16 @@ export function TrainingExamResultsContent({
 
       if (isMissingTrainingTypeColumn(error)) {
         const { training_type: _unused, ...rest } = updatePayload
+        updatePayload = rest
+        const retry = await supabase
+          .from('training_exams')
+          .update(updatePayload as never)
+          .eq('id', editResult.id)
+        error = retry.error
+      }
+
+      if (isMissingNoteColumn(error)) {
+        const { note: _unused, ...rest } = updatePayload
         updatePayload = rest
         const retry = await supabase
           .from('training_exams')
