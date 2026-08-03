@@ -5,6 +5,7 @@ import { AlertCircle, MessageSquare, Phone, Check } from 'lucide-react'
 import { useFormStore } from '@/stores/formStore'
 import { useLanguage } from '@/lib/i18n'
 import { WHATSAPP_QUESTIONS, CALL_QUESTIONS, CHECK_ANSWER_OPTIONS } from '@/lib/constants'
+import { labelFor, textFor } from '@/lib/localization'
 import type { CheckAnswer, ChannelType } from '@/types/supabase'
 
 const ANSWER_CONFIG: Record<CheckAnswer, {
@@ -58,10 +59,10 @@ function ChannelSection({ channel }: { channel: ChannelType }) {
             </div>
             <div>
               <p className="text-sm font-bold text-gray-900">
-                {isWA ? 'WhatsApp Kontrolleri' : (lang === 'tr' ? 'Arama Kontrolleri' : 'Call Checks')}
+                {isWA ? textFor(lang, 'WhatsApp Kontrolleri', 'WhatsApp Checks', 'Controlli WhatsApp') : textFor(lang, 'Arama Kontrolleri', 'Call Checks', 'Controlli Chiamata')}
               </p>
               <p className="text-xs text-gray-400 mt-0.5">
-                {lang === 'tr' ? 'Her soru için yanıt seçin' : 'Select an answer for each question'}
+                {textFor(lang, 'Her soru için yanıt seçin', 'Select an answer for each question', 'Seleziona una risposta per ogni domanda')}
               </p>
             </div>
           </div>
@@ -91,7 +92,7 @@ function ChannelSection({ channel }: { channel: ChannelType }) {
               <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
                 <Check className="w-2.5 h-2.5" />
               </div>
-              {lang === 'tr' ? 'Tüm sorular yanıtlandı!' : 'All questions answered!'}
+              {textFor(lang, 'Tüm sorular yanıtlandı!', 'All questions answered!', 'Tutte le domande hanno risposta!')}
             </motion.div>
           )}
         </AnimatePresence>
@@ -100,7 +101,7 @@ function ChannelSection({ channel }: { channel: ChannelType }) {
       {/* ── Questions ────────────────────────────────────────── */}
       {questions.map((q, idx) => {
         const check = answers[q.number]
-        const questionLabel = lang === 'tr' ? q.labelTr : q.labelEn
+        const questionLabel = labelFor(lang, q)
         const answered = !!check
 
         return (
@@ -134,7 +135,7 @@ function ChannelSection({ channel }: { channel: ChannelType }) {
                 {CHECK_ANSWER_OPTIONS.map(opt => {
                   const isSelected = check?.answer === opt.value
                   const cfg = ANSWER_CONFIG[opt.value as CheckAnswer]
-                  const label = lang === 'tr' ? opt.labelTr : opt.labelEn
+                  const label = labelFor(lang, opt)
 
                   return (
                     <button
@@ -176,7 +177,7 @@ export function StepChannelChecks() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
         <AlertCircle className="w-10 h-10 text-gray-200 mx-auto mb-3" />
         <p className="text-sm text-gray-400">
-          {lang === 'tr' ? "Adım 1'de görüşme kanalı seçilmedi." : 'No channel selected in Step 1.'}
+          {textFor(lang, "Adım 1'de görüşme kanalı seçilmedi.", 'No channel selected in Step 1.', 'Nessun canale selezionato nel passaggio 1.')}
         </p>
       </div>
     )
@@ -188,9 +189,12 @@ export function StepChannelChecks() {
     <div className="space-y-3">
       {step1.channels.length > 1 && (
         <p className="text-xs text-gray-400 px-1">
-          {lang === 'tr'
-            ? 'Birden fazla kanal seçildi; aynı kontrol soruları her ikisi için de geçerli sayılır.'
-            : 'Multiple channels selected; the same check answers apply to both.'}
+          {textFor(
+            lang,
+            'Birden fazla kanal seçildi; aynı kontrol soruları her ikisi için de geçerli sayılır.',
+            'Multiple channels selected; the same check answers apply to both.',
+            'Sono stati selezionati più canali; le stesse risposte di controllo valgono per entrambi.'
+          )}
         </p>
       )}
       <ChannelSection channel={primaryChannel} />

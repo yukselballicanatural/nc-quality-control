@@ -6,6 +6,7 @@ import { useFormStore } from '@/stores/formStore'
 import { useLanguage } from '@/lib/i18n'
 import { CRITICAL_ERROR_LABELS } from '@/lib/constants'
 import { getMaxScoreWithErrors } from '@/lib/scoring'
+import { labelFor } from '@/lib/localization'
 import type { CriticalErrorType } from '@/types/supabase'
 
 const ERROR_TYPES = Object.keys(CRITICAL_ERROR_LABELS) as CriticalErrorType[]
@@ -92,7 +93,7 @@ export function StepCriticalErrors() {
           const labels = CRITICAL_ERROR_LABELS[errorType]
           const isChecked = hasCriticalError(errorType)
           const entry = criticalErrors.find(e => e.errorType === errorType)
-          const errorLabel = lang === 'tr' ? labels.labelTr : labels.labelEn
+          const errorLabel = labelFor(lang, labels)
 
           return (
             <motion.div

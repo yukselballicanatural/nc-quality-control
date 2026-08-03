@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Search, ChevronDown, Check, X } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
+import { textFor } from '@/lib/localization'
 
 export interface SelectOption {
   value: string
@@ -75,8 +76,8 @@ export function SearchableSelect({
     setSearch('')
   }
 
-  const searchPlaceholder = lang === 'tr' ? 'Ara...' : 'Search...'
-  const noResults = lang === 'tr' ? 'Sonuç bulunamadı' : 'No results'
+  const searchPlaceholder = textFor(lang, 'Ara...', 'Search...', 'Cerca...')
+  const noResults = textFor(lang, 'Sonuç bulunamadı', 'No results', 'Nessun risultato')
 
   return (
     <div ref={containerRef} className="relative">
@@ -102,7 +103,7 @@ export function SearchableSelect({
             value ? 'text-gray-900 font-medium' : 'text-gray-400'
           }`}
         >
-          {selectedLabel ?? placeholder ?? (lang === 'tr' ? 'Seçiniz' : 'Select')}
+          {selectedLabel ?? placeholder ?? textFor(lang, 'Seçiniz', 'Select', 'Seleziona')}
         </span>
         <ChevronDown
           className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200 ${
@@ -146,7 +147,7 @@ export function SearchableSelect({
                 onClick={() => handleSelect('')}
                 className="w-full flex items-center px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-50 transition-colors text-left"
               >
-                <span className="italic">{lang === 'tr' ? 'Temizle' : 'Clear'}</span>
+                <span className="italic">{textFor(lang, 'Temizle', 'Clear', 'Pulisci')}</span>
               </button>
             )}
 

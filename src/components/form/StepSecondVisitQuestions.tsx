@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { useFormStore } from '@/stores/formStore'
 import { useLanguage } from '@/lib/i18n'
+import { textFor } from '@/lib/localization'
 
 function AnswerBtn({
   label, sublabel, selected, onClick, variant = 'default',
@@ -51,6 +52,7 @@ function AnswerBtn({
 
 export function StepSecondVisitQuestions() {
   const { lang, t } = useLanguage()
+  const tx = (tr: string, en: string, it: string) => textFor(lang, tr, en, it)
   const { secondVisitAnswers, updateSecondVisitAnswers, getSecondVisitScore } = useFormStore()
 
   const score    = getSecondVisitScore()
@@ -91,8 +93,8 @@ export function StepSecondVisitQuestions() {
             <p className="text-xs font-black text-gray-400 uppercase tracking-wider mb-0.5">{sv.header}</p>
             <p className="text-sm font-bold text-gray-700">
               {answered
-                ? (lang === 'tr' ? '1/1 soru yanıtlandı' : '1/1 question answered')
-                : (lang === 'tr' ? '0/1 soru yanıtlandı' : '0/1 question answered')}
+                ? tx('1/1 soru yanıtlandı', '1/1 question answered', '1/1 domanda risposta')
+                : tx('0/1 soru yanıtlandı', '0/1 question answered', '0/1 domanda risposta')}
             </p>
           </div>
           <motion.div
@@ -150,9 +152,11 @@ export function StepSecondVisitQuestions() {
             <div>
               <p className="text-base font-bold text-gray-800 leading-snug">{sv.q1}</p>
               <p className="text-xs text-gray-400 mt-1 font-medium">
-                {lang === 'tr'
-                  ? 'İkinci ziyaret sürecinde kaç kez profesyonel takip yapıldı?'
-                  : 'How many professional follow-ups were made during the second visit process?'}
+                {tx(
+                  'İkinci ziyaret sürecinde kaç kez profesyonel takip yapıldı?',
+                  'How many professional follow-ups were made during the second visit process?',
+                  'Quanti follow-up professionali sono stati fatti durante il processo della seconda visita?'
+                )}
               </p>
             </div>
           </div>

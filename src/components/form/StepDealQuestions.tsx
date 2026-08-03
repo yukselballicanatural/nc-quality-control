@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useFormStore } from '@/stores/formStore'
 import { useLanguage } from '@/lib/i18n'
+import { textFor } from '@/lib/localization'
 
 // ─── Renk yardımcıları ────────────────────────────────────────────
 
@@ -138,6 +139,7 @@ function QuestionCard({ index, title, answered, children, delay = 0 }: QuestionC
 
 export function StepDealQuestions() {
   const { lang, t } = useLanguage()
+  const tx = (tr: string, en: string, it: string) => textFor(lang, tr, en, it)
   const { dealAnswers, updateDealAnswers, getDealScore } = useFormStore()
 
   const score = getDealScore()
@@ -251,9 +253,11 @@ export function StepDealQuestions() {
           ))}
         </div>
         <p className="text-[11px] text-gray-400 mt-2 font-medium">
-          {lang === 'tr'
-            ? 'Deal onayından sonra kaç kez profesyonel takip yapıldı?'
-            : 'How many professional follow-ups were made after deal confirmation?'}
+          {tx(
+            'Deal onayından sonra kaç kez profesyonel takip yapıldı?',
+            'How many professional follow-ups were made after deal confirmation?',
+            'Quanti follow-up professionali sono stati fatti dopo la conferma dell’accordo?'
+          )}
         </p>
       </QuestionCard>
 

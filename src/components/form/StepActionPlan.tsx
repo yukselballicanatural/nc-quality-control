@@ -5,6 +5,7 @@ import { ThumbsUp, TrendingUp, BookOpen, MessageCircle, ClipboardCheck, Calendar
 import { useFormStore } from '@/stores/formStore'
 import { useLanguage } from '@/lib/i18n'
 import { getScoreLevel } from '@/lib/scoring'
+import { scoreLevelLabel, textFor } from '@/lib/localization'
 import { DatePicker } from '@/components/ui/DatePicker'
 import type { FormStep6 } from '@/stores/formStore'
 
@@ -28,6 +29,7 @@ export function StepActionPlan() {
     getStageScore,
   } = useFormStore()
   const { lang: uiLang, t: uiT } = useLanguage()
+  const tx = (tr: string, en: string, it: string) => textFor(uiLang, tr, en, it)
 
   const score = getStageScore()
   const level = getScoreLevel(score)
@@ -63,7 +65,7 @@ export function StepActionPlan() {
               className={`rounded-2xl p-5 text-center flex flex-col items-center gap-1 ${level.bgColor}`}
             >
               <p className={`text-[10px] font-bold uppercase tracking-wide opacity-70 ${level.textColor}`}>
-                {uiLang === 'tr' ? 'Stage Skoru' : 'Stage Score'}
+                {tx('Stage Skoru', 'Stage Score', 'Punteggio Stage')}
               </p>
               <p className={`text-4xl font-black tabular-nums leading-none ${level.textColor}`}>{score}</p>
               <p className="text-[10px] text-gray-400 font-medium">/ 100</p>
@@ -75,10 +77,10 @@ export function StepActionPlan() {
               className="bg-gray-50 rounded-2xl p-5 text-center flex flex-col items-center justify-center gap-1"
             >
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">
-                {uiLang === 'tr' ? 'Performans' : 'Performance'}
+                {tx('Performans', 'Performance', 'Performance')}
               </p>
               <p className={`text-xl font-black leading-tight ${level.textColor}`}>
-                {uiLang === 'tr' ? level.label : level.labelEn}
+                {scoreLevelLabel(uiLang, level)}
               </p>
             </motion.div>
           </div>
@@ -100,12 +102,14 @@ export function StepActionPlan() {
             </div>
             <div>
               <p className="text-sm font-black text-amber-900">
-                {uiLang === 'tr' ? 'Tekrar Kontrol Tarihi' : 'Recheck Date'}
+                {tx('Tekrar Kontrol Tarihi', 'Recheck Date', 'Data Ricontrollo')}
               </p>
               <p className="text-[11px] text-amber-600 font-semibold mt-0.5">
-                {uiLang === 'tr'
-                  ? `Skor ${score} — bir sonraki takip tarihini belirleyin`
-                  : `Score ${score} — set the next follow-up date`}
+                {tx(
+                  `Skor ${score} — bir sonraki takip tarihini belirleyin`,
+                  `Score ${score} — set the next follow-up date`,
+                  `Punteggio ${score} — imposta la prossima data di follow-up`
+                )}
               </p>
             </div>
           </div>
@@ -114,7 +118,7 @@ export function StepActionPlan() {
             <DatePicker
               value={step6.recheckDate}
               onChange={v => updateStep6({ recheckDate: v })}
-              placeholder={uiLang === 'tr' ? 'Tarih seçin...' : 'Select date...'}
+              placeholder={tx('Tarih seçin...', 'Select date...', 'Seleziona data...')}
               minDate={today}
             />
           </div>
@@ -122,7 +126,7 @@ export function StepActionPlan() {
           {!step6.recheckDate && (
             <p className="text-[11px] text-amber-600 font-bold mt-2 flex items-center gap-1.5">
               <span>⚠</span>
-              {uiLang === 'tr' ? 'Lütfen bir tarih seçin — gözden kaçırmayın!' : 'Please set a date — don\'t skip this!'}
+              {tx('Lütfen bir tarih seçin — gözden kaçırmayın!', 'Please set a date — don\'t skip this!', 'Seleziona una data — non saltarla!')}
             </p>
           )}
         </div>

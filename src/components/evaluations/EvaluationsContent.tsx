@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import { getScoreLevel } from '@/lib/scoring'
+import { textFor } from '@/lib/localization'
 import { DatePicker } from '@/components/ui/DatePicker'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import type { UserRole, ChannelType, ConversationResult, EvaluationStatus } from '@/types/supabase'
@@ -136,6 +137,7 @@ export function EvaluationsContent({
   sortDir: serverSortDir,
 }: Props) {
   const { lang, t } = useLanguage()
+  const tx = (tr: string, en: string, it: string) => textFor(lang, tr, en, it)
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [localSearch, setLocalSearch] = useState(searchQuery)
@@ -320,7 +322,7 @@ export function EvaluationsContent({
       }
       setDeletingId(null)
       setDeletedIds(prev => new Set(prev).add(id))
-      const successMessage = lang === 'tr' ? 'Değerlendirme silindi.' : 'Evaluation deleted.'
+      const successMessage = tx('Değerlendirme silindi.', 'Evaluation deleted.', 'Valutazione eliminata.')
       setDeleteSuccess(successMessage)
       if (typeof window !== 'undefined') {
         window.sessionStorage.setItem(DELETE_SUCCESS_STORAGE_KEY, successMessage)
@@ -330,9 +332,11 @@ export function EvaluationsContent({
     } catch (error) {
       console.error('Evaluation delete error:', error)
       setDeleteError(
-        lang === 'tr'
-          ? 'Değerlendirme silinemedi. Yetki veya bağlantı problemi olabilir.'
-          : 'Evaluation could not be deleted. There may be a permission or connection issue.'
+        tx(
+          'Değerlendirme silinemedi. Yetki veya bağlantı problemi olabilir.',
+          'Evaluation could not be deleted. There may be a permission or connection issue.',
+          'Impossibile eliminare la valutazione. Potrebbe esserci un problema di autorizzazione o connessione.'
+        )
       )
     } finally {
       setDeleteLoading(false)
@@ -378,8 +382,8 @@ export function EvaluationsContent({
         })
         const successMessage =
           failedCount > 0
-            ? (lang === 'tr' ? `${succeeded.length} değerlendirme silindi, ${failedCount} tanesi silinemedi.` : `${succeeded.length} evaluations deleted, ${failedCount} failed.`)
-            : (lang === 'tr' ? `${succeeded.length} değerlendirme silindi.` : `${succeeded.length} evaluations deleted.`)
+            ? tx(`${succeeded.length} değerlendirme silindi, ${failedCount} tanesi silinemedi.`, `${succeeded.length} evaluations deleted, ${failedCount} failed.`, `${succeeded.length} valutazioni eliminate, ${failedCount} non riuscite.`)
+            : tx(`${succeeded.length} değerlendirme silindi.`, `${succeeded.length} evaluations deleted.`, `${succeeded.length} valutazioni eliminate.`)
         setDeleteSuccess(successMessage)
         if (typeof window !== 'undefined') {
           window.sessionStorage.setItem(DELETE_SUCCESS_STORAGE_KEY, successMessage)
@@ -389,9 +393,11 @@ export function EvaluationsContent({
 
       if (failedCount > 0 && succeeded.length === 0) {
         setBulkDeleteError(
-          lang === 'tr'
-            ? 'Seçilen değerlendirmeler silinemedi. Yetki veya bağlantı problemi olabilir.'
-            : 'Selected evaluations could not be deleted. There may be a permission or connection issue.'
+          tx(
+            'Seçilen değerlendirmeler silinemedi. Yetki veya bağlantı problemi olabilir.',
+            'Selected evaluations could not be deleted. There may be a permission or connection issue.',
+            'Impossibile eliminare le valutazioni selezionate. Potrebbe esserci un problema di autorizzazione o connessione.'
+          )
         )
         return
       }
@@ -402,9 +408,11 @@ export function EvaluationsContent({
     } catch (error) {
       console.error('Bulk delete error:', error)
       setBulkDeleteError(
-        lang === 'tr'
-          ? 'Seçilen değerlendirmeler silinemedi. Yetki veya bağlantı problemi olabilir.'
-          : 'Selected evaluations could not be deleted. There may be a permission or connection issue.'
+        tx(
+          'Seçilen değerlendirmeler silinemedi. Yetki veya bağlantı problemi olabilir.',
+          'Selected evaluations could not be deleted. There may be a permission or connection issue.',
+          'Impossibile eliminare le valutazioni selezionate. Potrebbe esserci un problema di autorizzazione o connessione.'
+        )
       )
     } finally {
       setBulkDeleteLoading(false)
@@ -433,12 +441,14 @@ export function EvaluationsContent({
                 </div>
                 <div className="min-w-0 flex-1">
                   <h2 className="text-base font-bold text-gray-950">
-                    {lang === 'tr' ? 'Değerlendirme silinsin mi?' : 'Delete evaluation?'}
+                    {tx('Değerlendirme silinsin mi?', 'Delete evaluation?', 'Eliminare la valutazione?')}
                   </h2>
                   <p className="mt-1 text-sm leading-6 text-gray-500">
-                    {lang === 'tr'
-                      ? 'Bu işlem geri alınamaz. Seçili değerlendirme sistemden kalıcı olarak silinecek.'
-                      : 'This cannot be undone. The selected evaluation will be permanently removed.'}
+                    {tx(
+                      'Bu işlem geri alınamaz. Seçili değerlendirme sistemden kalıcı olarak silinecek.',
+                      'This cannot be undone. The selected evaluation will be permanently removed.',
+                      'Questa azione non può essere annullata. La valutazione selezionata sarà eliminata definitivamente.'
+                    )}
                   </p>
                   <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
                     <div className="truncate text-sm font-semibold text-gray-900">
@@ -466,7 +476,7 @@ export function EvaluationsContent({
                 disabled={deleteLoading}
                 className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50"
               >
-                {lang === 'tr' ? 'Vazgeç' : 'Cancel'}
+                {tx('Vazgeç', 'Cancel', 'Annulla')}
               </button>
               <button
                 type="button"
@@ -475,7 +485,7 @@ export function EvaluationsContent({
                 className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
               >
                 <Trash2 className="h-4 w-4" />
-                {deleteLoading ? (lang === 'tr' ? 'Siliniyor...' : 'Deleting...') : (lang === 'tr' ? 'Evet, sil' : 'Yes, delete')}
+                {deleteLoading ? tx('Siliniyor...', 'Deleting...', 'Eliminazione...') : tx('Evet, sil', 'Yes, delete', 'Sì, elimina')}
               </button>
             </div>
           </div>
@@ -495,14 +505,14 @@ export function EvaluationsContent({
                 </div>
                 <div className="min-w-0 flex-1">
                   <h2 className="text-base font-bold text-gray-950">
-                    {lang === 'tr'
-                      ? `${selectedIds.size} değerlendirme silinsin mi?`
-                      : `Delete ${selectedIds.size} evaluations?`}
+                    {tx(`${selectedIds.size} değerlendirme silinsin mi?`, `Delete ${selectedIds.size} evaluations?`, `Eliminare ${selectedIds.size} valutazioni?`)}
                   </h2>
                   <p className="mt-1 text-sm leading-6 text-gray-500">
-                    {lang === 'tr'
-                      ? 'Bu işlem geri alınamaz. Seçili değerlendirmeler sistemden kalıcı olarak silinecek.'
-                      : 'This cannot be undone. The selected evaluations will be permanently removed.'}
+                    {tx(
+                      'Bu işlem geri alınamaz. Seçili değerlendirmeler sistemden kalıcı olarak silinecek.',
+                      'This cannot be undone. The selected evaluations will be permanently removed.',
+                      'Questa azione non può essere annullata. Le valutazioni selezionate saranno eliminate definitivamente.'
+                    )}
                   </p>
                   {bulkDeleteError && (
                     <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
@@ -522,7 +532,7 @@ export function EvaluationsContent({
                 disabled={bulkDeleteLoading}
                 className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50"
               >
-                {lang === 'tr' ? 'Vazgeç' : 'Cancel'}
+                {tx('Vazgeç', 'Cancel', 'Annulla')}
               </button>
               <button
                 type="button"
@@ -532,8 +542,8 @@ export function EvaluationsContent({
               >
                 <Trash2 className="h-4 w-4" />
                 {bulkDeleteLoading
-                  ? (lang === 'tr' ? 'Siliniyor...' : 'Deleting...')
-                  : (lang === 'tr' ? `Evet, ${selectedIds.size} kaydı sil` : `Yes, delete ${selectedIds.size}`)}
+                  ? tx('Siliniyor...', 'Deleting...', 'Eliminazione...')
+                  : tx(`Evet, ${selectedIds.size} kaydı sil`, `Yes, delete ${selectedIds.size}`, `Sì, elimina ${selectedIds.size}`)}
               </button>
             </div>
           </div>
@@ -569,7 +579,7 @@ export function EvaluationsContent({
         <div>
           <h1 className="text-xl font-bold text-gray-900">{t.evaluations.pageTitle}</h1>
           <p className="text-sm text-gray-400 mt-0.5">
-            {totalCount} {lang === 'tr' ? 'kayıt' : 'records'}
+            {totalCount} {tx('kayıt', 'records', 'record')}
           </p>
         </div>
         {canCreate && (
@@ -587,21 +597,21 @@ export function EvaluationsContent({
       {canDelete && selectedIds.size > 0 && (
         <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#1B4332]/5 border border-[#1B4332]/15 rounded-2xl">
           <span className="text-sm font-medium text-[#1B4332]">
-            {lang === 'tr' ? `${selectedIds.size} kayıt seçildi` : `${selectedIds.size} selected`}
+            {tx(`${selectedIds.size} kayıt seçildi`, `${selectedIds.size} selected`, `${selectedIds.size} selezionati`)}
           </span>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSelectedIds(new Set())}
               className="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              {lang === 'tr' ? 'Seçimi temizle' : 'Clear selection'}
+              {tx('Seçimi temizle', 'Clear selection', 'Pulisci selezione')}
             </button>
             <button
               onClick={() => { setBulkDeleteError(''); setBulkDeleteOpen(true) }}
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              {lang === 'tr' ? 'Seçilenleri Sil' : 'Delete Selected'}
+              {tx('Seçilenleri Sil', 'Delete Selected', 'Elimina Selezionati')}
             </button>
           </div>
         </div>
@@ -613,7 +623,7 @@ export function EvaluationsContent({
           <div className="flex items-center gap-2 text-gray-400 flex-shrink-0">
             <SlidersHorizontal className="w-4 h-4" />
             <span className="text-xs font-semibold uppercase tracking-wide hidden sm:inline">
-              {lang === 'tr' ? 'Filtreler' : 'Filters'}
+              {tx('Filtreler', 'Filters', 'Filtri')}
             </span>
           </div>
           <div className="relative flex-1">
@@ -652,9 +662,9 @@ export function EvaluationsContent({
               options={[
                 { value: 'whatsapp', label: 'WhatsApp' },
                 { value: 'call', label: t.channel.call },
-                { value: 'both', label: lang === 'tr' ? 'WhatsApp + Arama' : 'WhatsApp + Call' },
+                { value: 'both', label: tx('WhatsApp + Arama', 'WhatsApp + Call', 'WhatsApp + Chiamata') },
               ]}
-              placeholder={lang === 'tr' ? 'Kanal: Tümü' : 'Channel: All'}
+              placeholder={tx('Kanal: Tümü', 'Channel: All', 'Canale: Tutti')}
               icon={Radio}
             />
           </div>
@@ -666,7 +676,7 @@ export function EvaluationsContent({
               options={(['draft', 'submitted'] as EvaluationStatus[]).map(s => ({
                 value: s, label: t.status[s],
               }))}
-              placeholder={lang === 'tr' ? 'Durum: Tümü' : 'Status: All'}
+              placeholder={tx('Durum: Tümü', 'Status: All', 'Stato: Tutti')}
               icon={Flag}
             />
           </div>
@@ -678,7 +688,7 @@ export function EvaluationsContent({
               options={(['won', 'open', 'follow_up', 'lost', 'no_answer'] as ConversationResult[]).map(r => ({
                 value: r, label: t.conversationResult[r],
               }))}
-              placeholder={lang === 'tr' ? 'Sonuç: Tümü' : 'Result: All'}
+              placeholder={tx('Sonuç: Tümü', 'Result: All', 'Risultato: Tutti')}
               icon={Target}
             />
           </div>
@@ -691,7 +701,7 @@ export function EvaluationsContent({
                 options={evaluatorOptions.map(evaluator => ({
                   value: evaluator.id, label: evaluator.full_name || evaluator.email || 'Natural Clinic',
                 }))}
-                placeholder={lang === 'tr' ? 'Değerlendiren: Tümü' : 'Evaluator: All'}
+                placeholder={tx('Değerlendiren: Tümü', 'Evaluator: All', 'Valutatore: Tutti')}
                 icon={UserCog}
               />
             </div>
@@ -703,7 +713,7 @@ export function EvaluationsContent({
                 value={filterConsultant}
                 onChange={v => updateFilter('consultant', v)}
                 options={consultantOptions.map(c => ({ value: c.id, label: c.fullName }))}
-                placeholder={lang === 'tr' ? 'Danışman: Tümü' : 'Consultant: All'}
+                placeholder={tx('Danışman: Tümü', 'Consultant: All', 'Consulente: Tutti')}
                 icon={User}
               />
             </div>
@@ -914,7 +924,7 @@ export function EvaluationsContent({
                         {false ? (
                           <div className="inline-flex flex-col sm:flex-row items-end sm:items-center gap-1 sm:gap-1.5">
                             <span className="text-[11px] text-gray-500">
-                              {lang === 'tr' ? 'Silinsin mi?' : 'Delete?'}
+                              {tx('Silinsin mi?', 'Delete?', 'Eliminare?')}
                             </span>
                             <div className="flex gap-1">
                               <button
@@ -922,14 +932,14 @@ export function EvaluationsContent({
                                 disabled={deleteLoading}
                                 className="px-2 py-1 text-xs font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors disabled:opacity-50"
                               >
-                                {lang === 'tr' ? 'Evet' : 'Yes'}
+                                {tx('Evet', 'Yes', 'Sì')}
                               </button>
                               <button
                                 onClick={() => setDeletingId(null)}
                                 disabled={deleteLoading}
                                 className="px-2 py-1 text-xs font-semibold text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                               >
-                                {lang === 'tr' ? 'İptal' : 'Cancel'}
+                                {tx('İptal', 'Cancel', 'Annulla')}
                               </button>
                             </div>
                           </div>
@@ -939,7 +949,7 @@ export function EvaluationsContent({
                             <button
                               onClick={() => openView(ev.id)}
                               className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium text-[#1B4332] bg-[#1B4332]/8 hover:bg-[#1B4332]/15 rounded-lg transition-colors"
-                              title={lang === 'tr' ? 'Görüntüle' : 'View'}
+                              title={tx('Görüntüle', 'View', 'Visualizza')}
                             >
                               <Eye className="w-3.5 h-3.5" />
                               <span className="hidden xl:inline">{t.common.view}</span>
@@ -950,10 +960,10 @@ export function EvaluationsContent({
                               <Link
                                 href={`/evaluations/${ev.id}`}
                                 className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-                                title={lang === 'tr' ? 'Düzenle' : 'Edit'}
+                                title={tx('Düzenle', 'Edit', 'Modifica')}
                               >
                                 <Pencil className="w-3.5 h-3.5" />
-                                <span className="hidden xl:inline">{lang === 'tr' ? 'Düzenle' : 'Edit'}</span>
+                                <span className="hidden xl:inline">{tx('Düzenle', 'Edit', 'Modifica')}</span>
                               </Link>
                             )}
 
@@ -965,7 +975,7 @@ export function EvaluationsContent({
                                   setDeleteError('')
                                 }}
                                 className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-                                title={lang === 'tr' ? 'Sil' : 'Delete'}
+                                title={tx('Sil', 'Delete', 'Elimina')}
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -986,9 +996,11 @@ export function EvaluationsContent({
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
           <span className="text-gray-400 text-xs sm:text-sm">
-            {lang === 'tr'
-              ? `${totalCount} kayıt · Sayfa ${currentPage} / ${totalPages}`
-              : `${totalCount} records · Page ${currentPage} of ${totalPages}`}
+            {tx(
+              `${totalCount} kayıt · Sayfa ${currentPage} / ${totalPages}`,
+              `${totalCount} records · Page ${currentPage} of ${totalPages}`,
+              `${totalCount} record · Pagina ${currentPage} di ${totalPages}`
+            )}
           </span>
           <div className="flex items-center gap-1.5">
             <button

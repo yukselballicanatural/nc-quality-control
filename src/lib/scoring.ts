@@ -17,6 +17,7 @@ export function getScoreLevel(score: number): ScoreLevel {
     return {
       label: 'Mükemmel',
       labelEn: 'Excellent',
+      labelIt: 'Eccellente',
       color: 'green',
       bgColor: 'bg-green-100',
       textColor: 'text-green-800',
@@ -26,6 +27,7 @@ export function getScoreLevel(score: number): ScoreLevel {
     return {
       label: 'İyi',
       labelEn: 'Good',
+      labelIt: 'Buono',
       color: 'blue',
       bgColor: 'bg-blue-100',
       textColor: 'text-blue-800',
@@ -35,6 +37,7 @@ export function getScoreLevel(score: number): ScoreLevel {
     return {
       label: 'Geliştirilmeli',
       labelEn: 'Needs Improvement',
+      labelIt: 'Da Migliorare',
       color: 'yellow',
       bgColor: 'bg-yellow-100',
       textColor: 'text-yellow-800',
@@ -43,6 +46,7 @@ export function getScoreLevel(score: number): ScoreLevel {
   return {
     label: 'Başarısız',
     labelEn: 'Unsuccessful',
+    labelIt: 'Non Riuscito',
     color: 'red',
     bgColor: 'bg-red-100',
     textColor: 'text-red-800',

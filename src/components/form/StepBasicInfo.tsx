@@ -5,6 +5,7 @@ import { useFormStore } from '@/stores/formStore'
 import { useLanguage } from '@/lib/i18n'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import { DatePicker } from '@/components/ui/DatePicker'
+import { textFor } from '@/lib/localization'
 import type { UserRole, ChannelType, SalesStage } from '@/types/supabase'
 import type { AgentOption } from '@/lib/agents'
 
@@ -50,6 +51,7 @@ const STAGES: SalesStage[] = [
 
 export function StepBasicInfo({ role, evaluatorId, evaluatorName, agents, teamLeaders, evaluators }: StepBasicInfoProps) {
   const { lang, t } = useLanguage()
+  const tx = (tr: string, en: string, it: string) => textFor(lang, tr, en, it)
   const { step1, updateStep1 } = useFormStore()
 
   const displayEvaluatorName =
@@ -83,7 +85,7 @@ export function StepBasicInfo({ role, evaluatorId, evaluatorName, agents, teamLe
 
       {/* ── Kişiler ─────────────────────────────────────── */}
       <div className={sectionCls}>
-        <SectionHeader icon={Users} title={lang === 'tr' ? 'Kişiler' : 'People'} />
+        <SectionHeader icon={Users} title={tx('Kişiler', 'People', 'Persone')} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -101,11 +103,11 @@ export function StepBasicInfo({ role, evaluatorId, evaluatorName, agents, teamLe
           </div>
 
           <div>
-            <label className={labelCls}>{lang === 'tr' ? 'Region' : 'Region'}</label>
+            <label className={labelCls}>{tx('Region', 'Region', 'Regione')}</label>
             <div className="relative">
               <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
               <div className={`${inputCls} pl-10 bg-gray-50 text-gray-500 cursor-default`}>
-                {step1.region || (lang === 'tr' ? 'Danışman seçilince görünür' : 'Appears after selecting consultant')}
+                {step1.region || tx('Danışman seçilince görünür', 'Appears after selecting consultant', 'Visibile dopo la selezione del consulente')}
               </div>
             </div>
           </div>
@@ -115,7 +117,7 @@ export function StepBasicInfo({ role, evaluatorId, evaluatorName, agents, teamLe
             <div className="relative">
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
               <div className={`${inputCls} pl-10 bg-gray-50 text-gray-500 cursor-default`}>
-                {step1.agentTeamLeaderName || (lang === 'tr' ? 'Danışman seçilince görünür' : 'Appears after selecting consultant')}
+                {step1.agentTeamLeaderName || tx('Danışman seçilince görünür', 'Appears after selecting consultant', 'Visibile dopo la selezione del consulente')}
               </div>
             </div>
           </div>
@@ -130,7 +132,7 @@ export function StepBasicInfo({ role, evaluatorId, evaluatorName, agents, teamLe
                 value={step1.evaluatorId}
                 onChange={v => updateStep1({ evaluatorId: v })}
                 options={evaluators.map(e => ({ value: e.id, label: e.full_name }))}
-                placeholder={lang === 'tr' ? 'Değerlendiren kişi seçin' : 'Select evaluator'}
+                placeholder={tx('Değerlendiren kişi seçin', 'Select evaluator', 'Seleziona valutatore')}
                 icon={User}
                 required
               />
@@ -148,7 +150,7 @@ export function StepBasicInfo({ role, evaluatorId, evaluatorName, agents, teamLe
 
       {/* ── Müşteri Bilgileri ────────────────────────────── */}
       <div className={sectionCls}>
-        <SectionHeader icon={ClipboardList} title={lang === 'tr' ? 'Müşteri Bilgileri' : 'Customer Info'} />
+        <SectionHeader icon={ClipboardList} title={tx('Müşteri Bilgileri', 'Customer Info', 'Informazioni Cliente')} />
 
         <div>
           <label className={labelCls}>
@@ -212,7 +214,7 @@ export function StepBasicInfo({ role, evaluatorId, evaluatorName, agents, teamLe
 
       {/* ── Tarih ───────────────────────────────────── */}
       <div className={sectionCls}>
-        <SectionHeader icon={Calendar} title={lang === 'tr' ? 'Tarih Bilgileri' : 'Date Information'} />
+        <SectionHeader icon={Calendar} title={tx('Tarih Bilgileri', 'Date Information', 'Informazioni Data')} />
 
         {/* İncelenen dönem aralığı */}
         <div>
@@ -249,7 +251,7 @@ export function StepBasicInfo({ role, evaluatorId, evaluatorName, agents, teamLe
               />
               {step1.reviewStartDate && step1.reviewEndDate && step1.reviewEndDate < step1.reviewStartDate && (
                 <p className="text-[11px] text-red-500 mt-1.5 font-medium">
-                  {lang === 'tr' ? 'Bitiş tarihi başlangıç tarihinden önce olamaz.' : 'End date cannot be before start date.'}
+                  {tx('Bitiş tarihi başlangıç tarihinden önce olamaz.', 'End date cannot be before start date.', 'La data di fine non può essere precedente alla data di inizio.')}
                 </p>
               )}
             </div>
@@ -314,7 +316,7 @@ export function StepBasicInfo({ role, evaluatorId, evaluatorName, agents, teamLe
 
       {/* ── Genel Not ───────────────────────────────────── */}
       <div className={sectionCls}>
-        <SectionHeader icon={FileText} title={lang === 'tr' ? 'Genel Not' : 'General Note'} />
+        <SectionHeader icon={FileText} title={tx('Genel Not', 'General Note', 'Nota Generale')} />
         <textarea
           value={step1.generalNote}
           onChange={e => updateStep1({ generalNote: e.target.value })}

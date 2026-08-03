@@ -748,6 +748,14 @@ const baseTranslations = {
   },
 } as const
 
+type WidenTranslation<T> =
+  T extends (...args: infer Args) => infer Return ? (...args: Args) => Return :
+  T extends string ? string :
+  T extends object ? { [K in keyof T]: WidenTranslation<T[K]> } :
+  T
+
+type BaseTranslation = WidenTranslation<typeof baseTranslations.en>
+
 const it = {
   common: {
     save: 'Salva',
@@ -1120,7 +1128,7 @@ const it = {
   trainingExamResults: {
     pageTitle: 'Risultati Esame',
   },
-} satisfies typeof baseTranslations.en
+} satisfies BaseTranslation
 
 export const translations = {
   ...baseTranslations,

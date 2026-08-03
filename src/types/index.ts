@@ -63,6 +63,7 @@ export interface EvaluationWithRelations {
 export interface ScoreLevel {
   label: string
   labelEn: string
+  labelIt?: string
   color: 'green' | 'blue' | 'yellow' | 'orange' | 'red'
   bgColor: string
   textColor: string

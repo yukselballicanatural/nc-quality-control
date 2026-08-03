@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { TrendingUp, Target, Zap, HelpCircle, Star, AlertOctagon } from 'lucide-react'
 import { useFormStore } from '@/stores/formStore'
 import { useLanguage } from '@/lib/i18n'
+import { textFor } from '@/lib/localization'
 import type { FormStep5 } from '@/stores/formStore'
 
 const FIELD_ICONS = [TrendingUp, Target, Zap, HelpCircle, Star, AlertOctagon]
@@ -19,6 +20,7 @@ const FIELD_COLORS = [
 
 export function StepSalesAnalysis() {
   const { lang, t } = useLanguage()
+  const tx = (tr: string, en: string, it: string) => textFor(lang, tr, en, it)
   const { step5, updateStep5 } = useFormStore()
 
   const fields: Array<{ key: keyof FormStep5; label: string }> = [
@@ -40,10 +42,10 @@ export function StepSalesAnalysis() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-bold text-gray-900">
-              {lang === 'tr' ? 'Satış Analizi' : 'Sales Analysis'}
+              {tx('Satış Analizi', 'Sales Analysis', 'Analisi Vendite')}
             </p>
             <p className="text-xs text-gray-400 mt-0.5">
-              {lang === 'tr' ? 'İsteğe bağlı — doldurulan alanlar kaydedilir' : 'Optional — filled fields are saved'}
+              {tx('İsteğe bağlı — doldurulan alanlar kaydedilir', 'Optional — filled fields are saved', 'Facoltativo — i campi compilati vengono salvati')}
             </p>
           </div>
           <div className="text-right">
@@ -80,7 +82,7 @@ export function StepSalesAnalysis() {
                 <div>
                   <p className="text-sm font-semibold text-gray-900 leading-snug">{field.label}</p>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {lang === 'tr' ? 'İsteğe bağlı' : 'Optional'}
+                    {tx('İsteğe bağlı', 'Optional', 'Facoltativo')}
                   </p>
                 </div>
               </div>

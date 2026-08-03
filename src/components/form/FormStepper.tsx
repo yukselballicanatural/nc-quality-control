@@ -14,6 +14,7 @@ import {
 import { useFormStore } from '@/stores/formStore'
 import { useLanguage } from '@/lib/i18n'
 import { useEvaluation } from '@/hooks/useEvaluation'
+import { textFor } from '@/lib/localization'
 import { StepBasicInfo } from './StepBasicInfo'
 import { StepStageQuestions } from './StepStageQuestions'
 import { StepOfferQuestions } from './StepOfferQuestions'
@@ -67,6 +68,7 @@ export function FormStepper({
   initialEvaluation,
 }: FormStepperProps) {
   const { lang, t } = useLanguage()
+  const tx = (tr: string, en: string, it: string) => textFor(lang, tr, en, it)
   const { saveDraft, submit, isSaving, saveError, clearError } = useEvaluation(initialEvaluation?.id ?? null)
 
   const {
@@ -116,26 +118,26 @@ export function FormStepper({
 
   function getStepError(step: number): string | null {
     if (step === 1) {
-      if (!step1.consultantId) return lang === 'tr' ? 'Danışman seçilmedi.' : 'No consultant selected.'
-      if (role === 'manager' && !step1.evaluatorId) return lang === 'tr' ? 'Değerlendiren kişi seçilmedi.' : 'No evaluator selected.'
-      if (!step1.customerPhone.trim()) return lang === 'tr' ? 'Müşteri telefon numarası zorunludur.' : 'Customer phone number is required.'
-      if (step1.channels.length === 0) return lang === 'tr' ? 'Görüşme kanalı seçilmedi.' : 'Channel not selected.'
-      if (!step1.reviewStartDate) return lang === 'tr' ? 'İncelenen dönem başlangıç tarihi zorunludur.' : 'Review period start date is required.'
-      if (!step1.reviewEndDate) return lang === 'tr' ? 'İncelenen dönem bitiş tarihi zorunludur.' : 'Review period end date is required.'
-      if (!step1.controlDate) return lang === 'tr' ? 'Kontrol tarihi zorunludur.' : 'Control date is required.'
-      if (!step1.stage) return lang === 'tr' ? 'Satış süreci (stage) seçilmedi.' : 'Sales stage not selected.'
+      if (!step1.consultantId) return tx('Danışman seçilmedi.', 'No consultant selected.', 'Nessun consulente selezionato.')
+      if (role === 'manager' && !step1.evaluatorId) return tx('Değerlendiren kişi seçilmedi.', 'No evaluator selected.', 'Nessun valutatore selezionato.')
+      if (!step1.customerPhone.trim()) return tx('Müşteri telefon numarası zorunludur.', 'Customer phone number is required.', 'Il numero di telefono del cliente è obbligatorio.')
+      if (step1.channels.length === 0) return tx('Görüşme kanalı seçilmedi.', 'Channel not selected.', 'Canale non selezionato.')
+      if (!step1.reviewStartDate) return tx('İncelenen dönem başlangıç tarihi zorunludur.', 'Review period start date is required.', 'La data di inizio del periodo esaminato è obbligatoria.')
+      if (!step1.reviewEndDate) return tx('İncelenen dönem bitiş tarihi zorunludur.', 'Review period end date is required.', 'La data di fine del periodo esaminato è obbligatoria.')
+      if (!step1.controlDate) return tx('Kontrol tarihi zorunludur.', 'Control date is required.', 'La data di controllo è obbligatoria.')
+      if (!step1.stage) return tx('Satış süreci (stage) seçilmedi.', 'Sales stage not selected.', 'Fase di vendita non selezionata.')
     }
     if (step === 2 && isDealStage && !isDealQuestionsComplete()) {
-      return lang === 'tr' ? 'Tüm deal soruları yanıtlanmalıdır.' : 'All deal questions must be answered.'
+      return tx('Tüm deal soruları yanıtlanmalıdır.', 'All deal questions must be answered.', 'Tutte le domande sull’accordo devono ricevere risposta.')
     }
     if (step === 2 && isSecondVisitStage && !isSecondVisitQuestionsComplete()) {
-      return lang === 'tr' ? 'Soruyu yanıtlamanız gerekiyor.' : 'Please answer the question.'
+      return tx('Soruyu yanıtlamanız gerekiyor.', 'Please answer the question.', 'Devi rispondere alla domanda.')
     }
     if (step === 2 && (isEarlyStage || isExtendedStage) && !isStageQuestionsComplete()) {
-      return lang === 'tr' ? 'Tüm stage soruları yanıtlanmalıdır.' : 'All stage questions must be answered.'
+      return tx('Tüm stage soruları yanıtlanmalıdır.', 'All stage questions must be answered.', 'Tutte le domande dello stage devono ricevere risposta.')
     }
     if (step === 3 && isExtendedStage && !isOfferQuestionsComplete()) {
-      return lang === 'tr' ? 'Tüm teklif soruları yanıtlanmalıdır.' : 'All offer questions must be answered.'
+      return tx('Tüm teklif soruları yanıtlanmalıdır.', 'All offer questions must be answered.', 'Tutte le domande sull’offerta devono ricevere risposta.')
     }
     return null
   }
@@ -188,14 +190,14 @@ export function FormStepper({
     await submit()
   }
 
-  const stageQTitle = lang === 'tr' ? 'Stage Soruları'   : 'Stage Questions'
-  const stageQDesc  = lang === 'tr' ? 'Seçilen stage\'e göre değerlendirme sorularını yanıtlayın.' : 'Answer the evaluation questions for the selected stage.'
-  const offerQTitle = lang === 'tr' ? 'Teklif Soruları'  : 'Offer Questions'
-  const offerQDesc  = lang === 'tr' ? 'Teklif sürecine ait 7 soruyu yanıtlayın (50 puan).' : 'Answer 7 offer process questions (50 pts).'
-  const dealQTitle = lang === 'tr' ? 'Deal Soruları'         : 'Deal Questions'
-  const dealQDesc  = lang === 'tr' ? 'Deal sürecine ait 4 soruyu yanıtlayın (100 puan).' : 'Answer 4 deal process questions (100 pts).'
-  const svQTitle   = lang === 'tr' ? 'İkinci Ziyaret Sorusu' : 'Second Visit Question'
-  const svQDesc    = lang === 'tr' ? 'İkinci ziyaret takip sorusunu yanıtlayın (100 puan).' : 'Answer the second visit follow-up question (100 pts).'
+  const stageQTitle = tx('Stage Soruları', 'Stage Questions', 'Domande Stage')
+  const stageQDesc  = tx('Seçilen stage\'e göre değerlendirme sorularını yanıtlayın.', 'Answer the evaluation questions for the selected stage.', 'Rispondi alle domande di valutazione per lo stage selezionato.')
+  const offerQTitle = tx('Teklif Soruları', 'Offer Questions', 'Domande Offerta')
+  const offerQDesc  = tx('Teklif sürecine ait 7 soruyu yanıtlayın (50 puan).', 'Answer 7 offer process questions (50 pts).', 'Rispondi alle 7 domande del processo offerta (50 punti).')
+  const dealQTitle = tx('Deal Soruları', 'Deal Questions', 'Domande Accordo')
+  const dealQDesc  = tx('Deal sürecine ait 4 soruyu yanıtlayın (100 puan).', 'Answer 4 deal process questions (100 pts).', 'Rispondi alle 4 domande del processo accordo (100 punti).')
+  const svQTitle   = tx('İkinci Ziyaret Sorusu', 'Second Visit Question', 'Domanda Seconda Visita')
+  const svQDesc    = tx('İkinci ziyaret takip sorusunu yanıtlayın (100 puan).', 'Answer the second visit follow-up question (100 pts).', 'Rispondi alla domanda di follow-up della seconda visita (100 punti).')
 
   const stepTitles = isExtendedStage
     ? [t.form.step1.title, stageQTitle, offerQTitle, t.form.step6.title]
@@ -359,7 +361,7 @@ export function FormStepper({
           >
             <div className="flex items-center gap-3 px-4 py-3.5 bg-green-50 border border-green-100 rounded-2xl text-sm text-green-700">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-              {lang === 'tr' ? 'Taslak kaydedildi.' : 'Draft saved.'}
+              {tx('Taslak kaydedildi.', 'Draft saved.', 'Bozza salvata.')}
             </div>
           </motion.div>
         )}
@@ -384,7 +386,7 @@ export function FormStepper({
           >
             <Save className="w-4 h-4 flex-shrink-0" />
             <span className="hidden sm:inline">
-              {isSaving ? (lang === 'tr' ? 'Kaydediliyor…' : 'Saving…') : t.form.saveDraft}
+              {isSaving ? tx('Kaydediliyor…', 'Saving…', 'Salvataggio…') : t.form.saveDraft}
             </span>
           </button>
 
@@ -405,10 +407,10 @@ export function FormStepper({
             >
               <Send className="w-4 h-4 flex-shrink-0" />
               <span className="hidden sm:inline">
-                {isSaving ? (lang === 'tr' ? 'Gönderiliyor…' : 'Submitting…') : t.form.saveAndApprove}
+                {isSaving ? tx('Gönderiliyor…', 'Submitting…', 'Invio…') : t.form.saveAndApprove}
               </span>
               <span className="sm:hidden">
-                {isSaving ? '…' : (lang === 'tr' ? 'Gönder' : 'Submit')}
+                {isSaving ? '…' : tx('Gönder', 'Submit', 'Invia')}
               </span>
             </button>
           )}

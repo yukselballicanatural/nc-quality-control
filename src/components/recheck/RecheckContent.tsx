@@ -8,9 +8,11 @@ import {
   CheckCircle2, AlertTriangle, Inbox, X, Users, Check,
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
+import { appLocale, textFor } from '@/lib/localization'
 import { DatePicker } from '@/components/ui/DatePicker'
 import { createClient } from '@/lib/supabase/client'
 import type { UserRole } from '@/types/supabase'
+import type { Language } from '@/types'
 import type { RecheckItem } from '@/app/(dashboard)/recheck/page'
 
 interface Props {
@@ -27,12 +29,16 @@ function dayDiff(dateStr: string) {
   return Math.round((b.getTime() - a.getTime()) / 86_400_000)
 }
 
-function fmt(d: string) {
-  return new Date(d).toLocaleDateString('tr-TR', { day:'2-digit', month:'short', year:'numeric' })
+function tx(lang: Language, tr: string, en: string, it: string) {
+  return textFor(lang, tr, en, it)
 }
 
-function fmtDateTime(d: string) {
-  return new Date(d).toLocaleString('tr-TR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+function fmt(d: string, lang: Language) {
+  return new Date(d).toLocaleDateString(appLocale(lang), { day:'2-digit', month:'short', year:'numeric' })
+}
+
+function fmtDateTime(d: string, lang: Language) {
+  return new Date(d).toLocaleString(appLocale(lang), { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
 }
 
 const AVATAR_COLORS = [
@@ -93,13 +99,12 @@ function ScoreCircle({ score }: { score: number }) {
 
 // ─── Day badge ────────────────────────────────────────────────────
 
-function DayBadge({ diff, lang }: { diff: number; lang: string }) {
-  const tr = lang === 'tr'
-  if (diff < 0)   return <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-red-500 text-white whitespace-nowrap">{Math.abs(diff)} {tr ? 'gün geçti' : 'days ago'}</span>
-  if (diff === 0) return <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-orange-500 text-white whitespace-nowrap animate-pulse">{tr ? 'Bugün' : 'Today'}</span>
-  if (diff === 1) return <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-amber-500 text-white whitespace-nowrap">{tr ? 'Yarın' : 'Tomorrow'}</span>
-  if (diff <= 7)  return <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-[#52B788] text-white whitespace-nowrap">{tr ? `${diff} gün sonra` : `in ${diff} days`}</span>
-  return <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 whitespace-nowrap">{tr ? `${diff} gün sonra` : `in ${diff} days`}</span>
+function DayBadge({ diff, lang }: { diff: number; lang: Language }) {
+  if (diff < 0)   return <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-red-500 text-white whitespace-nowrap">{tx(lang, `${Math.abs(diff)} gün geçti`, `${Math.abs(diff)} days ago`, `${Math.abs(diff)} giorni fa`)}</span>
+  if (diff === 0) return <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-orange-500 text-white whitespace-nowrap animate-pulse">{tx(lang, 'Bugün', 'Today', 'Oggi')}</span>
+  if (diff === 1) return <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-amber-500 text-white whitespace-nowrap">{tx(lang, 'Yarın', 'Tomorrow', 'Domani')}</span>
+  if (diff <= 7)  return <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-[#52B788] text-white whitespace-nowrap">{tx(lang, `${diff} gün sonra`, `in ${diff} days`, `tra ${diff} giorni`)}</span>
+  return <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 whitespace-nowrap">{tx(lang, `${diff} gün sonra`, `in ${diff} days`, `tra ${diff} giorni`)}</span>
 }
 
 // ─── Recheck card ─────────────────────────────────────────────────
@@ -107,11 +112,10 @@ function DayBadge({ diff, lang }: { diff: number; lang: string }) {
 function Card({
   item, idx, currentUserId, lang, onToggleDone,
 }: {
-  item: RecheckItem; idx: number; currentUserId: string; lang: string; onToggleDone: (id: string, done: boolean) => Promise<void>
+  item: RecheckItem; idx: number; currentUserId: string; lang: Language; onToggleDone: (id: string, done: boolean) => Promise<void>
 }) {
   const [pending, setPending] = useState(false)
   const diff = dayDiff(item.dev_recheck_date)
-  const tr = lang === 'tr'
   const isDone = item.recheck_done
 
   const accentCls = isDone ? 'from-emerald-400' :
@@ -161,7 +165,7 @@ function Card({
             )}
             {isDone && (
               <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                {tr ? '✓ Tamamlandı' : '✓ Done'}
+                {tx(lang, '✓ Tamamlandı', '✓ Done', '✓ Completato')}
               </span>
             )}
           </div>
@@ -170,7 +174,7 @@ function Card({
           {isDone && item.doneBy && item.recheck_done_at ? (
             <p className="text-xs text-emerald-600 font-semibold flex items-center gap-1.5">
               <CheckCircle2 className="w-3 h-3" />
-              {item.doneBy.full_name} — {fmtDateTime(item.recheck_done_at)}
+              {item.doneBy.full_name} — {fmtDateTime(item.recheck_done_at, lang)}
             </p>
           ) : (
             <div className="flex items-center gap-4 flex-wrap text-xs text-gray-400">
@@ -181,10 +185,10 @@ function Card({
               )}
               <span className="flex items-center gap-1.5">
                 <CalendarClock className="w-3 h-3 text-[#52B788]" />
-                <span className="font-bold text-gray-500">{fmt(item.dev_recheck_date)}</span>
+                <span className="font-bold text-gray-500">{fmt(item.dev_recheck_date, lang)}</span>
               </span>
               <span className="flex items-center gap-1.5">
-                <Clock className="w-3 h-3" />{fmt(item.conversation_date)}
+                <Clock className="w-3 h-3" />{fmt(item.conversation_date, lang)}
               </span>
             </div>
           )}
@@ -199,7 +203,7 @@ function Card({
           <button
             onClick={handleToggle}
             disabled={pending}
-            title={isDone ? (tr ? 'Tamamlamayı geri al' : 'Undo completion') : (tr ? 'Kontrol edildi olarak işaretle' : 'Mark as done')}
+            title={isDone ? tx(lang, 'Tamamlamayı geri al', 'Undo completion', 'Annulla completamento') : tx(lang, 'Kontrol edildi olarak işaretle', 'Mark as done', 'Segna come completato')}
             className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-200 flex-shrink-0 cursor-pointer ${
               isDone
                 ? 'bg-emerald-50 border-emerald-200 hover:bg-red-50 hover:border-red-200'
@@ -226,8 +230,7 @@ function Card({
 
 // ─── Right sidebar ────────────────────────────────────────────────
 
-function Sidebar({ items, lang }: { items: RecheckItem[]; lang: string }) {
-  const tr = lang === 'tr'
+function Sidebar({ items, lang }: { items: RecheckItem[]; lang: Language }) {
   const pending  = items.filter(i => !i.recheck_done)
   const done     = items.filter(i => i.recheck_done)
   const overdue  = pending.filter(i => dayDiff(i.dev_recheck_date) < 0).length
@@ -245,11 +248,11 @@ function Sidebar({ items, lang }: { items: RecheckItem[]; lang: string }) {
   const failing  = pending.filter(i => i.final_score < 70).length
 
   const DIST = [
-    { label: tr ? 'Gecikmiş' : 'Overdue',  count: overdue,  color: 'bg-red-400',    tx: 'text-red-600' },
-    { label: tr ? 'Bugün'    : 'Today',     count: today,    color: 'bg-orange-400', tx: 'text-orange-600' },
-    { label: tr ? 'Yarın'    : 'Tomorrow',  count: tomorrow, color: 'bg-amber-400',  tx: 'text-amber-600' },
-    { label: tr ? 'Bu Hafta' : 'This Week', count: week,     color: 'bg-[#52B788]',  tx: 'text-emerald-600' },
-    { label: tr ? 'Sonrası'  : 'Later',     count: later,    color: 'bg-gray-300',   tx: 'text-gray-500' },
+    { label: tx(lang, 'Gecikmiş', 'Overdue', 'In ritardo'),  count: overdue,  color: 'bg-red-400',    tx: 'text-red-600' },
+    { label: tx(lang, 'Bugün', 'Today', 'Oggi'),     count: today,    color: 'bg-orange-400', tx: 'text-orange-600' },
+    { label: tx(lang, 'Yarın', 'Tomorrow', 'Domani'),  count: tomorrow, color: 'bg-amber-400',  tx: 'text-amber-600' },
+    { label: tx(lang, 'Bu Hafta', 'This Week', 'Questa settimana'), count: week,     color: 'bg-[#52B788]',  tx: 'text-emerald-600' },
+    { label: tx(lang, 'Sonrası', 'Later', 'Più tardi'),     count: later,    color: 'bg-gray-300',   tx: 'text-gray-500' },
   ]
   const scoreS = scoreStyle(avgScore)
 
@@ -261,27 +264,27 @@ function Sidebar({ items, lang }: { items: RecheckItem[]; lang: string }) {
         className={`rounded-2xl p-5 border overflow-hidden relative ${urgent > 0 ? 'bg-red-50 border-red-200' : 'bg-emerald-50 border-emerald-200'}`}>
         <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full opacity-10 ${urgent > 0 ? 'bg-red-500' : 'bg-emerald-500'}`} />
         <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${urgent > 0 ? 'text-red-500' : 'text-emerald-600'}`}>
-          {tr ? 'Acil Durum' : 'Urgent'}
+          {tx(lang, 'Acil Durum', 'Urgent', 'Urgente')}
         </p>
         <div className="flex items-end gap-2">
           <p className={`text-5xl font-black tabular-nums leading-none ${urgent > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{urgent}</p>
           <p className={`text-sm font-bold mb-1 ${urgent > 0 ? 'text-red-500' : 'text-emerald-600'}`}>
-            {urgent > 0 ? (tr ? 'kişi bekliyor' : 'pending') : (tr ? 'Temiz!' : 'All clear!')}
+            {urgent > 0 ? tx(lang, 'kişi bekliyor', 'pending', 'in attesa') : tx(lang, 'Temiz!', 'All clear!', 'Tutto a posto!')}
           </p>
         </div>
         {urgent > 0 && (
           <div className="flex items-center gap-1.5 mt-3">
             <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-            <p className="text-[11px] text-red-500 font-semibold">{overdue} {tr ? 'gecikmiş' : 'overdue'} · {today} {tr ? 'bugün' : 'today'}</p>
+            <p className="text-[11px] text-red-500 font-semibold">{overdue} {tx(lang, 'gecikmiş', 'overdue', 'in ritardo')} · {today} {tx(lang, 'bugün', 'today', 'oggi')}</p>
           </div>
         )}
-        {urgent === 0 && <p className="text-[11px] text-emerald-600 font-semibold mt-2">{tr ? 'Bugün acil yok 🎉' : 'Nothing urgent today 🎉'}</p>}
+        {urgent === 0 && <p className="text-[11px] text-emerald-600 font-semibold mt-2">{tx(lang, 'Bugün acil yok', 'Nothing urgent today', 'Nessuna urgenza oggi')}</p>}
       </motion.div>
 
       {/* Tamamlananlar özeti */}
       <motion.div initial={{ opacity:0, x:16 }} animate={{ opacity:1, x:0 }} transition={{ delay:0.15, duration:0.35, ease:[0.16,1,0.3,1] }}
         className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{tr ? 'Tamamlama Durumu' : 'Completion Status'}</p>
+        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{tx(lang, 'Tamamlama Durumu', 'Completion Status', 'Stato Completamento')}</p>
         <div className="flex items-center gap-3 mb-3">
           <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
             <motion.div className="h-full rounded-full bg-emerald-400"
@@ -297,11 +300,11 @@ function Sidebar({ items, lang }: { items: RecheckItem[]; lang: string }) {
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">
             <p className="text-xl font-black text-emerald-700">{done.length}</p>
-            <p className="text-[10px] text-emerald-600 font-bold mt-0.5">{tr ? 'Tamamlandı' : 'Done'}</p>
+            <p className="text-[10px] text-emerald-600 font-bold mt-0.5">{tx(lang, 'Tamamlandı', 'Done', 'Completati')}</p>
           </div>
           <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 text-center">
             <p className="text-xl font-black text-gray-700">{pending.length}</p>
-            <p className="text-[10px] text-gray-500 font-bold mt-0.5">{tr ? 'Bekliyor' : 'Pending'}</p>
+            <p className="text-[10px] text-gray-500 font-bold mt-0.5">{tx(lang, 'Bekliyor', 'Pending', 'In attesa')}</p>
           </div>
         </div>
       </motion.div>
@@ -309,7 +312,7 @@ function Sidebar({ items, lang }: { items: RecheckItem[]; lang: string }) {
       {/* Dağılım */}
       <motion.div initial={{ opacity:0, x:16 }} animate={{ opacity:1, x:0 }} transition={{ delay:0.2, duration:0.35, ease:[0.16,1,0.3,1] }}
         className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">{tr ? 'Zaman Dağılımı' : 'Time Distribution'}</p>
+        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">{tx(lang, 'Zaman Dağılımı', 'Time Distribution', 'Distribuzione Temporale')}</p>
         <div className="space-y-3">
           {DIST.map((row, i) => (
             <div key={row.label}>
@@ -332,25 +335,25 @@ function Sidebar({ items, lang }: { items: RecheckItem[]; lang: string }) {
       {/* Skor özeti */}
       <motion.div initial={{ opacity:0, x:16 }} animate={{ opacity:1, x:0 }} transition={{ delay:0.26, duration:0.35, ease:[0.16,1,0.3,1] }}
         className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">{tr ? 'Skor Özeti' : 'Score Summary'}</p>
+        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">{tx(lang, 'Skor Özeti', 'Score Summary', 'Riepilogo Punteggio')}</p>
         <div className="flex items-center gap-4 mb-4">
           <div className={`w-16 h-16 rounded-2xl ring-2 ${scoreS.ring} ${scoreS.bg} flex flex-col items-center justify-center flex-shrink-0`}>
             <span className={`text-2xl font-black tabular-nums leading-none ${scoreS.text}`}>{avgScore}</span>
-            <span className={`text-[9px] font-bold opacity-50 ${scoreS.text}`}>{tr ? 'ort.' : 'avg.'}</span>
+            <span className={`text-[9px] font-bold opacity-50 ${scoreS.text}`}>{tx(lang, 'ort.', 'avg.', 'media')}</span>
           </div>
           <div>
-            <p className="text-xs text-gray-400 font-semibold mb-0.5">{tr ? 'Bekleyenlerin' : 'Pending avg.'}</p>
-            <p className="text-sm font-bold text-gray-800">{tr ? 'Ortalama Skoru' : 'Average Score'}</p>
+            <p className="text-xs text-gray-400 font-semibold mb-0.5">{tx(lang, 'Bekleyenlerin', 'Pending avg.', 'Media in attesa')}</p>
+            <p className="text-sm font-bold text-gray-800">{tx(lang, 'Ortalama Skoru', 'Average Score', 'Punteggio Medio')}</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">
             <p className="text-xl font-black text-emerald-700">{passing}</p>
-            <p className="text-[10px] text-emerald-600 font-bold mt-0.5">{tr ? '≥70 Geçiyor' : '≥70 Passing'}</p>
+            <p className="text-[10px] text-emerald-600 font-bold mt-0.5">{tx(lang, '≥70 Geçiyor', '≥70 Passing', '≥70 Supera')}</p>
           </div>
           <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-center">
             <p className="text-xl font-black text-red-700">{failing}</p>
-            <p className="text-[10px] text-red-600 font-bold mt-0.5">{tr ? '<70 Başarısız' : '<70 Failing'}</p>
+            <p className="text-[10px] text-red-600 font-bold mt-0.5">{tx(lang, '<70 Başarısız', '<70 Failing', '<70 Non supera')}</p>
           </div>
         </div>
       </motion.div>
@@ -364,10 +367,10 @@ function Sidebar({ items, lang }: { items: RecheckItem[]; lang: string }) {
           <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
             <Users className="w-4 h-4 text-[#52B788]" />
           </div>
-          <p className="text-xs font-black text-white/60 uppercase tracking-widest">{tr ? 'Toplam' : 'Total'}</p>
+          <p className="text-xs font-black text-white/60 uppercase tracking-widest">{tx(lang, 'Toplam', 'Total', 'Totale')}</p>
         </div>
         <p className="text-5xl font-black text-white tabular-nums leading-none">{items.length}</p>
-        <p className="text-sm text-white/60 font-semibold mt-1">{tr ? 'danışman kayıtlı' : 'consultants listed'}</p>
+        <p className="text-sm text-white/60 font-semibold mt-1">{tx(lang, 'danışman kayıtlı', 'consultants listed', 'consulenti elencati')}</p>
       </motion.div>
     </div>
   )
@@ -396,7 +399,6 @@ function Tab({ active, onClick, label, count, urgentCls = '' }: {
 
 export function RecheckContent({ items: initialItems, currentUserId, role }: Props) {
   const { lang } = useLanguage()
-  const tr = lang === 'tr'
   const [activeFilter, setActiveFilter] = useState<Filter>('today')
   const [customDate, setCustomDate] = useState('')
   const [items, setItems] = useState<RecheckItem[]>(initialItems)
@@ -441,9 +443,12 @@ export function RecheckContent({ items: initialItems, currentUserId, role }: Pro
     if (error) {
       console.error(error)
       setToggleError(
-        tr
-          ? 'İşaretlenemedi. Supabase üzerinde scripts/add-recheck-done-columns.sql çalıştırıldığından emin olun.'
-          : 'Could not mark as done. Make sure scripts/add-recheck-done-columns.sql has been run on Supabase.'
+        tx(
+          lang,
+          'İşaretlenemedi. Supabase üzerinde scripts/add-recheck-done-columns.sql çalıştırıldığından emin olun.',
+          'Could not mark as done. Make sure scripts/add-recheck-done-columns.sql has been run on Supabase.',
+          'Impossibile segnare come completato. Assicurati che scripts/add-recheck-done-columns.sql sia stato eseguito su Supabase.'
+        )
       )
       return
     }
@@ -467,12 +472,12 @@ export function RecheckContent({ items: initialItems, currentUserId, role }: Pro
   }
 
   const tabs: { id: Filter; label: string; urgentCls?: string }[] = [
-    { id: 'overdue',  label: tr ? 'Gecikmiş' : 'Overdue',   urgentCls: 'bg-red-500 text-white' },
-    { id: 'today',    label: tr ? 'Bugün'    : 'Today',      urgentCls: 'bg-orange-500 text-white' },
-    { id: 'tomorrow', label: tr ? 'Yarın'    : 'Tomorrow' },
-    { id: 'week',     label: tr ? 'Bu Hafta' : 'This Week' },
-    { id: 'all',      label: tr ? 'Tümü'     : 'All' },
-    { id: 'done',     label: tr ? '✓ Tamamlananlar' : '✓ Completed', urgentCls: 'bg-emerald-500 text-white' },
+    { id: 'overdue',  label: tx(lang, 'Gecikmiş', 'Overdue', 'In ritardo'),   urgentCls: 'bg-red-500 text-white' },
+    { id: 'today',    label: tx(lang, 'Bugün', 'Today', 'Oggi'),      urgentCls: 'bg-orange-500 text-white' },
+    { id: 'tomorrow', label: tx(lang, 'Yarın', 'Tomorrow', 'Domani') },
+    { id: 'week',     label: tx(lang, 'Bu Hafta', 'This Week', 'Questa settimana') },
+    { id: 'all',      label: tx(lang, 'Tümü', 'All', 'Tutti') },
+    { id: 'done',     label: tx(lang, '✓ Tamamlananlar', '✓ Completed', '✓ Completati'), urgentCls: 'bg-emerald-500 text-white' },
   ]
 
   return (
@@ -498,9 +503,12 @@ export function RecheckContent({ items: initialItems, currentUserId, role }: Pro
               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
               <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
               <p className="text-sm font-bold text-red-700">
-                {tr
-                  ? `${urgentTotal} danışman bugün veya öncesinde kontrol edilmeli — gecikmiş: ${counts.overdue}, bugün: ${counts.today}`
-                  : `${urgentTotal} consultants need a check today or are overdue`}
+                {tx(
+                  lang,
+                  `${urgentTotal} danışman bugün veya öncesinde kontrol edilmeli — gecikmiş: ${counts.overdue}, bugün: ${counts.today}`,
+                  `${urgentTotal} consultants need a check today or are overdue`,
+                  `${urgentTotal} consulenti richiedono un controllo oggi o sono in ritardo`
+                )}
               </p>
             </div>
           </motion.div>
@@ -526,7 +534,7 @@ export function RecheckContent({ items: initialItems, currentUserId, role }: Pro
                 <div className="w-44">
                   <DatePicker value={customDate}
                     onChange={v => { setCustomDate(v); if (v) setActiveFilter('all') }}
-                    placeholder={tr ? 'Tarih seç...' : 'Pick a date...'} />
+                    placeholder={tx(lang, 'Tarih seç...', 'Pick a date...', 'Scegli una data...')} />
                 </div>
                 {customDate && (
                   <button onClick={() => { setCustomDate(''); setActiveFilter('today') }}
@@ -554,13 +562,13 @@ export function RecheckContent({ items: initialItems, currentUserId, role }: Pro
                   <div className="text-center">
                     <p className="text-sm font-bold text-gray-600">
                       {activeFilter === 'done'
-                        ? (tr ? 'Henüz tamamlanan yok' : 'Nothing completed yet')
-                        : (tr ? 'Bu filtre için kayıt yok' : 'No records for this filter')}
+                        ? tx(lang, 'Henüz tamamlanan yok', 'Nothing completed yet', 'Nessun completato ancora')
+                        : tx(lang, 'Bu filtre için kayıt yok', 'No records for this filter', 'Nessun record per questo filtro')}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
                       {activeFilter === 'done'
-                        ? (tr ? 'Kontroller tamamlandıkça burada görünür' : 'Completed checks will appear here')
-                        : (tr ? 'Farklı bir filtre deneyin' : 'Try a different filter')}
+                        ? tx(lang, 'Kontroller tamamlandıkça burada görünür', 'Completed checks will appear here', 'I controlli completati appariranno qui')
+                        : tx(lang, 'Farklı bir filtre deneyin', 'Try a different filter', 'Prova un filtro diverso')}
                     </p>
                   </div>
                 </div>

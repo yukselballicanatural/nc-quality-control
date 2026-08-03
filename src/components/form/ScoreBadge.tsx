@@ -1,6 +1,7 @@
 'use client'
 
 import { getScoreLevel } from '@/lib/scoring'
+import { scoreLevelLabel } from '@/lib/localization'
 import type { Language } from '@/types'
 
 interface ScoreBadgeProps {
@@ -32,7 +33,7 @@ export function ScoreBadge({ score, lang, size = 'md', showLabel = true }: Score
       {score}
       {showLabel && (
         <span className={`font-normal opacity-75 ${fontClasses[size]}`}>
-          {lang === 'tr' ? level.label : level.labelEn}
+          {scoreLevelLabel(lang, level)}
         </span>
       )}
     </span>

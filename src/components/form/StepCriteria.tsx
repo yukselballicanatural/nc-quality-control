@@ -7,29 +7,30 @@ import { useFormStore } from '@/stores/formStore'
 import { useLanguage } from '@/lib/i18n'
 import { CRITERIA, SCORE_OPTIONS } from '@/lib/constants'
 import { isCommentRequired } from '@/lib/scoring'
+import { labelFor, questionsFor, textFor } from '@/lib/localization'
 
 const SCORE_CONFIG: Record<number, {
-  bg: string; text: string; border: string; ring: string; dot: string; shadow: string; label: string; labelEn: string
+  bg: string; text: string; border: string; ring: string; dot: string; shadow: string; label: string; labelEn: string; labelIt: string
 }> = {
   10: {
     bg: 'bg-emerald-500', text: 'text-white', border: 'border-emerald-500',
     ring: 'ring-emerald-200', dot: 'bg-emerald-500', shadow: 'shadow-emerald-200/60',
-    label: 'Mükemmel', labelEn: 'Perfect',
+    label: 'Mükemmel', labelEn: 'Perfect', labelIt: 'Perfetto',
   },
   7: {
     bg: 'bg-blue-500', text: 'text-white', border: 'border-blue-500',
     ring: 'ring-blue-200', dot: 'bg-blue-500', shadow: 'shadow-blue-200/60',
-    label: 'İyi', labelEn: 'Good',
+    label: 'İyi', labelEn: 'Good', labelIt: 'Buono',
   },
   5: {
     bg: 'bg-amber-500', text: 'text-white', border: 'border-amber-500',
     ring: 'ring-amber-200', dot: 'bg-amber-500', shadow: 'shadow-amber-200/60',
-    label: 'Orta', labelEn: 'Fair',
+    label: 'Orta', labelEn: 'Fair', labelIt: 'Medio',
   },
   0: {
     bg: 'bg-rose-500', text: 'text-white', border: 'border-rose-500',
     ring: 'ring-rose-200', dot: 'bg-rose-500', shadow: 'shadow-rose-200/60',
-    label: 'Yanlış', labelEn: 'Wrong',
+    label: 'Yanlış', labelEn: 'Wrong', labelIt: 'Errato',
   },
 }
 
@@ -49,10 +50,10 @@ export function StepCriteria() {
         <div className="flex items-center justify-between mb-3">
           <div>
             <p className="text-sm font-bold text-gray-900">
-              {lang === 'tr' ? 'Kriter Değerlendirmesi' : 'Criteria Evaluation'}
+              {textFor(lang, 'Kriter Değerlendirmesi', 'Criteria Evaluation', 'Valutazione Criteri')}
             </p>
             <p className="text-xs text-gray-400 mt-0.5">
-              {lang === 'tr' ? 'Her kriter için bir puan seçin' : 'Select a score for each criterion'}
+              {textFor(lang, 'Her kriter için bir puan seçin', 'Select a score for each criterion', 'Seleziona un punteggio per ogni criterio')}
             </p>
           </div>
           <div className={`text-right transition-colors ${scoredCount === 10 ? 'text-emerald-600' : 'text-gray-400'}`}>
@@ -81,7 +82,7 @@ export function StepCriteria() {
               <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
                 <Check className="w-2.5 h-2.5" />
               </div>
-              {lang === 'tr' ? 'Tüm kriterler tamamlandı!' : 'All criteria completed!'}
+              {textFor(lang, 'Tüm kriterler tamamlandı!', 'All criteria completed!', 'Tutti i criteri completati!')}
             </motion.div>
           )}
         </AnimatePresence>
@@ -94,8 +95,8 @@ export function StepCriteria() {
         const needsComment = scored && isCommentRequired(entry.scoreValue)
         const hasComment = scored && entry.comment.trim().length > 0
         const isExpanded = !!expanded[criterion.number]
-        const criterionLabel = lang === 'tr' ? criterion.labelTr : criterion.labelEn
-        const questions = lang === 'tr' ? criterion.questionsTr : criterion.questionsEn
+        const criterionLabel = labelFor(lang, criterion)
+        const questions = questionsFor(lang, criterion)
         const cfg = scored ? SCORE_CONFIG[entry.scoreValue] : null
 
         return (
@@ -148,7 +149,7 @@ export function StepCriteria() {
                         : 'text-rose-600'
                       }`}
                     >
-                      {lang === 'tr' ? cfg.label : cfg.labelEn} · {entry.scoreValue} puan
+                      {labelFor(lang, cfg)} · {entry.scoreValue} {textFor(lang, 'puan', 'points', 'punti')}
                     </motion.p>
                   )}
                 </div>
@@ -158,7 +159,7 @@ export function StepCriteria() {
                   type="button"
                   onClick={() => setExpanded(p => ({ ...p, [criterion.number]: !p[criterion.number] }))}
                   className="flex-shrink-0 p-1 text-gray-300 hover:text-gray-500 transition-colors"
-                  title={lang === 'tr' ? 'Alt sorular' : 'Sub-questions'}
+                  title={textFor(lang, 'Alt sorular', 'Sub-questions', 'Sotto-domande')}
                 >
                   <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
                     <ChevronDown className="w-4 h-4" />
@@ -180,7 +181,7 @@ export function StepCriteria() {
                       <div className="flex items-center gap-1.5 mb-2">
                         <HelpCircle className="w-3.5 h-3.5 text-gray-400" />
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                          {lang === 'tr' ? 'Değerlendirme soruları' : 'Evaluation questions'}
+                          {textFor(lang, 'Değerlendirme soruları', 'Evaluation questions', 'Domande di valutazione')}
                         </p>
                       </div>
                       {questions.map((q, i) => (
@@ -216,7 +217,7 @@ export function StepCriteria() {
                       <span className={`text-[10px] sm:text-xs font-semibold leading-tight text-center ${
                         isSelected ? 'opacity-90' : 'text-gray-400'
                       }`}>
-                        {lang === 'tr' ? opt.labelTr : opt.labelEn}
+                        {labelFor(lang, opt)}
                       </span>
                       {isSelected && (
                         <motion.div

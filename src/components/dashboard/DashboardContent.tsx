@@ -44,7 +44,9 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import { getScoreLevel } from '@/lib/scoring'
+import { appLocale, labelFor, scoreLevelLabel, textFor, translateEnglishToItalian } from '@/lib/localization'
 import { DatePicker } from '@/components/ui/DatePicker'
+import type { Language } from '@/types'
 import type { ChannelType, ConversationResult, EvaluationStatus, UserRole } from '@/types/supabase'
 
 export interface RecentEval {
@@ -169,20 +171,40 @@ const emptyStats: AdminStats = {
   pendingCount: 0,
 }
 
-const RESULT_STYLES: Record<ConversationResult, { bg: string; text: string; labelTr: string; labelEn: string; color: string }> = {
-  won: { bg: 'bg-emerald-100', text: 'text-emerald-700', labelTr: 'Kazanıldı', labelEn: 'Won', color: '#22C55E' },
-  open: { bg: 'bg-blue-100', text: 'text-blue-700', labelTr: 'Açık', labelEn: 'Open', color: '#3B82F6' },
-  follow_up: { bg: 'bg-amber-100', text: 'text-amber-700', labelTr: 'Takip', labelEn: 'Follow Up', color: '#F59E0B' },
-  lost: { bg: 'bg-red-100', text: 'text-red-700', labelTr: 'Kaybedildi', labelEn: 'Lost', color: '#EF4444' },
-  no_answer: { bg: 'bg-gray-100', text: 'text-gray-600', labelTr: 'Cevap Yok', labelEn: 'No Answer', color: '#9CA3AF' },
+const RESULT_STYLES: Record<ConversationResult, { bg: string; text: string; labelTr: string; labelEn: string; labelIt: string; color: string }> = {
+  won: { bg: 'bg-emerald-100', text: 'text-emerald-700', labelTr: 'Kazanıldı', labelEn: 'Won', labelIt: 'Vinta', color: '#22C55E' },
+  open: { bg: 'bg-blue-100', text: 'text-blue-700', labelTr: 'Açık', labelEn: 'Open', labelIt: 'Aperta', color: '#3B82F6' },
+  follow_up: { bg: 'bg-amber-100', text: 'text-amber-700', labelTr: 'Takip', labelEn: 'Follow Up', labelIt: 'Follow-up', color: '#F59E0B' },
+  lost: { bg: 'bg-red-100', text: 'text-red-700', labelTr: 'Kaybedildi', labelEn: 'Lost', labelIt: 'Persa', color: '#EF4444' },
+  no_answer: { bg: 'bg-gray-100', text: 'text-gray-600', labelTr: 'Cevap Yok', labelEn: 'No Answer', labelIt: 'Nessuna Risposta', color: '#9CA3AF' },
 }
 
-function formatDate(value: string, lang: 'tr' | 'en') {
-  return new Date(value).toLocaleDateString(lang === 'tr' ? 'tr-TR' : 'en-US')
+function formatDate(value: string, lang: Language) {
+  return new Date(value).toLocaleDateString(appLocale(lang))
 }
 
-function localText(lang: 'tr' | 'en', tr: string, en: string) {
-  return lang === 'tr' ? tr : en
+function localText(lang: Language, tr: string, en: string, it = translateEnglishToItalian(en)) {
+  return textFor(lang, tr, en, it)
+}
+
+const STAGE_TEXT: Record<string, { tr: string; en: string; it: string }> = {
+  fresh_lead: { tr: 'Fresh Lead', en: 'Fresh Lead', it: 'Nuovo Lead' },
+  new_sales_opportunities: { tr: 'Yeni Satış Fırsatları', en: 'New Sales Opportunities', it: 'Nuove Opportunità di Vendita' },
+  warm_lead: { tr: 'Warm Lead', en: 'Warm Lead', it: 'Lead Caldo' },
+  offer_created: { tr: 'Teklif Oluşturuldu', en: 'Offer Created', it: 'Offerta Creata' },
+  offer_shared: { tr: 'Teklif Paylaşıldı', en: 'Offer Shared', it: 'Offerta Condivisa' },
+  willing_to_close: { tr: 'Kapanışa Hazır', en: 'Willing to Close', it: 'Pronto alla Chiusura' },
+  platform_agents: { tr: 'Platform Agents', en: 'Platform Agents', it: 'Agenti di Piattaforma' },
+  deal: { tr: 'Deal', en: 'Deal', it: 'Accordo' },
+  second_visit: { tr: 'İkinci Ziyaret', en: 'Second Visit', it: 'Seconda Visita' },
+  other: { tr: 'Diğer', en: 'Other', it: 'Altro' },
+}
+
+function stageText(lang: Language, stage: string | null | undefined, fallback = '-') {
+  if (!stage) return fallback
+  const labels = STAGE_TEXT[stage]
+  if (labels) return localText(lang, labels.tr, labels.en, labels.it)
+  return stage.replace(/_/g, ' ')
 }
 
 function scoreColor(score: number) {
@@ -192,32 +214,32 @@ function scoreColor(score: number) {
   return '#EF4444'
 }
 
-function ScoreBadge({ score, lang }: { score: number; lang: 'tr' | 'en' }) {
+function ScoreBadge({ score, lang }: { score: number; lang: Language }) {
   const level = getScoreLevel(score)
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-bold ${level.bgColor} ${level.textColor}`}>
       {score}
-      <span className="text-xs font-normal opacity-75">{lang === 'tr' ? level.label : level.labelEn}</span>
+      <span className="text-xs font-normal opacity-75">{scoreLevelLabel(lang, level)}</span>
     </span>
   )
 }
 
-function ExamBadge({ passed, lang }: { passed: boolean; lang: 'tr' | 'en' }) {
+function ExamBadge({ passed, lang }: { passed: boolean; lang: Language }) {
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
       passed ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
     }`}>
       {passed ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
-      {passed ? localText(lang, 'Geçti', 'Passed') : localText(lang, 'Kaldı', 'Failed')}
+      {passed ? localText(lang, 'Geçti', 'Passed', 'Superato') : localText(lang, 'Kaldı', 'Failed', 'Non superato')}
     </span>
   )
 }
 
-function ResultBadge({ result, lang }: { result: ConversationResult; lang: 'tr' | 'en' }) {
+function ResultBadge({ result, lang }: { result: ConversationResult; lang: Language }) {
   const style = RESULT_STYLES[result]
   return (
     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${style.bg} ${style.text}`}>
-      {lang === 'tr' ? style.labelTr : style.labelEn}
+      {labelFor(lang, style)}
     </span>
   )
 }
@@ -369,7 +391,7 @@ export function DashboardContent({
           <div className="rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm">
             <div className={`mb-2 text-5xl font-bold ${level.textColor}`}>{consultantData.myAverageScore}</div>
             <span className={`rounded-full px-3 py-1 text-sm font-medium ${level.bgColor} ${level.textColor}`}>
-              {lang === 'tr' ? level.label : level.labelEn}
+              {scoreLevelLabel(lang, level)}
             </span>
             <div className="mt-3 text-sm text-gray-500">{t.dashboard.myAverageScore}</div>
             <div className="mt-0.5 text-xs text-gray-400">{t.dashboard.last30Days}</div>
@@ -448,17 +470,17 @@ export function DashboardContent({
   const resultChartData = results
     .filter(item => item.count > 0)
     .map(item => ({
-      name: lang === 'tr' ? RESULT_STYLES[item.result].labelTr : RESULT_STYLES[item.result].labelEn,
+      name: labelFor(lang, RESULT_STYLES[item.result]),
       value: item.count,
       color: RESULT_STYLES[item.result].color,
     }))
 
   const topCards = [
     { icon: ClipboardList, label: t.dashboard.totalEvaluations, value: s.totalEvaluations, sub: rangeLabel, tone: 'green' as const },
-    { icon: TrendingUp, label: t.dashboard.averageScore, value: s.averageScore, sub: lang === 'tr' ? avgLevel.label : avgLevel.labelEn, tone: 'blue' as const },
-    { icon: CheckCircle2, label: localText(lang, 'Başarı Oranı', 'Pass Rate'), value: `${passRate}%`, sub: `${s.passedCount}/${s.totalEvaluations}`, tone: 'green' as const },
+    { icon: TrendingUp, label: t.dashboard.averageScore, value: s.averageScore, sub: scoreLevelLabel(lang, avgLevel), tone: 'blue' as const },
+    { icon: CheckCircle2, label: localText(lang, 'Başarı Oranı', 'Pass Rate', 'Tasso di Successo'), value: `${passRate}%`, sub: `${s.passedCount}/${s.totalEvaluations}`, tone: 'green' as const },
     { icon: Trophy, label: t.dashboard.wonRate, value: `${s.wonRate}%`, sub: rangeLabel, tone: 'purple' as const },
-    { icon: GraduationCap, label: localText(lang, 'Sınav Başarısı', 'Exam Pass Rate'), value: `${exam.passRate}%`, sub: `${exam.passed}/${exam.total}`, tone: 'amber' as const },
+    { icon: GraduationCap, label: localText(lang, 'Sınav Başarısı', 'Exam Pass Rate', 'Tasso Superamento Esami'), value: `${exam.passRate}%`, sub: `${exam.passed}/${exam.total}`, tone: 'amber' as const },
   ]
 
   return (
@@ -467,7 +489,7 @@ export function DashboardContent({
         <div className="flex items-center gap-2 text-gray-400 flex-shrink-0">
           <SlidersHorizontal className="w-4 h-4" />
           <span className="text-xs font-semibold uppercase tracking-wide hidden sm:inline">
-            {localText(lang, 'Tarih Aralığı', 'Date Range')}
+            {localText(lang, 'Tarih Aralığı', 'Date Range', 'Intervallo Date')}
           </span>
         </div>
         <div className="w-[160px] sm:w-44">
@@ -665,14 +687,14 @@ export function DashboardContent({
 
         <Panel
           title={localText(lang, 'Stage Analizi', 'Stage Analysis')}
-          subtitle={strongestStage ? `${localText(lang, 'En güçlü:', 'Strongest:')} ${strongestStage.label}` : localText(lang, 'Stage verisi', 'Stage data')}
+          subtitle={strongestStage ? `${localText(lang, 'En güçlü:', 'Strongest:')} ${stageText(lang, strongestStage.stage, strongestStage.label)}` : localText(lang, 'Stage verisi', 'Stage data')}
           icon={Layers}
         >
           <div className="space-y-3 p-5">
             {stages.length > 0 ? stages.slice(0, 6).map(item => (
               <div key={item.stage} className="space-y-1.5">
                 <div className="flex items-center justify-between gap-3 text-xs">
-                  <span className="truncate font-semibold text-gray-700">{item.label}</span>
+                  <span className="truncate font-semibold text-gray-700">{stageText(lang, item.stage, item.label)}</span>
                   <span className="shrink-0 font-bold text-gray-950">{item.avgScore}</span>
                 </div>
                 <ProgressLine value={item.avgScore} color={scoreColor(item.avgScore)} />
@@ -746,7 +768,7 @@ function RecentEvaluationsPanel({
   compact = false,
 }: {
   recent: RecentEval[]
-  lang: 'tr' | 'en'
+  lang: Language
   t: ReturnType<typeof useLanguage>['t']
   compact?: boolean
 }) {
@@ -785,7 +807,7 @@ function RecentEvaluationsPanel({
                     <div className="max-w-[180px] truncate text-sm font-medium text-gray-700">{item.customer_name}</div>
                   </td>
                   <td className="px-4 py-4"><ChannelBadge channel={item.channel} labels={t.channel} /></td>
-                  <td className="px-4 py-4 text-xs font-medium text-gray-500">{item.stage ? item.stage.replace(/_/g, ' ') : '-'}</td>
+                  <td className="px-4 py-4 text-xs font-medium text-gray-500">{stageText(lang, item.stage)}</td>
                   <td className="px-4 py-4"><ResultBadge result={item.conversation_result} lang={lang} /></td>
                   <td className="px-4 py-4 text-sm text-gray-500">{formatDate(item.conversation_date, lang)}</td>
                   <td className="px-5 py-4 text-right"><ScoreBadge score={item.final_score} lang={lang} /></td>
@@ -805,7 +827,7 @@ function PerformanceTable({
   t,
 }: {
   consultants: ConsultantStat[]
-  lang: 'tr' | 'en'
+  lang: Language
   t: ReturnType<typeof useLanguage>['t']
 }) {
   if (consultants.length === 0) return <EmptyState text={t.common.noData} />
@@ -838,7 +860,7 @@ function PerformanceTable({
   )
 }
 
-function EvaluatorList({ evaluators, lang }: { evaluators: EvaluatorStat[]; lang: 'tr' | 'en' }) {
+function EvaluatorList({ evaluators, lang }: { evaluators: EvaluatorStat[]; lang: Language }) {
   if (evaluators.length === 0) return <EmptyState text={localText(lang, 'Veri yok', 'No data')} />
 
   return (
@@ -862,7 +884,7 @@ function EvaluatorList({ evaluators, lang }: { evaluators: EvaluatorStat[]; lang
   )
 }
 
-function TrainingExamPanel({ exam, lang }: { exam: TrainingExamSummary; lang: 'tr' | 'en' }) {
+function TrainingExamPanel({ exam, lang }: { exam: TrainingExamSummary; lang: Language }) {
   const levelData = [
     { label: 'Junior', value: exam.juniorCount, color: '#52B788' },
     { label: 'Senior', value: exam.seniorCount, color: '#1B4332' },

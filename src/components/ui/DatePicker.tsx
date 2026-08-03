@@ -10,8 +10,9 @@ import {
   setMonth, setYear,
   isSameDay, isSameMonth, isToday,
 } from 'date-fns'
-import { tr, enUS } from 'date-fns/locale'
+import { tr, enUS, it } from 'date-fns/locale'
 import { useLanguage } from '@/lib/i18n'
+import { textFor } from '@/lib/localization'
 
 interface DatePickerProps {
   value: string // 'yyyy-MM-dd'
@@ -27,7 +28,7 @@ const YEAR_PAGE = 12
 
 export function DatePicker({ value, onChange, placeholder, minDate, maxDate }: DatePickerProps) {
   const { lang } = useLanguage()
-  const locale = lang === 'tr' ? tr : enUS
+  const locale = lang === 'tr' ? tr : lang === 'it' ? it : enUS
   const [open, setOpen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('days')
   const [yearPageStart, setYearPageStart] = useState(0)
@@ -78,7 +79,9 @@ export function DatePicker({ value, onChange, placeholder, minDate, maxDate }: D
 
   const weekDayLabels = lang === 'tr'
     ? ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz']
-    : ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+    : lang === 'it'
+      ? ['Lu', 'Ma', 'Me', 'Gi', 'Ve', 'Sa', 'Do']
+      : ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 
   const monthLabels = Array.from({ length: 12 }, (_, i) =>
     format(setMonth(new Date(), i), 'MMM', { locale })
@@ -112,7 +115,7 @@ export function DatePicker({ value, onChange, placeholder, minDate, maxDate }: D
 
   const displayValue = selectedDate
     ? format(selectedDate, 'd MMMM yyyy', { locale })
-    : (placeholder ?? (lang === 'tr' ? 'Tarih seçin' : 'Select date'))
+    : (placeholder ?? textFor(lang, 'Tarih seçin', 'Select date', 'Seleziona data'))
 
   return (
     <div ref={containerRef} className="relative">
@@ -315,14 +318,14 @@ export function DatePicker({ value, onChange, placeholder, minDate, maxDate }: D
                     onClick={clearDate}
                     className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    {lang === 'tr' ? 'Temizle' : 'Clear'}
+                    {textFor(lang, 'Temizle', 'Clear', 'Pulisci')}
                   </button>
                   <button
                     type="button"
                     onClick={() => selectDay(new Date())}
                     className="text-xs font-black text-[#1B4332] hover:text-[#163728] transition-colors px-2.5 py-1 rounded-lg hover:bg-[#1B4332]/8"
                   >
-                    {lang === 'tr' ? 'Bugün' : 'Today'}
+                    {textFor(lang, 'Bugün', 'Today', 'Oggi')}
                   </button>
                 </div>
               )}

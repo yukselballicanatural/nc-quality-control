@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useFormStore } from '@/stores/formStore'
 import { useLanguage } from '@/lib/i18n'
+import { textFor } from '@/lib/localization'
 
 // ─── Renk yardımcıları ────────────────────────────────────────────
 
@@ -138,6 +139,7 @@ function QuestionCard({ index, title, answered, children, delay = 0 }: QuestionC
 
 export function StepOfferQuestions() {
   const { lang, t } = useLanguage()
+  const tx = (tr: string, en: string, it: string) => textFor(lang, tr, en, it)
   const { offerAnswers, updateOfferAnswers, getOfferScore } = useFormStore()
 
   const score = getOfferScore()
@@ -291,9 +293,11 @@ export function StepOfferQuestions() {
           ))}
         </div>
         <p className="text-[11px] text-gray-400 mt-2 font-medium">
-          {lang === 'tr'
-            ? 'Teklif gönderildikten sonra bir hafta içinde kaç kez takip edildi?'
-            : 'How many follow-ups were made within one week after sending the treatment plan?'}
+          {tx(
+            'Teklif gönderildikten sonra bir hafta içinde kaç kez takip edildi?',
+            'How many follow-ups were made within one week after sending the treatment plan?',
+            'Quanti follow-up sono stati fatti entro una settimana dall’invio del piano di trattamento?'
+          )}
         </p>
       </QuestionCard>
 

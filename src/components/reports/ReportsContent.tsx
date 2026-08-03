@@ -18,11 +18,12 @@ import {
   ClipboardList, Gauge, ShieldAlert, Trophy, User, Building2, Radio, Target,
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
+import { textFor } from '@/lib/localization'
 import { getScoreLevel } from '@/lib/scoring'
 import { DatePicker } from '@/components/ui/DatePicker'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import type { UserRole, ConversationResult, CriticalErrorType } from '@/types/supabase'
-import type { ConsultantPerfRow, ChannelCompRow, CriticalErrorRow, SalesOutcomeRow } from '@/types'
+import type { ConsultantPerfRow, ChannelCompRow, CriticalErrorRow, SalesOutcomeRow, Language } from '@/types'
 
 // ─── Tab type ────────────────────────────────────────────────────
 
@@ -56,6 +57,19 @@ const CE_LABELS_EN: Record<CriticalErrorType, string> = {
   missed_followup: 'Missed Follow-up',
 }
 
+const CE_LABELS_IT: Record<CriticalErrorType, string> = {
+  wrong_price: 'Prezzo Errato',
+  wrong_package: 'Pacchetto Errato',
+  result_guarantee: 'Garanzia del Risultato',
+  medical_misleading: 'Informazione Medica Fuorviante',
+  rude_behavior: 'Comportamento Scortese',
+  unanswered_question: 'Domanda Senza Risposta',
+  wrong_payment_guide: 'Guida di Pagamento Errata',
+  wrong_appointment: 'Appuntamento Errato',
+  no_crm_record: 'Nessun Record CRM',
+  missed_followup: 'Follow-up Mancato',
+}
+
 const RESULT_LABELS_TR: Record<ConversationResult, string> = {
   won: 'Kazanıldı',
   open: 'Açık',
@@ -72,12 +86,33 @@ const RESULT_LABELS_EN: Record<ConversationResult, string> = {
   no_answer: 'No Answer',
 }
 
+const RESULT_LABELS_IT: Record<ConversationResult, string> = {
+  won: 'Vinta',
+  open: 'Aperta',
+  follow_up: 'Follow-up',
+  lost: 'Persa',
+  no_answer: 'Nessuna Risposta',
+}
+
 const RESULT_COLORS: Record<ConversationResult, string> = {
   won: 'bg-green-100 text-green-700',
   open: 'bg-blue-100 text-blue-700',
   follow_up: 'bg-amber-100 text-amber-700',
   lost: 'bg-red-100 text-red-700',
   no_answer: 'bg-gray-100 text-gray-600',
+}
+
+function tx(lang: Language, tr: string, en: string, it: string) {
+  return textFor(lang, tr, en, it)
+}
+
+function labelsFor<T extends string>(
+  lang: Language,
+  tr: Record<T, string>,
+  en: Record<T, string>,
+  it: Record<T, string>
+) {
+  return lang === 'tr' ? tr : lang === 'it' ? it : en
 }
 
 // ─── Props ────────────────────────────────────────────────────────
@@ -174,22 +209,22 @@ export function ReportsContent({
   async function handleExport() {
     const XLSX = await import('xlsx')
     const wb = XLSX.utils.book_new()
-    const ceLabels = lang === 'tr' ? CE_LABELS_TR : CE_LABELS_EN
-    const resultLabels = lang === 'tr' ? RESULT_LABELS_TR : RESULT_LABELS_EN
+    const ceLabels = labelsFor(lang, CE_LABELS_TR, CE_LABELS_EN, CE_LABELS_IT)
+    const resultLabels = labelsFor(lang, RESULT_LABELS_TR, RESULT_LABELS_EN, RESULT_LABELS_IT)
 
     // Sheet 1: Consultant Performance
     XLSX.utils.book_append_sheet(
       wb,
       XLSX.utils.json_to_sheet(
         consultantPerf.map(r => ({
-          [lang === 'tr' ? 'Danışman' : 'Consultant']: r.consultantName,
-          [lang === 'tr' ? 'Değerlendirme' : 'Evaluations']: r.evaluationCount,
-          [lang === 'tr' ? 'Ort. Skor' : 'Avg Score']: r.avgScore,
-          [lang === 'tr' ? 'Kritik Hata' : 'Critical Errors']: r.criticalErrorCount,
-          [lang === 'tr' ? 'Kazanma % ' : 'Won Rate %']: r.wonRate,
+          [tx(lang, 'Danışman', 'Consultant', 'Consulente')]: r.consultantName,
+          [tx(lang, 'Değerlendirme', 'Evaluations', 'Valutazioni')]: r.evaluationCount,
+          [tx(lang, 'Ort. Skor', 'Avg Score', 'Punteggio Medio')]: r.avgScore,
+          [tx(lang, 'Kritik Hata', 'Critical Errors', 'Errori Critici')]: r.criticalErrorCount,
+          [tx(lang, 'Kazanma % ', 'Won Rate %', 'Tasso Vittoria %')]: r.wonRate,
         }))
       ),
-      lang === 'tr' ? 'Danışman Perf.' : 'Consultant Perf.'
+      tx(lang, 'Danışman Perf.', 'Consultant Perf.', 'Perf. Consulente')
     )
 
     // Sheet 2: Channel Comparison
@@ -197,14 +232,14 @@ export function ReportsContent({
       wb,
       XLSX.utils.json_to_sheet(
         channelComp.map(r => ({
-          [lang === 'tr' ? 'Kanal' : 'Channel']:
-            r.channel === 'whatsapp' ? 'WhatsApp' : lang === 'tr' ? 'Arama' : 'Call',
-          [lang === 'tr' ? 'Değerlendirme' : 'Evaluations']: r.evaluationCount,
-          [lang === 'tr' ? 'Ort. Skor' : 'Avg Score']: r.avgScore,
-          [lang === 'tr' ? 'Kritik Hata' : 'Critical Errors']: r.criticalErrorCount,
+          [tx(lang, 'Kanal', 'Channel', 'Canale')]:
+            r.channel === 'whatsapp' ? 'WhatsApp' : tx(lang, 'Arama', 'Call', 'Chiamata'),
+          [tx(lang, 'Değerlendirme', 'Evaluations', 'Valutazioni')]: r.evaluationCount,
+          [tx(lang, 'Ort. Skor', 'Avg Score', 'Punteggio Medio')]: r.avgScore,
+          [tx(lang, 'Kritik Hata', 'Critical Errors', 'Errori Critici')]: r.criticalErrorCount,
         }))
       ),
-      lang === 'tr' ? 'Kanal Karş.' : 'Channel Comp.'
+      tx(lang, 'Kanal Karş.', 'Channel Comp.', 'Comp. Canali')
     )
 
     // Sheet 3: Critical Errors
@@ -212,14 +247,14 @@ export function ReportsContent({
       wb,
       XLSX.utils.json_to_sheet(
         criticalErrors.map(r => ({
-          [lang === 'tr' ? 'Hata Türü' : 'Error Type']: ceLabels[r.errorType],
-          [lang === 'tr' ? 'Toplam' : 'Total']: r.totalCount,
-          [lang === 'tr' ? 'Danışman Dağılımı' : 'By Consultant']: r.consultants
+          [tx(lang, 'Hata Türü', 'Error Type', 'Tipo di Errore')]: ceLabels[r.errorType],
+          [tx(lang, 'Toplam', 'Total', 'Totale')]: r.totalCount,
+          [tx(lang, 'Danışman Dağılımı', 'By Consultant', 'Per Consulente')]: r.consultants
             .map(c => `${c.name}: ${c.count}`)
             .join(', '),
         }))
       ),
-      lang === 'tr' ? 'Kritik Hatalar' : 'Critical Errors'
+      tx(lang, 'Kritik Hatalar', 'Critical Errors', 'Errori Critici')
     )
 
     // Sheet 4: Sales Outcome
@@ -227,12 +262,12 @@ export function ReportsContent({
       wb,
       XLSX.utils.json_to_sheet(
         salesOutcome.map(r => ({
-          [lang === 'tr' ? 'Sonuç' : 'Result']: resultLabels[r.result],
-          [lang === 'tr' ? 'Adet' : 'Count']: r.evaluationCount,
-          [lang === 'tr' ? 'Ort. Skor' : 'Avg Score']: r.avgScore,
+          [tx(lang, 'Sonuç', 'Result', 'Risultato')]: resultLabels[r.result],
+          [tx(lang, 'Adet', 'Count', 'Conteggio')]: r.evaluationCount,
+          [tx(lang, 'Ort. Skor', 'Avg Score', 'Punteggio Medio')]: r.avgScore,
         }))
       ),
-      lang === 'tr' ? 'Satış Sonucu' : 'Sales Outcome'
+      tx(lang, 'Satış Sonucu', 'Sales Outcome', 'Risultato Vendite')
     )
 
     XLSX.writeFile(wb, `quality-report-${new Date().toISOString().slice(0, 10)}.xlsx`)
@@ -248,8 +283,8 @@ export function ReportsContent({
     filterChannel ||
     filterResult
 
-  const ceLabels = lang === 'tr' ? CE_LABELS_TR : CE_LABELS_EN
-  const resultLabels = lang === 'tr' ? RESULT_LABELS_TR : RESULT_LABELS_EN
+  const ceLabels = labelsFor(lang, CE_LABELS_TR, CE_LABELS_EN, CE_LABELS_IT)
+  const resultLabels = labelsFor(lang, RESULT_LABELS_TR, RESULT_LABELS_EN, RESULT_LABELS_IT)
 
   const TABS: { id: TabId; label: string; Icon: React.ElementType }[] = [
     { id: 'consultantPerformance', label: t.reports.tabs.consultantPerformance, Icon: Users },
@@ -265,7 +300,7 @@ export function ReportsContent({
         <div>
           <h1 className="text-xl font-bold text-gray-900">{t.reports.pageTitle}</h1>
           <p className="text-sm text-gray-400 mt-0.5">
-            {totalEvaluations} {lang === 'tr' ? 'değerlendirme' : 'evaluations'}
+            {totalEvaluations} {tx(lang, 'değerlendirme', 'evaluations', 'valutazioni')}
           </p>
         </div>
         <button
@@ -281,24 +316,24 @@ export function ReportsContent({
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard
           icon={ClipboardList}
-          label={lang === 'tr' ? 'Toplam Değerlendirme' : 'Total Evaluations'}
+          label={tx(lang, 'Toplam Değerlendirme', 'Total Evaluations', 'Valutazioni Totali')}
           value={String(totalEvaluations)}
         />
         <KpiCard
           icon={Gauge}
-          label={lang === 'tr' ? 'Genel Ortalama Skor' : 'Overall Avg Score'}
+          label={tx(lang, 'Genel Ortalama Skor', 'Overall Avg Score', 'Punteggio Medio Generale')}
           value={`${overallAvgScore}/100`}
           valueClassName={getScoreLevel(overallAvgScore).textColor}
         />
         <KpiCard
           icon={ShieldAlert}
-          label={lang === 'tr' ? 'Toplam Kritik Hata' : 'Total Critical Errors'}
+          label={tx(lang, 'Toplam Kritik Hata', 'Total Critical Errors', 'Errori Critici Totali')}
           value={String(totalCriticalErrors)}
           valueClassName={totalCriticalErrors > 0 ? 'text-red-600' : 'text-gray-900'}
         />
         <KpiCard
           icon={Trophy}
-          label={lang === 'tr' ? 'Genel Kazanma Oranı' : 'Overall Won Rate'}
+          label={tx(lang, 'Genel Kazanma Oranı', 'Overall Won Rate', 'Tasso di Vittoria Generale')}
           value={`%${overallWonRate}`}
           valueClassName={overallWonRate >= 50 ? 'text-green-700' : 'text-gray-900'}
         />
@@ -313,7 +348,7 @@ export function ReportsContent({
               <DatePicker
                 value={filterStartDate}
                 onChange={v => pushParams({ startDate: v })}
-                placeholder={lang === 'tr' ? 'Başlangıç' : 'Start date'}
+                placeholder={tx(lang, 'Başlangıç', 'Start date', 'Data inizio')}
                 maxDate={filterEndDate || undefined}
               />
             </div>
@@ -322,7 +357,7 @@ export function ReportsContent({
               <DatePicker
                 value={filterEndDate}
                 onChange={v => pushParams({ endDate: v })}
-                placeholder={lang === 'tr' ? 'Bitiş' : 'End date'}
+                placeholder={tx(lang, 'Bitiş', 'End date', 'Data fine')}
                 minDate={filterStartDate || undefined}
               />
             </div>
@@ -454,9 +489,12 @@ export function ReportsContent({
                   </div>
                   {consultantPerf.length > 10 && (
                     <p className="px-5 pt-1 text-[11px] text-gray-400">
-                      {lang === 'tr'
-                        ? `İlk 10 danışman gösteriliyor · toplam ${consultantPerf.length}`
-                        : `Showing top 10 · ${consultantPerf.length} total`}
+                      {tx(
+                        lang,
+                        `İlk 10 danışman gösteriliyor · toplam ${consultantPerf.length}`,
+                        `Showing top 10 · ${consultantPerf.length} total`,
+                        `Mostrati i primi 10 consulenti · ${consultantPerf.length} totali`
+                      )}
                     </p>
                   )}
                   <div className="overflow-x-auto mt-4">
@@ -539,7 +577,7 @@ export function ReportsContent({
                   <ResponsiveContainer width="100%" height={160}>
                     <BarChart
                       data={channelComp.map(r => ({
-                        name: r.channel === 'whatsapp' ? 'WhatsApp' : (lang === 'tr' ? 'Arama' : 'Call'),
+                        name: r.channel === 'whatsapp' ? 'WhatsApp' : tx(lang, 'Arama', 'Call', 'Chiamata'),
                         score: r.avgScore,
                       }))}
                       barSize={56}
@@ -569,9 +607,7 @@ export function ReportsContent({
                       : 'bg-blue-50 border-blue-100'
                     const channelLabel = isWhatsApp
                       ? 'WhatsApp'
-                      : lang === 'tr'
-                      ? 'Arama'
-                      : 'Call'
+                      : tx(lang, 'Arama', 'Call', 'Chiamata')
                     return (
                       <div key={row.channel} className={`rounded-2xl border p-5 ${cardBg}`}>
                         <div className="flex items-center gap-2 mb-5">
@@ -581,7 +617,7 @@ export function ReportsContent({
                         <div className="grid grid-cols-3 gap-4 text-center">
                           <div>
                             <div className="text-xs text-gray-500 mb-1">
-                              {lang === 'tr' ? 'Değerlendirme' : 'Evaluations'}
+                              {tx(lang, 'Değerlendirme', 'Evaluations', 'Valutazioni')}
                             </div>
                             <div className="text-3xl font-bold text-gray-900">
                               {row.evaluationCount}
@@ -724,7 +760,7 @@ export function ReportsContent({
                         </Pie>
                         <Tooltip
                           contentStyle={{ border: 'none', borderRadius: 12, boxShadow: '0 12px 30px rgba(15, 23, 42, 0.12)', fontSize: 12 }}
-                          formatter={(value: unknown) => [String(value ?? ''), lang === 'tr' ? 'Kayıt' : 'Records']}
+                          formatter={(value: unknown) => [String(value ?? ''), tx(lang, 'Kayıt', 'Records', 'Record')]}
                         />
                       </PieChart>
                     </ResponsiveContainer>
@@ -807,11 +843,11 @@ const RESULT_CHART_COLORS: Record<ConversationResult, string> = {
 
 // ─── Empty state ─────────────────────────────────────────────────
 
-function EmptyState({ lang }: { lang: string }) {
+function EmptyState({ lang }: { lang: Language }) {
   return (
     <div className="py-16 text-center">
       <p className="text-sm text-gray-400">
-        {lang === 'tr' ? 'Bu filtreler için veri bulunamadı.' : 'No data found for these filters.'}
+        {tx(lang, 'Bu filtreler için veri bulunamadı.', 'No data found for these filters.', 'Nessun dato trovato per questi filtri.')}
       </p>
     </div>
   )

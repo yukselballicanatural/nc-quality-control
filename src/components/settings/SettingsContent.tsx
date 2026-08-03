@@ -26,6 +26,7 @@ import type { UserRole } from '@/types/supabase'
 import { canManageUsers } from '@/lib/access-control'
 import { isTeamLeaderRole, deriveTeamLeaderName } from '@/lib/agents'
 import { useLanguage } from '@/lib/i18n'
+import { textFor, translateEnglishToItalian } from '@/lib/localization'
 import type { Language } from '@/types'
 
 interface UserRow {
@@ -77,6 +78,12 @@ const ROLE_LABELS: Record<Language, Record<UserRole, string>> = {
     manager: 'Manager / Admin',
     consultant: 'Consultant',
   },
+  it: {
+    quality_team: 'Controllo Qualità',
+    team_leader: 'Team Leader',
+    manager: 'Manager / Admin',
+    consultant: 'Consulente',
+  },
 }
 
 const ROLE_COLORS: Record<UserRole, string> = {
@@ -103,8 +110,7 @@ function initAgentForm() {
 export default function SettingsContent({ currentProfile, users, teams, agents }: Props) {
   const canManage = canManageUsers(currentProfile)
   const { lang } = useLanguage()
-  // Local bilingual helper — same pattern as the dashboard's localText.
-  const L = (tr: string, en: string) => (lang === 'en' ? en : tr)
+  const L = (tr: string, en: string, it = translateEnglishToItalian(en)) => textFor(lang, tr, en, it)
   const roleLabels = ROLE_LABELS[lang]
   const creatableRoles = CREATABLE_ROLE_VALUES.map(value => ({ value, label: roleLabels[value] }))
 
@@ -898,10 +904,11 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         <Modal title={L('Kullanıcıyı Sil', 'Delete User')} icon={<AlertTriangle className="w-5 h-5 text-red-500" />} onClose={() => setDeleteUser(null)}>
           <div className="space-y-4">
             <p className="text-sm text-gray-600">
-              {lang === 'en' ? (
-                <>Are you sure you want to permanently delete <span className="font-semibold text-gray-900">{deleteUser.full_name}</span>?</>
-              ) : (
-                <><span className="font-semibold text-gray-900">{deleteUser.full_name}</span> adlı kullanıcıyı kalıcı olarak silmek istediğinizden emin misiniz?</>
+              {textFor(
+                lang,
+                `${deleteUser.full_name} adlı kullanıcıyı kalıcı olarak silmek istediğinizden emin misiniz?`,
+                `Are you sure you want to permanently delete ${deleteUser.full_name}?`,
+                `Vuoi eliminare definitivamente ${deleteUser.full_name}?`
               )}
             </p>
             <p className="text-xs text-gray-400">{L('Değerlendirme kaydı varsa kullanıcı silinemez; bunun yerine pasife alabilirsiniz.', 'A user with evaluation records cannot be deleted; you can deactivate them instead.')}</p>
@@ -942,10 +949,11 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         <Modal title={L("Region'u Sil", 'Delete Region')} icon={<AlertTriangle className="w-5 h-5 text-red-500" />} onClose={() => setDeleteTeam(null)}>
           <div className="space-y-4">
             <p className="text-sm text-gray-600">
-              {lang === 'en' ? (
-                <>Are you sure you want to delete the region <span className="font-semibold text-gray-900">{deleteTeam.name}</span>?</>
-              ) : (
-                <><span className="font-semibold text-gray-900">{deleteTeam.name}</span> region&apos;unu silmek istediğinizden emin misiniz?</>
+              {textFor(
+                lang,
+                `${deleteTeam.name} region'unu silmek istediğinizden emin misiniz?`,
+                `Are you sure you want to delete the region ${deleteTeam.name}?`,
+                `Vuoi eliminare la regione ${deleteTeam.name}?`
               )}
             </p>
             <p className="text-xs text-gray-400">{L("Bu region'da üye varsa silme işlemi gerçekleşmez.", 'The region cannot be deleted while it still has members.')}</p>
@@ -1031,10 +1039,11 @@ export default function SettingsContent({ currentProfile, users, teams, agents }
         <Modal title={L('Kaydı Sil', 'Delete Record')} icon={<AlertTriangle className="w-5 h-5 text-red-500" />} onClose={() => setDeleteAgent(null)}>
           <div className="space-y-4">
             <p className="text-sm text-gray-600">
-              {lang === 'en' ? (
-                <>Are you sure you want to permanently delete <span className="font-semibold text-gray-900">{agentFullName(deleteAgent) || '—'}</span>?</>
-              ) : (
-                <><span className="font-semibold text-gray-900">{agentFullName(deleteAgent) || '—'}</span> kaydını kalıcı olarak silmek istediğinizden emin misiniz?</>
+              {textFor(
+                lang,
+                `${agentFullName(deleteAgent) || '—'} kaydını kalıcı olarak silmek istediğinizden emin misiniz?`,
+                `Are you sure you want to permanently delete ${agentFullName(deleteAgent) || '—'}?`,
+                `Vuoi eliminare definitivamente il record ${agentFullName(deleteAgent) || '—'}?`
               )}
             </p>
             {deleteAgentError && <ErrorMsg>{deleteAgentError}</ErrorMsg>}
