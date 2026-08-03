@@ -96,6 +96,11 @@ function isMissingNoteColumn(error: { code?: string; message?: string } | null) 
   )
 }
 
+function buildCriteriaScoresPayload(scores: number[], note: string) {
+  const rows = scores.map((score, i) => ({ criteriaNumber: i + 1, score }))
+  return note ? [...rows, { criteriaNumber: 0, score: 0, note }] : rows
+}
+
 function normalizeName(value: string) {
   return value.trim().toLocaleLowerCase('tr-TR')
 }
@@ -245,7 +250,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
         training_type: trainingType,
         note: trimmedNote || null,
         level,
-        criteria_scores: scores.map((score, i) => ({ criteriaNumber: i + 1, score })),
+        criteria_scores: buildCriteriaScoresPayload(scores, trimmedNote),
         total_score: totalScore,
         passed,
       }

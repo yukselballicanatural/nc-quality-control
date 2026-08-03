@@ -133,6 +133,26 @@ function normalizeName(value: string) {
   return value.trim().toLocaleLowerCase('tr-TR')
 }
 
+function getStoredExamNote(result: TrainingExamResultItem) {
+  if (result.note?.trim()) return result.note
+  const criteriaScores = Array.isArray(result.criteria_scores) ? result.criteria_scores : []
+  const noteRow = criteriaScores.find(
+    item =>
+      item.criteriaNumber === 0 &&
+      'note' in item &&
+      typeof (item as { note?: unknown }).note === 'string'
+  ) as { note?: string } | undefined
+  return noteRow?.note?.trim() ? noteRow.note : ''
+}
+
+function buildCriteriaScoresPayload(scores: number[], note: string) {
+  const rows = scores.map((score, index) => ({
+    criteriaNumber: index + 1,
+    score,
+  }))
+  return note ? [...rows, { criteriaNumber: 0, score: 0, note }] : rows
+}
+
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   if (!active) return <ChevronsUpDown className="w-3.5 h-3.5 text-gray-300 inline ml-1" />
   return dir === 'asc'
@@ -298,7 +318,7 @@ export function TrainingExamResultsContent({
     setEditResult(result)
     setEditConsultantName(getConsultantName(result))
     setEditTrainingType(result.training_type ?? null)
-    setEditNote(result.note ?? '')
+    setEditNote(getStoredExamNote(result))
     setEditLevel(result.level)
     setEditScores(
       Array.from({ length: 8 }, (_, index) => {
@@ -377,10 +397,7 @@ export function TrainingExamResultsContent({
         training_type: editTrainingType,
         note: trimmedNote || null,
         level: editLevel,
-        criteria_scores: editScores.map((score, index) => ({
-          criteriaNumber: index + 1,
-          score,
-        })),
+        criteria_scores: buildCriteriaScoresPayload(editScores, trimmedNote),
         total_score: totalScore,
         passed,
       }
@@ -604,8 +621,8 @@ export function TrainingExamResultsContent({
                   {isTr ? 'Sınav Notu' : 'Exam Note'}
                 </p>
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-700">
-                  {viewResult.note?.trim()
-                    ? viewResult.note
+                  {getStoredExamNote(viewResult)
+                    ? getStoredExamNote(viewResult)
                     : (isTr ? 'Not eklenmemiş.' : 'No note added.')}
                 </p>
               </div>
