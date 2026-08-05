@@ -23,6 +23,7 @@ import {
   Clock,
   AlertTriangle,
   ArrowRight,
+  SunMoon,
 } from 'lucide-react'
 import { createClient as createBrowserClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -73,6 +74,7 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
   const locale = lang === 'tr' ? 'tr-TR' : lang === 'it' ? 'it-IT' : 'en-US'
   const pathname = usePathname()
   const router = useRouter()
+  const isLiquidGlassUser = profile.email?.toLowerCase() === 'kalite@naturalclinic.com'
 
   // Consultants never see recheck notifications (they can't access the page).
   const canSeeNotifications = profile.role !== 'consultant'
@@ -254,8 +256,15 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
     }
   }
 
+  function toggleTheme() {
+    var cur  = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'
+    var next = cur === 'dark' ? 'light' : 'dark'
+    localStorage.setItem('app_theme', next)
+    document.documentElement.setAttribute('data-theme', next)
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex" data-liquid-glass={isLiquidGlassUser ? 'enabled' : undefined}>
       {/* Mobile overlay */}
       {isMobileOpen && (
         <div
@@ -389,6 +398,18 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
 
           {/* Right controls */}
           <div className="flex items-center gap-2">
+            {isLiquidGlassUser && (
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                aria-label="Toggle theme"
+                title="Toggle theme"
+              >
+                <SunMoon className="w-5 h-5" />
+              </button>
+            )}
+
             {/* Language toggle */}
             <GlassLanguageToggle value={lang} onChange={setLang} ariaLabel={t.settings.language} />
 

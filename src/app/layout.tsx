@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
+import "./liquid-glass.css";
+import "./liquid-glass-dark.css";
 import { LanguageProvider } from "@/lib/language-context";
 import { ChunkErrorReload } from "@/components/ChunkErrorReload";
 import type { Language } from "@/types";
@@ -28,8 +30,18 @@ export default async function RootLayout({
   const initialLang: Language =
     rawLang === "en" || rawLang === "it" ? rawLang : "tr";
 
+  const themeScript = `
+    (function () {
+      var saved = localStorage.getItem('app_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', saved === 'dark' ? 'dark' : 'light');
+    })();
+  `;
+
   return (
-    <html lang={initialLang}>
+    <html lang={initialLang} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className={inter.className}>
         <ChunkErrorReload />
         <LanguageProvider initialLang={initialLang}>
