@@ -144,15 +144,20 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a {
   min-height: 38px;
   border: 1px solid transparent;
   border-radius: 12px !important;
-  color: var(--ink-2) !important;
+  color: #26344f !important;
   font-weight: 700;
   transition: background .22s var(--ease), color .22s var(--ease), transform .3s var(--spring), box-shadow .25s var(--ease);
 }
 
 html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a:hover {
-  color: var(--ink) !important;
-  background: rgba(18, 22, 34, 0.09) !important;
+  color: #111827 !important;
+  background: rgba(255, 255, 255, 0.46) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a svg {
+  color: #41516d;
+  opacity: .94;
 }
 
 html[data-theme="light"] [data-liquid-glass="enabled"] aside nav:not(.seg-ready) a[class*="bg-white"] {
@@ -166,6 +171,21 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside nav.seg-ready a[cla
   background: transparent !important;
   box-shadow: none !important;
 }
+
+html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a[class*="bg-white"] svg,
+html[data-theme="light"] [data-liquid-glass="enabled"] aside nav.seg-ready a[class*="bg-white"] svg {
+  color: #fff !important;
+  opacity: 1;
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] aside div[class*="bg-white/5"] {
+  border: 1px solid rgba(255, 255, 255, 0.44);
+  background: rgba(255, 255, 255, 0.34) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.56);
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] aside div[class*="bg-white/5"] p:first-child { color: #172033 !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] aside div[class*="bg-white/5"] p:last-child { color: #536079 !important; }
 
 html[data-theme="light"] [data-liquid-glass="enabled"] .seg-indicator {
   border-radius: 999px;
@@ -267,9 +287,50 @@ html[data-theme="light"] [data-liquid-glass="enabled"] button {
   transition: background .22s var(--ease), color .22s var(--ease), transform .3s var(--spring), box-shadow .25s var(--ease);
 }
 html[data-theme="light"] [data-liquid-glass="enabled"] button:active { transform: scale(.955); }
-html[data-theme="light"] [data-liquid-glass="enabled"] :is(.metric-pill, [class*="rounded-2xl"][class*="shadow-sm"]):hover {
+html[data-theme="light"] [data-liquid-glass="enabled"] .metric-pill:hover {
   transform: translateY(-2px) scale(1.03);
   box-shadow: 0 8px 20px -4px rgba(23, 43, 99, 0.22), var(--sheen) !important;
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="rounded"][class*="shadow"]:has(table):hover,
+html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="overflow-x-auto"]:has(> table):hover {
+  transform: none !important;
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="overflow-x-auto"]:has(> table) {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  background: rgba(255, 255, 255, 0.18);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"] div[class*="rounded"]:has(> table) {
+  background: rgba(255, 255, 255, 0.16) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.24) !important;
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] header div[class*="origin-top-right"][class*="shadow-2xl"] {
+  isolation: isolate;
+  border-color: rgba(255, 255, 255, 0.72) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  color: var(--ink) !important;
+  -webkit-backdrop-filter: blur(48px) saturate(185%);
+  backdrop-filter: blur(48px) saturate(185%);
+  box-shadow: 0 10px 28px rgba(23, 43, 99, 0.16), 0 30px 72px -18px rgba(23, 43, 99, 0.34), var(--sheen) !important;
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] header div[class*="origin-top-right"][class*="shadow-2xl"] > div:first-child {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] header div[class*="origin-top-right"][class*="shadow-2xl"] li button:hover,
+html[data-theme="light"] [data-liquid-glass="enabled"] header div[class*="origin-top-right"][class*="shadow-2xl"] > button:hover {
+  background: rgba(13, 148, 136, 0.10) !important;
 }
 
 html[data-theme="light"] [data-liquid-glass="enabled"] .fixed.inset-0.z-50,
