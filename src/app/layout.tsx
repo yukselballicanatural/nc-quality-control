@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import { cookies } from "next/headers";
 import "./globals.css";
 import "./liquid-glass.css";
@@ -43,6 +44,7 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className={inter.className}>
+        <Script src="/api/liquid-ui.js" strategy="afterInteractive" />
         <ChunkErrorReload />
         <LanguageProvider initialLang={initialLang}>
           {children}
