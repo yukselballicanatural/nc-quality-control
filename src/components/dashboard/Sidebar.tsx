@@ -27,6 +27,7 @@ import {
   ChevronRight,
   Moon,
   Sun,
+  LayoutGrid,
 } from 'lucide-react'
 import { createClient as createBrowserClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -35,7 +36,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n'
 import { canSeeAdminLogs, isRestrictedQualityUser } from '@/lib/access-control'
 import { GlassLanguageToggle } from '@/components/ui/GlassLanguageToggle'
-import type { Profile } from '@/types'
+import type { Profile, Language } from '@/types'
 import type { UserRole } from '@/types/supabase'
 
 interface NavItem {
@@ -439,10 +440,26 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
         )}
 
         {/* Language + appearance live in the menu for the glass user, matching
-            the reference layout. They stay in the header for everyone else. */}
+            the reference layout. They stay in the header for everyone else.
+            The language control is a plain native <select> here — liquid-ui.js
+            auto-enhances every <select> on the page into the same trigger +
+            dropdown-list widget used everywhere else in the app (see
+            SelectEnhancement in public/api/liquid-ui.js), so its open animation
+            and layout are literally the same code path as our other dropdowns,
+            not a lookalike. */}
         {canCollapse && (
           <div className="lg-menu-controls px-3 pb-2 flex items-center gap-2">
-            <GlassLanguageToggle value={lang} onChange={setLang} ariaLabel={t.settings.language} />
+            <div className="lg-lang-field flex-1 min-w-0">
+              <select
+                value={lang}
+                onChange={e => setLang(e.target.value as Language)}
+                aria-label={t.settings.language}
+              >
+                <option value="tr">Türkçe</option>
+                <option value="en">English</option>
+                <option value="it">Italiano</option>
+              </select>
+            </div>
             <button
               type="button"
               onClick={toggleTheme}
@@ -480,10 +497,27 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
               </p>
             </div>
           </div>
+          {/* Glass user only, matching the reference's app-switcher row above
+              logout. Same-tab redirect, per the destination the user gave. */}
+          {canCollapse && (
+            <button
+              type="button"
+              onClick={() => { window.location.href = 'https://nc-pastdata-crm.vercel.app/apps' }}
+              title={isRailMode ? tx('Uygulamalarımız', 'Our Apps', 'Le Nostre App') : undefined}
+              className="lg-apps-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
+            >
+              <LayoutGrid className="w-[18px] h-[18px] flex-shrink-0" />
+              <span>{tx('Uygulamalarımız', 'Our Apps', 'Le Nostre App')}</span>
+            </button>
+          )}
+
           <button
             onClick={handleLogout}
             title={isRailMode ? t.auth.logout : undefined}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white transition-all duration-200"
+            // The Tailwind colours here are the real, load-bearing style for
+            // every non-glass account. `.lg-logout-btn` is only a hook the
+            // glass stylesheets override — it must never replace these classes.
+            className="lg-logout-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white transition-all duration-200"
           >
             <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
             <span>{t.auth.logout}</span>

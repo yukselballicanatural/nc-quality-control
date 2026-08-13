@@ -49,16 +49,18 @@ html[data-theme="dark"] [data-liquid-glass="enabled"]::before {
   background: radial-gradient(900px 520px at 50% -10%, rgba(255, 255, 255, 0.055), transparent 64%);
 }
 
+/* Same intent as the light sheet: low enough fill that the mesh glows through,
+   not a flat dark card. */
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside {
   margin: 12px !important;
   width: 258px !important;
   height: calc(100vh - 24px) !important;
-  border: 1px solid var(--d-edge-soft) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
   border-radius: var(--d-r-lg) !important;
   overflow: hidden;
-  background: linear-gradient(160deg, rgba(22, 31, 52, 0.68), var(--d-1)) !important;
-  -webkit-backdrop-filter: blur(var(--d-blur)) saturate(var(--d-sat));
-  backdrop-filter: blur(var(--d-blur)) saturate(var(--d-sat));
+  background: linear-gradient(160deg, rgba(34, 46, 78, 0.56), rgba(14, 19, 34, 0.36)) !important;
+  -webkit-backdrop-filter: blur(36px) saturate(165%);
+  backdrop-filter: blur(36px) saturate(165%);
   box-shadow: var(--d-sh-2), var(--d-sheen) !important;
 }
 
@@ -123,34 +125,14 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*=
 }
 html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*="rounded-xl"] svg { width: 14px; height: 14px; }
 
-/* Menu control strip */
-html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-menu-controls > :first-child { flex: 0 1 auto; min-width: 0; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-menu-controls button:not(.lg-theme-toggle) {
-  min-width: 38px !important;
-  padding: 5px 8px !important;
-  font-size: 10px !important;
-  letter-spacing: .12em !important;
-}
-html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-menu-controls [role="radiogroup"] {
-  border: 1px solid var(--d-edge) !important;
-  background: var(--d-3) !important;
-}
-/* Active button carries the pill — see the light sheet for why the indicator
-   layers are dropped instead of restyled. */
-html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-menu-controls .seg-indicator,
-html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-menu-controls [role="radiogroup"] > span[aria-hidden="true"] {
-  display: none !important;
-}
-html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-menu-controls [aria-checked="true"] {
-  background: var(--d-sel) !important;
-  color: var(--d-ink) !important;
-  box-shadow: var(--d-sh-1) !important;
-}
-html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-menu-controls [aria-checked="false"] {
-  background: transparent !important;
-  color: var(--d-ink-3) !important;
-}
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-menu-controls [role="radiogroup"] { display: none !important; }
+/* Menu control strip: language dropdown + appearance toggle — see the light
+   sheet for why the language control is a plain <select> (it's enhanced into
+   the shared .lq-trigger/.lq-panel widget, so its glass fill and open
+   animation come from the shared rules above, not from anything here). */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-lang-field { min-width: 0; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-lang-field .lq-trigger { font-weight: 600; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-lang-field .lq-trigger-label { text-align: left; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-menu-controls .lg-lang-field { display: none !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-menu-controls {
   justify-content: center;
   padding-left: 0 !important;
@@ -176,10 +158,14 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a {
   border: 1px solid transparent;
   border-radius: 12px !important;
   color: #d7e0f0 !important;
+  /* Matches the light sheet's 13.5px exactly — this rule used to omit
+     font-size and silently fall back to Tailwind's 14px text-sm, so the two
+     themes rendered the sidebar nav at different sizes. */
+  font-size: 13.5px;
   font-weight: 700;
   transition: background .22s var(--d-ease), color .22s var(--d-ease), transform .3s var(--d-spring), box-shadow .25s var(--d-ease);
 }
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a:hover { background: rgba(255, 255, 255, 0.12) !important; color: #fff !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a:hover { background: rgba(255, 255, 255, 0.14) !important; color: #fff !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a svg { color: #aebbd0; opacity: .96; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav:not(.seg-ready) a[data-active="true"] { background: var(--d-sel) !important; box-shadow: var(--d-sh-1), var(--d-sheen) !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav.seg-ready a[data-active="true"] { background: transparent !important; box-shadow: none !important; }
@@ -344,7 +330,7 @@ html[data-theme="dark"] [data-liquid-glass="enabled"]:has(aside[data-collapsed="
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] img,
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span:not([class*="rounded-full"]),
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div,
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] button[class*="bg-red-500"] > span {
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) > span {
   display: none !important;
 }
 
@@ -375,7 +361,7 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true
 }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] > div:last-child { padding: 8px 10px 12px !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card { justify-content: center; padding: 6px !important; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] button[class*="bg-red-500"] {
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) {
   width: 36px;
   height: 36px;
   padding: 0 !important;
@@ -390,9 +376,11 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-rail-toggle {
   color: var(--d-ink-2) !important;
   box-shadow: var(--d-sheen) !important;
 }
+/* Brighter/whiter on hover, never brand-teal — matches the light sheet. */
 html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-rail-toggle:hover {
-  background: linear-gradient(150deg, #14b8a6, #0d9488) !important;
-  color: #fff !important;
+  background: rgba(255, 255, 255, .22) !important;
+  color: var(--d-ink) !important;
+  border-color: rgba(255, 255, 255, .3) !important;
 }
 html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-rail-toggle:active { transform: scale(.93); }
 
@@ -463,6 +451,32 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-theme-toggle:hover {
 }
 html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-theme-toggle:active { transform: scale(.92); }
 
+/* Apps switcher — neutral glass pill. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-apps-btn {
+  color: var(--d-ink-2) !important;
+  background: var(--d-2) !important;
+  border: 1px solid var(--d-edge-soft) !important;
+  box-shadow: var(--d-sheen) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-apps-btn:hover {
+  color: var(--d-ink) !important;
+  background: var(--d-hover) !important;
+}
+
+/* Logout — soft pastel-red glass, the same tone convention as the
+   Geciken/Overdue summary card. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-logout-btn {
+  color: var(--tm-danger) !important;
+  background: var(--tm-danger-bg) !important;
+  border: 1px solid var(--tm-danger-edge) !important;
+  box-shadow: none !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-logout-btn:hover {
+  color: #fff !important;
+  background: linear-gradient(150deg, #f87171, #dc2626) !important;
+  border-color: rgba(255, 255, 255, .2) !important;
+}
+
 /* §6.4 — single primary button treatment */
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"]),
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"]) {
@@ -513,7 +527,8 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"
 }
 
 /* §6.6 */
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside button:not(.lg-rail-toggle) {
+/* Same exclusion as the light sheet — see there for why. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside button:not(.lg-rail-toggle):not(.lg-logout-btn):not(.lg-apps-btn) {
   border: 1px solid var(--d-edge-soft) !important;
   box-shadow: var(--d-sheen);
 }
@@ -631,7 +646,7 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] div[class*="bg-gray-100"][
   html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] img,
   html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span:not([class*="rounded-full"]),
   html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div,
-  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] button[class*="bg-red-500"] > span {
+  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) > span {
     display: revert !important;
   }
   html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a {
@@ -648,7 +663,7 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] div[class*="bg-gray-100"][
     font-size: 10px;
     line-height: 1;
   }
-  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] button[class*="bg-red-500"] {
+  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) {
     width: 100%;
     height: auto;
     justify-content: flex-start;

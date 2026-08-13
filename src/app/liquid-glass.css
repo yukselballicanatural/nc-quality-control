@@ -92,17 +92,19 @@ html[data-theme="light"] [data-liquid-glass="enabled"]::before {
   background: radial-gradient(760px 420px at 50% -14%, rgba(255, 255, 255, 0.20), transparent 64%);
 }
 
-/* Sidebar reads as a near-solid white slab, not a tinted pane. */
+/* Genuine glass, not a painted-white card: low enough fill that the mesh
+   behind it visibly refracts through the blur (§1's whole premise — a solid
+   ~0.9 opacity fill reads as an opaque card no matter how heavy the blur is). */
 html[data-theme="light"] [data-liquid-glass="enabled"] aside {
   margin: 12px !important;
   width: 258px !important;
   height: calc(100vh - 24px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.65) !important;
   border-radius: var(--r-lg) !important;
   overflow: hidden;
-  background: linear-gradient(168deg, rgba(255, 255, 255, 0.94), rgba(250, 251, 255, 0.88)) !important;
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
-  backdrop-filter: blur(var(--blur)) saturate(140%);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.32)) !important;
+  -webkit-backdrop-filter: blur(36px) saturate(172%);
+  backdrop-filter: blur(36px) saturate(172%);
   box-shadow: var(--sh-2), var(--sheen) !important;
 }
 
@@ -182,14 +184,19 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a {
   border: 1px solid transparent;
   border-radius: 11px !important;
   color: #1e2740 !important;
-  font-size: 13px;
-  font-weight: 600;
+  /* Kept in sync with the dark sheet's aside nav a rule on purpose — that rule
+     used to omit font-size and fall back to Tailwind's text-sm (14px) while
+     this one forced 13px, so the same sidebar read at two different sizes
+     depending on theme. */
+  font-size: 13.5px;
+  font-weight: 700;
   transition: background .22s var(--ease), color .22s var(--ease), transform .3s var(--spring), box-shadow .25s var(--ease);
 }
 
+/* Neutral gray on hover — never the near-black used for the active pill. */
 html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a:hover {
   color: #0b1020 !important;
-  background: rgba(120, 136, 190, 0.13) !important;
+  background: rgba(15, 23, 42, 0.055) !important;
   box-shadow: none !important;
 }
 
@@ -535,7 +542,7 @@ html[data-theme="light"] [data-liquid-glass="enabled"]:has(aside[data-collapsed=
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] img,
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span:not([class*="rounded-full"]),
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div,
-html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] button[class*="bg-red-500"] > span {
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) > span {
   display: none !important;
 }
 
@@ -574,7 +581,7 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="tru
   justify-content: center;
   padding: 6px !important;
 }
-html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] button[class*="bg-red-500"] {
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) {
   width: 36px;
   height: 36px;
   padding: 0 !important;
@@ -590,10 +597,13 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .lg-rail-toggle {
   color: var(--ink-2) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55) !important;
 }
+/* Whiter and brighter on hover, never brand-teal — a colour shift here read as
+   an odd flash of colour, not a considered hover state. */
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-rail-toggle:hover {
-  background: linear-gradient(150deg, #17c1ad, #0d9488) !important;
-  color: #fff !important;
-  border-color: rgba(255, 255, 255, .3) !important;
+  background: rgba(255, 255, 255, .9) !important;
+  color: #1e2740 !important;
+  border-color: rgba(255, 255, 255, 1) !important;
+  box-shadow: 0 4px 14px -4px rgba(23, 43, 99, .22) !important;
 }
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-rail-toggle:active { transform: scale(.93); }
 
@@ -642,10 +652,10 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .lg-summary-card-icon {
 }
 
 /* In the rail there is no room for figures — the summary folds away, and the
-   language segment goes with it (a squeezed three-way pill is unusable at 36px).
+   language dropdown goes with it (a 56px rail can't fit a text trigger).
    The appearance toggle stays, centred. */
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-summary { display: none; }
-html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-menu-controls [role="radiogroup"] { display: none !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-menu-controls .lg-lang-field { display: none !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-menu-controls {
   justify-content: center;
   padding-left: 0 !important;
@@ -663,41 +673,15 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .lg-user-avatar {
   box-shadow: 0 6px 18px -4px rgba(13, 148, 136, .55), var(--sheen);
 }
 
-/* Menu control strip: language segment + appearance toggle, sized to sit on one
-   row inside the sidebar. */
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-menu-controls > :first-child { flex: 0 1 auto; min-width: 0; }
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-menu-controls button:not(.lg-theme-toggle) {
-  min-width: 38px !important;
-  padding: 5px 8px !important;
-  font-size: 10px !important;
-  letter-spacing: .12em !important;
-}
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-menu-controls [role="radiogroup"] {
-  border: 1px solid rgba(255, 255, 255, .8) !important;
-  background: rgba(255, 255, 255, .5) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 2px 8px rgba(38, 52, 110, .07) !important;
-}
-
-/* Paint the active BUTTON, not an indicator layer.
-   Two separate indicators can sit in this control — the component's own silver
-   gradient span, and one liquid-ui.js contributes (it also tags the component's
-   span as .seg-indicator). Styling either one is fragile, and hiding
-   .seg-indicator took the real indicator with it, leaving white-on-white. So
-   both layers are dropped here and the selected button carries the pill. */
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-menu-controls .seg-indicator,
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-menu-controls [role="radiogroup"] > span[aria-hidden="true"] {
-  display: none !important;
-}
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-menu-controls [aria-checked="true"] {
-  background: var(--slate) !important;
-  color: #fff !important;
-  box-shadow: 0 4px 12px -4px rgba(24, 32, 52, .45) !important;
-}
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-menu-controls [aria-checked="false"] {
-  background: transparent !important;
-  color: #6b7590 !important;
-}
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-menu-controls [aria-checked="false"]:hover { color: #1e2740 !important; }
+/* Menu control strip: language dropdown + appearance toggle, one row.
+   The language control is a real <select> that liquid-ui.js turns into the
+   exact same .lq-trigger / .lq-panel widget every other dropdown in the app
+   uses (see SelectEnhancement in liquid-ui.js) — so its glass fill, open
+   animation and option-row styling all come from the shared rules below
+   (§8), not from anything sidebar-specific. Only sizing lives here. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-lang-field { min-width: 0; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-lang-field .lq-trigger { font-weight: 600; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-lang-field .lq-trigger-label { text-align: left; }
 
 /* §5.4 — theme toggle: glass pill, CSS-driven moon/sun swap */
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-theme-toggle {
@@ -719,6 +703,33 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .lg-theme-toggle:active {
 .lg-theme-toggle .lg-icon-moon { display: block; }
 html[data-theme="dark"] .lg-theme-toggle .lg-icon-sun { display: block; }
 html[data-theme="dark"] .lg-theme-toggle .lg-icon-moon { display: none; }
+
+/* Apps switcher — neutral glass pill, same family as the rail toggle. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-apps-btn {
+  color: var(--ink-2) !important;
+  background: var(--g-2) !important;
+  border: 1px solid var(--edge-soft) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-apps-btn:hover {
+  color: var(--ink) !important;
+  background: rgba(255, 255, 255, .78) !important;
+}
+
+/* Logout — the sidebar's one soft-pastel-red glass surface, same tone
+   convention as the "Geciken/Overdue" summary card so red keeps one meaning
+   across the sidebar instead of also showing up as a loud solid block. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-logout-btn {
+  color: #9f1239 !important;
+  background: rgba(254, 226, 226, .55) !important;
+  border: 1px solid rgba(248, 180, 180, .45) !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-logout-btn:hover {
+  color: #fff !important;
+  background: linear-gradient(150deg, #f87171, #dc2626) !important;
+  border-color: rgba(255, 255, 255, .3) !important;
+}
 
 /* ═══════════════════════════════════════════════════════════════════
    §6.4 — One primary button look. The app writes primary actions with
@@ -779,7 +790,10 @@ html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="bg-gray-50
 }
 
 /* §6.6 — sidebar buttons use a softer glass tone than page buttons */
-html[data-theme="light"] [data-liquid-glass="enabled"] aside button:not(.lg-rail-toggle) {
+/* .lg-logout-btn/.lg-apps-btn are excluded: this generic rule's border-color
+   would otherwise cascade AFTER (and override) their own tinted borders, since
+   both declarations carry !important and this one sits later in the file. */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside button:not(.lg-rail-toggle):not(.lg-logout-btn):not(.lg-apps-btn) {
   border: 1px solid var(--edge-soft) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55);
 }
@@ -907,7 +921,7 @@ html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="bg-gray-100"]
   html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] img,
   html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span:not([class*="rounded-full"]),
   html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div,
-  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] button[class*="bg-red-500"] > span {
+  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) > span {
     display: revert !important;
   }
   html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a {
@@ -924,7 +938,7 @@ html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="bg-gray-100"]
     font-size: 10px;
     line-height: 1;
   }
-  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] button[class*="bg-red-500"] {
+  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) {
     width: 100%;
     height: auto;
     justify-content: flex-start;
