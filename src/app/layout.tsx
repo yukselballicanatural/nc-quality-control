@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Outfit } from "next/font/google";
 import Script from "next/script";
 import { cookies } from "next/headers";
 import "./globals.css";
@@ -10,6 +10,16 @@ import { ChunkErrorReload } from "@/components/ChunkErrorReload";
 import type { Language } from "@/types";
 
 const inter = Inter({ subsets: ["latin"] });
+
+// Heading face for the Liquid Glass theme (design system §13). Exposed as a CSS
+// variable only — the glass stylesheets opt into it, so accounts outside the
+// glass scope keep Inter headings and never download this file.
+const outfit = Outfit({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-outfit",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Natural Clinic QC",
@@ -39,7 +49,7 @@ export default async function RootLayout({
   `;
 
   return (
-    <html lang={initialLang} suppressHydrationWarning>
+    <html lang={initialLang} className={outfit.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

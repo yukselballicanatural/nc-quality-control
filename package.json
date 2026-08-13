@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "verify:liquid-glass": "node scripts/verify-liquid-glass.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

@@ -24,18 +24,26 @@
 .lq-opt[hidden] { display: none; }
 
 html[data-theme="light"] {
-  --g-1: rgba(255, 255, 255, 0.40);
-  --g-2: rgba(255, 255, 255, 0.26);
-  --g-3: rgba(255, 255, 255, 0.58);
-  --g-hover: rgba(255, 255, 255, 0.62);
-  --edge: rgba(255, 255, 255, 0.55);
-  --edge-soft: rgba(255, 255, 255, 0.32);
+  /* Surface opacities are measured from the reference build, not taken from
+     the design doc's prose: the real UI reads as crisp near-white panels on a
+     pale lavender ground. The doc's 0.40 fill over a saturated mesh produced
+     tinted, muddy cards instead. */
+  --g-1: rgba(255, 255, 255, 0.58);
+  --g-2: rgba(255, 255, 255, 0.38);
+  --g-3: rgba(255, 255, 255, 0.72);
+  --g-hover: rgba(255, 255, 255, 0.86);
+  --g-panel: rgba(255, 255, 255, 0.88);
+  --edge: rgba(255, 255, 255, 0.95);
+  --edge-soft: rgba(255, 255, 255, 0.68);
+  --hairline: rgba(88, 102, 158, 0.13);
+  --slate: rgba(38, 46, 62, 0.95);
+  --zebra: rgba(196, 207, 243, 0.40);
   --sheen: inset 0 1px 0 0 rgba(255, 255, 255, 0.85),
            inset 0 0 0 1px rgba(255, 255, 255, 0.20),
            inset 0 -1px 0 0 rgba(255, 255, 255, 0.12);
-  --sh-1: 0 2px 8px rgba(23, 43, 99, 0.06), 0 8px 28px rgba(23, 43, 99, 0.10);
-  --sh-2: 0 4px 14px rgba(23, 43, 99, 0.08), 0 18px 50px -10px rgba(23, 43, 99, 0.18);
-  --sh-3: 0 8px 24px rgba(23, 43, 99, 0.12), 0 32px 80px -16px rgba(23, 43, 99, 0.30);
+  --sh-1: 0 1px 2px rgba(38, 52, 110, 0.05), 0 4px 16px rgba(38, 52, 110, 0.07), 0 12px 36px -8px rgba(38, 52, 110, 0.10);
+  --sh-2: 0 2px 6px rgba(38, 52, 110, 0.07), 0 10px 30px rgba(38, 52, 110, 0.10), 0 26px 64px -14px rgba(38, 52, 110, 0.20);
+  --sh-3: 0 6px 20px rgba(38, 52, 110, 0.12), 0 34px 84px -18px rgba(38, 52, 110, 0.32);
   --blur: 30px;
   --sat: 190%;
   --ink: #12141a;
@@ -50,19 +58,23 @@ html[data-theme="light"] {
   --spring: cubic-bezier(.34, 1.4, .56, 1);
 }
 
-html[data-theme="light"]:has([data-liquid-glass="enabled"]) { background: #cfdcfa; }
+html[data-theme="light"]:has([data-liquid-glass="enabled"]) { background: #c3cdf1; }
 
+/* Pale periwinkle ground: deeper lavender at the top-left, lightening toward
+   the bottom-right, with one low-opacity teal point so the brand colour still
+   refracts through the glass (§3). Kept far less saturated than the doc's
+   sample values — at those opacities every panel picked up a colour cast. */
 html[data-theme="light"] body:has([data-liquid-glass="enabled"]) {
   background:
-    radial-gradient(1250px 900px at 6% 0%, rgba(37, 99, 235, 0.55), transparent 62%),
-    radial-gradient(1050px 820px at 97% 4%, rgba(139, 92, 246, 0.52), transparent 60%),
-    radial-gradient(1150px 900px at 92% 70%, rgba(13, 148, 136, 0.48), transparent 62%),
-    radial-gradient(980px 820px at 2% 72%, rgba(79, 70, 229, 0.44), transparent 60%),
-    radial-gradient(900px 760px at 44% 36%, rgba(56, 189, 248, 0.34), transparent 64%),
-    radial-gradient(760px 640px at 62% 98%, rgba(236, 72, 153, 0.18), transparent 62%),
-    linear-gradient(158deg, #d3e1fb 0%, #d6d9fa 46%, #cfe9f2 100%) !important;
+    radial-gradient(1250px 900px at 0% 0%, rgba(126, 142, 226, 0.62), transparent 58%),
+    radial-gradient(1050px 850px at 100% 0%, rgba(170, 150, 233, 0.52), transparent 56%),
+    radial-gradient(1150px 900px at 100% 92%, rgba(126, 172, 231, 0.44), transparent 58%),
+    radial-gradient(980px 820px at 0% 100%, rgba(139, 152, 228, 0.42), transparent 56%),
+    radial-gradient(860px 720px at 56% 44%, rgba(70, 196, 184, 0.16), transparent 62%),
+    linear-gradient(157deg, #bcc7ef 0%, #cbd3f4 46%, #dce2fa 100%) !important;
   background-repeat: no-repeat !important;
   background-size: 100% 100% !important;
+  background-attachment: fixed !important;
   color: var(--ink);
 }
 
@@ -77,47 +89,68 @@ html[data-theme="light"] [data-liquid-glass="enabled"]::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background:
-    radial-gradient(820px 480px at 50% -12%, rgba(255, 255, 255, 0.38), transparent 64%),
-    linear-gradient(115deg, rgba(255, 255, 255, 0.10), transparent 34%, rgba(255, 255, 255, 0.08));
+  background: radial-gradient(760px 420px at 50% -14%, rgba(255, 255, 255, 0.20), transparent 64%);
 }
 
+/* Sidebar reads as a near-solid white slab, not a tinted pane. */
 html[data-theme="light"] [data-liquid-glass="enabled"] aside {
-  margin: 10px !important;
-  width: 260px !important;
-  height: calc(100vh - 20px) !important;
-  border: 1px solid var(--edge-soft) !important;
+  margin: 12px !important;
+  width: 258px !important;
+  height: calc(100vh - 24px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.9) !important;
   border-radius: var(--r-lg) !important;
   overflow: hidden;
-  background: linear-gradient(160deg, rgba(224, 240, 255, 0.52), var(--g-1)) !important;
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--sat));
-  backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  background: linear-gradient(168deg, rgba(255, 255, 255, 0.94), rgba(250, 251, 255, 0.88)) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
+  backdrop-filter: blur(var(--blur)) saturate(140%);
   box-shadow: var(--sh-2), var(--sheen) !important;
 }
 
-html[data-theme="light"] [data-liquid-glass="enabled"] .md\:ml-64 { margin-left: 280px; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .md\:ml-64 { margin-left: 282px; }
 
+/* No header slab. The reference layout puts the page title straight on the open
+   background, so the header stops being sticky and becomes a plain title row —
+   which also removes any need to mask content scrolling beneath it. */
 html[data-theme="light"] [data-liquid-glass="enabled"] header {
-  top: 10px !important;
-  height: 62px;
-  margin: 10px 10px 0 0;
-  border: 1px solid var(--edge-soft) !important;
-  border-radius: var(--r-lg) !important;
-  background: var(--g-1) !important;
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--sat));
-  backdrop-filter: blur(var(--blur)) saturate(var(--sat));
-  box-shadow: var(--sh-2), var(--sheen) !important;
+  position: static !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0;
+  padding: 22px 26px 2px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none !important;
 }
 
-html[data-theme="light"] [data-liquid-glass="enabled"] main { position: relative; z-index: 1; }
+html[data-theme="light"] [data-liquid-glass="enabled"] header h1 {
+  font-size: 1.72rem;
+  font-weight: 800;
+  letter-spacing: -.025em;
+  color: #151b2b !important;
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] main {
+  position: relative;
+  z-index: 1;
+  padding-top: 14px !important;
+}
+
+/* Let the content column shrink. Both the shell and <main> default to
+   min-width:auto as flex items, so a wide nowrap table pushes the whole column
+   past the viewport instead of scrolling inside its own wrapper. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .md\:ml-64,
+html[data-theme="light"] [data-liquid-glass="enabled"] main { min-width: 0 !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] main > div { animation: lgViewIn .62s var(--spring); }
 
 html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"],
 html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-gray-50"][class*="rounded"] {
-  border-color: var(--edge-soft) !important;
+  border-color: rgba(255, 255, 255, 0.86) !important;
   background: var(--g-1) !important;
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--sat));
-  backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
+  backdrop-filter: blur(var(--blur)) saturate(150%);
   box-shadow: var(--sh-1), var(--sheen) !important;
 }
 
@@ -137,46 +170,56 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside img {
   opacity: .86;
 }
 
-html[data-theme="light"] [data-liquid-glass="enabled"] aside :is(.text-white, [class*="text-white"]) { color: var(--ink) !important; }
-html[data-theme="light"] [data-liquid-glass="enabled"] aside :is(.text-white\/65, .text-white\/50, .text-white\/40) { color: var(--ink-2) !important; }
+/* Sidebar text. Nav rows are excluded because they carry `hover:text-white`
+   utilities whose class NAME matches [class*="text-white"] — matching on that
+   substring paints every row white on a white slab. Nav state is driven by the
+   data-active marker instead. */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside :is(.text-white, [class*="text-white"]):not(nav a):not(nav a *) { color: var(--ink) !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] aside :is(.text-white\/65, .text-white\/50, .text-white\/40):not(nav a):not(nav a *) { color: var(--ink-2) !important; }
 
 html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a {
   min-height: 38px;
   border: 1px solid transparent;
-  border-radius: 12px !important;
-  color: #26344f !important;
-  font-weight: 700;
+  border-radius: 11px !important;
+  color: #1e2740 !important;
+  font-size: 13px;
+  font-weight: 600;
   transition: background .22s var(--ease), color .22s var(--ease), transform .3s var(--spring), box-shadow .25s var(--ease);
 }
 
 html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a:hover {
-  color: #111827 !important;
-  background: rgba(255, 255, 255, 0.46) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  color: #0b1020 !important;
+  background: rgba(120, 136, 190, 0.13) !important;
+  box-shadow: none !important;
 }
 
+html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a > span { color: inherit !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a svg {
-  color: #41516d;
-  opacity: .94;
+  color: #5a688a !important;
+  opacity: 1;
 }
+html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a:hover svg { color: #1e2740 !important; }
 
-html[data-theme="light"] [data-liquid-glass="enabled"] aside nav:not(.seg-ready) a[class*="bg-white"] {
+/* Active row is a solid dark slate pill — the one high-contrast anchor in an
+   otherwise pale sidebar. */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside nav:not(.seg-ready) a[data-active="true"] {
   color: #fff !important;
-  background: rgba(18, 22, 34, 0.62) !important;
-  box-shadow: 0 6px 20px -6px rgba(12, 16, 30, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+  background: var(--slate) !important;
+  box-shadow: 0 6px 18px -6px rgba(24, 32, 52, 0.5) !important;
 }
 
-html[data-theme="light"] [data-liquid-glass="enabled"] aside nav.seg-ready a[class*="bg-white"] {
+/* With the sliding indicator mounted, the row itself goes transparent and the
+   indicator layer paints the dark pill behind it. */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside nav.seg-ready a[data-active="true"] {
   color: #fff !important;
   background: transparent !important;
   box-shadow: none !important;
 }
 
-html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a[class*="bg-white"] svg,
-html[data-theme="light"] [data-liquid-glass="enabled"] aside nav.seg-ready a[class*="bg-white"] svg {
-  color: #fff !important;
-  opacity: 1;
-}
+html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a[data-active="true"],
+html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a[data-active="true"] span { color: #fff !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a[data-active="true"] svg { color: #fff !important; opacity: 1; }
+html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a[data-active="true"] > div { background: #fff !important; }
 
 html[data-theme="light"] [data-liquid-glass="enabled"] aside div[class*="bg-white/5"] {
   border: 1px solid rgba(255, 255, 255, 0.44);
@@ -189,10 +232,10 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside div[class*="bg-whit
 
 html[data-theme="light"] [data-liquid-glass="enabled"] .seg-indicator {
   border-radius: 999px;
-  background: rgba(18, 22, 34, 0.62);
+  background: var(--slate);
   -webkit-backdrop-filter: blur(16px) saturate(150%);
   backdrop-filter: blur(16px) saturate(150%);
-  box-shadow: 0 6px 20px -6px rgba(12, 16, 30, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  box-shadow: 0 6px 18px -6px rgba(24, 32, 52, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.16);
   transition: transform .52s var(--spring), width .42s var(--spring), height .42s var(--spring), opacity .25s var(--ease);
   will-change: transform, width;
 }
@@ -231,16 +274,46 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .lq-trigger.lq-active {
   box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.14) !important;
 }
 
-html[data-theme="light"] [data-liquid-glass="enabled"] .lq-trigger { padding: 7px 11px; font-size: 12px; font-weight: 500; cursor: pointer; }
+/* Compact controls. The app's own paddings (px-4 py-3, text-sm) render 46px
+   tall fields; the reference toolbar runs at 34px, which is what lets a whole
+   filter row read as one dense strip. */
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]),
+html[data-theme="light"] [data-liquid-glass="enabled"] .lq-trigger,
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="rounded-xl"][class*="border"]:has(> svg + span),
+html[data-theme="light"] [data-liquid-glass="enabled"] .relative > button[class*="bg-white"] {
+  padding: 6px 11px !important;
+  font-size: 12.5px !important;
+  border-radius: 11px !important;
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(input, .lq-trigger, .relative > button[class*="bg-white"]):not(textarea) {
+  height: 34px;
+  min-height: 34px;
+  box-sizing: border-box;
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] textarea { height: auto; min-height: 68px; }
+
+/* The date field is a button, not an input — match it to the same strip. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .relative > button[class*="rounded-xl"][class*="border"] {
+  height: 34px;
+  min-height: 34px;
+  padding: 6px 11px !important;
+  font-size: 12.5px !important;
+  box-sizing: border-box;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .relative > button[class*="rounded-xl"] svg { width: 14px; height: 14px; }
+
+html[data-theme="light"] [data-liquid-glass="enabled"] .lq-trigger { font-weight: 500; cursor: pointer; }
 html[data-theme="light"] [data-liquid-glass="enabled"] .lq-trigger:active { transform: scale(.985); }
 html[data-theme="light"] [data-liquid-glass="enabled"] .lq-trigger-chev { transition: transform .38s var(--spring); }
 html[data-theme="light"] [data-liquid-glass="enabled"] .lq-trigger.lq-active .lq-trigger-chev { color: var(--accent); transform: rotate(180deg); }
 
 html[data-theme="light"] .lq-panel[data-liquid-owned="true"] {
   max-height: min(320px, calc(100vh - 20px));
-  border: 1px solid rgba(255, 255, 255, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.92);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.80);
+  background: rgba(250, 252, 255, 0.97);
   color: var(--ink);
   -webkit-backdrop-filter: blur(44px) saturate(200%);
   backdrop-filter: blur(44px) saturate(200%);
@@ -265,22 +338,49 @@ html[data-theme="light"] .lq-panel[data-liquid-owned="true"] .lq-opt[aria-select
 html[data-theme="light"] .lq-panel[data-liquid-owned="true"] .lq-opt:active { transform: scale(.975); }
 html[data-theme="light"] .lq-panel[data-liquid-owned="true"] .lq-opt:disabled { opacity: .45; cursor: not-allowed; }
 
+/* Popover escape hatch.
+   Every glass panel carries a backdrop-filter, and backdrop-filter creates a
+   stacking context — which traps a descendant popover's z-index inside the
+   panel. A sibling panel later in the DOM then paints over the open calendar.
+   Lifting the hosting panel (only while it actually contains an open popover)
+   raises the popover with it. */
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="rounded"]:has(div[class*="z-[200]"]) {
+  position: relative;
+  z-index: 80 !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="rounded"]:has(div[class*="z-[200]"]) :is(thead th, tbody td) {
+  position: static !important;
+}
+
+/* Floating panels must not let the page read through them. At 0.86 the KPI
+   figures behind the calendar were still legible through the glass; a dense
+   fill plus a heavy blur keeps it frosted rather than see-through. */
 html[data-theme="light"] [data-liquid-glass="enabled"] .relative > div[class*="top-full"][class*="bg-white"],
 html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="z-[200]"][class*="bg-white"] {
-  border: 1px solid rgba(255, 255, 255, 0.38) !important;
+  border: 1px solid rgba(255, 255, 255, 0.92) !important;
   border-radius: 18px !important;
-  background: rgba(255, 255, 255, 0.86) !important;
-  -webkit-backdrop-filter: blur(46px) saturate(200%);
-  backdrop-filter: blur(46px) saturate(200%);
-  box-shadow: var(--sh-2), var(--sheen) !important;
+  background: rgba(250, 252, 255, 0.97) !important;
+  -webkit-backdrop-filter: blur(46px) saturate(180%);
+  backdrop-filter: blur(46px) saturate(180%);
+  box-shadow: var(--sh-3), var(--sheen) !important;
   animation: calIn .34s var(--spring);
 }
 
 html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="z-[200]"] button:hover { background: rgba(13, 148, 136, 0.14) !important; color: #0f766e !important; }
-html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="z-[200]"] button[class*="bg-[#1B4332]"] {
+
+/* Only the SELECTED day gets the filled treatment. Matching on
+   [class*="bg-[#1B4332]"] painted every cell, because each unselected day
+   carries `hover:bg-[#1B4332]/8` — the substring is in the class name. The
+   real marker for a selected day is the gradient's `from-` colour. */
+html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="z-[200]"] button[class*="from-[#1B4332]"] {
   color: #fff !important;
   background: linear-gradient(150deg, #14b8a6, #0d9488) !important;
   box-shadow: 0 4px 14px -3px rgba(13, 148, 136, 0.6) !important;
+}
+
+/* Calendar chrome: the accent bar and the today/clear actions. */
+html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="z-[200]"] div[class*="bg-gradient-to-r"] {
+  background: linear-gradient(90deg, #5eead4, #0d9488, #5eead4) !important;
 }
 
 html[data-theme="light"] [data-liquid-glass="enabled"] button {
@@ -301,10 +401,10 @@ html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="overflow-x-au
   position: relative;
   z-index: 1;
   isolation: isolate;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.30);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"] div[class*="rounded"]:has(> table) {
@@ -354,15 +454,35 @@ html[data-theme="light"] [data-liquid-glass="enabled"] thead th {
   position: sticky;
   top: 0;
   z-index: 2;
-  border-bottom: 1px solid var(--edge) !important;
-  background: rgba(244, 247, 255, 0.96) !important;
-  color: var(--ink-2) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  backdrop-filter: blur(18px) saturate(180%);
+  border-bottom: 1px solid var(--hairline) !important;
+  background: rgba(240, 243, 253, 0.97) !important;
+  color: #6a7591 !important;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
 }
-html[data-theme="light"] [data-liquid-glass="enabled"] tbody td { border-bottom: 1px solid rgba(23, 43, 99, 0.038) !important; font-variant-numeric: tabular-nums; }
-html[data-theme="light"] [data-liquid-glass="enabled"] tbody tr:nth-child(even) td { background: rgba(23, 43, 99, 0.018) !important; }
-html[data-theme="light"] [data-liquid-glass="enabled"] tbody tr:hover td { background: rgba(13, 148, 136, 0.085) !important; }
+
+/* Rows separate by surface, never by a grid: hairline bottom edge + a
+   lavender/white zebra, no vertical rules at all (§7.2). */
+html[data-theme="light"] [data-liquid-glass="enabled"] thead th { padding-top: 9px !important; padding-bottom: 9px !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] tbody td {
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+  border-bottom: 1px solid var(--hairline) !important;
+  font-variant-numeric: tabular-nums;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] tbody tr:nth-child(odd) td { background: rgba(255, 255, 255, 0.52) !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] tbody tr:nth-child(even) td { background: var(--zebra) !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] tbody tr:hover td { background: rgba(163, 178, 236, 0.34) !important; }
+
+/* Identity/code cells read as codes, not prose (§7.1). */
+html[data-theme="light"] [data-liquid-glass="enabled"] tbody td :is(.font-mono, [class*="font-mono"]) {
+  color: #0f766e !important;
+  letter-spacing: .01em;
+}
 
 html[data-theme="light"] [data-liquid-glass="enabled"] :is(.text-gray-950, .text-gray-900, .text-gray-800) { color: var(--ink) !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] :is(.text-gray-700, .text-gray-600, .text-gray-500) { color: var(--ink-2) !important; }
@@ -373,6 +493,400 @@ html[data-theme="light"] [data-liquid-glass="enabled"] ::-webkit-scrollbar-track
 html[data-theme="light"] [data-liquid-glass="enabled"] ::-webkit-scrollbar-thumb { border-radius: 99px; background: rgba(23, 43, 99, 0.20) !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] ::-webkit-scrollbar-thumb:hover { background: rgba(23, 43, 99, 0.34) !important; }
 
+/* ═══════════════════════════════════════════════════════════════════
+   §2.3 — Semantic token layer, built on top of the raw glass physics
+   above. Cards/badges/alert strips reference these names instead of
+   reaching for --g-* directly.
+   ═══════════════════════════════════════════════════════════════════ */
+html[data-theme="light"] {
+  --tm-surface:   rgba(255, 255, 255, .50);
+  --tm-surface-2: rgba(255, 255, 255, .30);
+  --tm-hover:     rgba(255, 255, 255, .72);
+  --tm-edge:      rgba(255, 255, 255, .62);
+  --tm-sheen:     inset 0 1px 0 0 rgba(255, 255, 255, .85);
+  --tm-ink:       #12141a;
+  --tm-ink-2:     #4b5364;
+  --tm-ink-3:     #6b7385;
+  --tm-tip-bg:    rgba(255, 255, 255, .92);
+
+  --tm-danger: #9f1239;  --tm-danger-bg: rgba(190, 18, 60, .085);  --tm-danger-edge: rgba(190, 18, 60, .24);
+  --tm-warn:   #92400e;  --tm-warn-bg:   rgba(245, 158, 11, .15);  --tm-warn-edge:   rgba(180, 83, 9, .26);
+  --tm-info:   #3730a3;  --tm-info-bg:   rgba(99, 102, 241, .11);  --tm-info-edge:   rgba(67, 56, 202, .22);
+  --tm-ok:     #065f46;  --tm-ok-bg:     rgba(16, 185, 129, .13);  --tm-ok-edge:     rgba(6, 95, 70, .22);
+  --tm-accent: #115e59;  --tm-accent-bg: rgba(13, 148, 136, .13);  --tm-accent-edge: rgba(15, 118, 110, .26);
+}
+
+/* §13 — Outfit for headings, Inter stays the body face. */
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(h1, h2, h3, h4) {
+  font-family: var(--font-outfit), Inter, sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   §5 — Collapsible sidebar: full (260px) ↔ rail (56px)
+   ═══════════════════════════════════════════════════════════════════ */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside {
+  transition: width .25s var(--ease);
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] { width: 56px !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"]:has(aside[data-collapsed="true"]) .md\:ml-64 { margin-left: 80px; }
+
+/* Rail: logo, labels and the user text block step aside for icons only. */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] img,
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span:not([class*="rounded-full"]),
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div,
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] button[class*="bg-red-500"] > span {
+  display: none !important;
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] > div:first-child {
+  justify-content: center;
+  padding: 12px 0 10px !important;
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav { padding: 12px 10px !important; }
+
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a {
+  width: 36px;
+  height: 36px;
+  padding: 0 !important;
+  gap: 0 !important;
+  justify-content: center;
+  border-radius: 10px !important;
+}
+
+/* §5.3 — the numeric badge becomes a bare urgency dot in the rail. */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span[class*="rounded-full"] {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  min-width: 0;
+  height: 8px;
+  padding: 0;
+  font-size: 0;
+  line-height: 0;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a { position: relative; }
+
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] > div:last-child { padding: 8px 10px 12px !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card {
+  justify-content: center;
+  padding: 6px !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] button[class*="bg-red-500"] {
+  width: 36px;
+  height: 36px;
+  padding: 0 !important;
+  gap: 0 !important;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+/* Rail toggle arrow (§5.1) */
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-rail-toggle {
+  border: 1px solid var(--edge-soft) !important;
+  background: var(--g-2) !important;
+  color: var(--ink-2) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-rail-toggle:hover {
+  background: linear-gradient(150deg, #17c1ad, #0d9488) !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, .3) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-rail-toggle:active { transform: scale(.93); }
+
+/* Sidebar summary cards: pale tinted slab, micro uppercase label, oversized
+   figure, soft round icon well. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-summary-label {
+  color: #8b95b2 !important;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-summary-card {
+  border: 1px solid var(--tone-edge) !important;
+  background: var(--tone-bg) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7);
+  transition: background .22s var(--ease), border-color .22s var(--ease);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-summary-card[data-tone="red"]   { --tone-bg: rgba(254, 226, 226, .72); --tone-edge: rgba(248, 180, 180, .5);  --tone-ink: #9f1239; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-summary-card[data-tone="amber"] { --tone-bg: rgba(254, 243, 199, .74); --tone-edge: rgba(250, 214, 130, .5);  --tone-ink: #92400e; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-summary-card[data-tone="blue"]  { --tone-bg: rgba(219, 234, 254, .74); --tone-edge: rgba(170, 200, 250, .5);  --tone-ink: #1e3a8a; }
+
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-summary-card-label {
+  color: var(--tone-ink) !important;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .09em;
+  opacity: .78;
+  text-transform: uppercase;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-summary-card-value {
+  margin-top: 1px;
+  color: var(--tone-ink) !important;
+  font-family: var(--font-outfit), Inter, sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-summary-card-icon {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--tone-edge);
+  background: rgba(255, 255, 255, .6);
+  color: var(--tone-ink);
+}
+
+/* In the rail there is no room for figures — the summary folds away, and the
+   language segment goes with it (a squeezed three-way pill is unusable at 36px).
+   The appearance toggle stays, centred. */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-summary { display: none; }
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-menu-controls [role="radiogroup"] { display: none !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-menu-controls {
+  justify-content: center;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Initials avatar (§5.1) */
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-user-avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 12px;
+  letter-spacing: .02em;
+  background: linear-gradient(135deg, #14b8a6, #0f766e) !important;
+  color: #fff !important;
+  box-shadow: 0 6px 18px -4px rgba(13, 148, 136, .55), var(--sheen);
+}
+
+/* Menu control strip: language segment + appearance toggle, sized to sit on one
+   row inside the sidebar. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-menu-controls > :first-child { flex: 0 1 auto; min-width: 0; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-menu-controls button:not(.lg-theme-toggle) {
+  min-width: 38px !important;
+  padding: 5px 8px !important;
+  font-size: 10px !important;
+  letter-spacing: .12em !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-menu-controls [role="radiogroup"] {
+  border: 1px solid rgba(255, 255, 255, .8) !important;
+  background: rgba(255, 255, 255, .5) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 2px 8px rgba(38, 52, 110, .07) !important;
+}
+
+/* Paint the active BUTTON, not an indicator layer.
+   Two separate indicators can sit in this control — the component's own silver
+   gradient span, and one liquid-ui.js contributes (it also tags the component's
+   span as .seg-indicator). Styling either one is fragile, and hiding
+   .seg-indicator took the real indicator with it, leaving white-on-white. So
+   both layers are dropped here and the selected button carries the pill. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-menu-controls .seg-indicator,
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-menu-controls [role="radiogroup"] > span[aria-hidden="true"] {
+  display: none !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-menu-controls [aria-checked="true"] {
+  background: var(--slate) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px -4px rgba(24, 32, 52, .45) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-menu-controls [aria-checked="false"] {
+  background: transparent !important;
+  color: #6b7590 !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-menu-controls [aria-checked="false"]:hover { color: #1e2740 !important; }
+
+/* §5.4 — theme toggle: glass pill, CSS-driven moon/sun swap */
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-theme-toggle {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border: 1px solid rgba(255, 255, 255, .9) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, .72) !important;
+  color: #4b5364 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85), 0 2px 8px rgba(23, 43, 99, .08) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-theme-toggle:hover {
+  background: rgba(255, 255, 255, .8) !important;
+  color: #0f766e !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-theme-toggle:active { transform: scale(.92); }
+.lg-theme-toggle .lg-icon-sun { display: none; }
+.lg-theme-toggle .lg-icon-moon { display: block; }
+html[data-theme="dark"] .lg-theme-toggle .lg-icon-sun { display: block; }
+html[data-theme="dark"] .lg-theme-toggle .lg-icon-moon { display: none; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   §6.4 — One primary button look. The app writes primary actions with
+   several brand shades; the glass layer folds them into a single
+   gradient treatment. Sidebar buttons keep their own tone (§6.6).
+   ═══════════════════════════════════════════════════════════════════ */
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"]),
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"]) {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .26) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(150deg, #17c1ad 0%, #0d9488 55%, #0e7c72 100%) !important;
+  color: #fff !important;
+  letter-spacing: .01em;
+  box-shadow: 0 6px 20px -5px rgba(13, 148, 136, .58),
+              0 1px 3px rgba(13, 148, 136, .24),
+              inset 0 1px 0 rgba(255, 255, 255, .45) !important;
+  transition: box-shadow .26s var(--ease), transform .3s var(--spring), filter .2s var(--ease) !important;
+}
+
+/* Light gathering across the upper half of the button */
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"])::after,
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"])::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 52% 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(rgba(255, 255, 255, .26), rgba(255, 255, 255, 0));
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"]):hover,
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"]):hover {
+  transform: translateY(-1.5px);
+  filter: saturate(115%) brightness(1.05);
+  box-shadow: 0 10px 28px -6px rgba(13, 148, 136, .68),
+              inset 0 1px 0 rgba(255, 255, 255, .55) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"]):active,
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"]):active {
+  transform: scale(.965);
+}
+
+/* §6.5 — ghost / neutral secondary buttons */
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="bg-gray-100"]:not(aside *),
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"]:not(aside *) {
+  border: 1px solid var(--edge-soft) !important;
+  border-radius: 12px !important;
+  background: var(--g-3) !important;
+  color: var(--ink-2) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 2px 8px rgba(23, 43, 99, .06) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="bg-gray-100"]:not(aside *):hover,
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"]:not(aside *):hover {
+  background: var(--g-hover) !important;
+  color: var(--ink) !important;
+}
+
+/* §6.6 — sidebar buttons use a softer glass tone than page buttons */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside button:not(.lg-rail-toggle) {
+  border: 1px solid var(--edge-soft) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] aside button:not(.lg-rail-toggle):active { transform: scale(.93); }
+
+/* §6.7 — a filter rail mixes inputs, selects and buttons; pin them all to
+   one height so 1px glass borders can't knock them out of line. */
+html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="flex-wrap"][class*="items-center"][class*="gap-2.5"] :is(button, input, .lq-trigger) {
+  height: 34px;
+  box-sizing: border-box;
+}
+
+/* §9 — status pills: dark-on-tint in the app, re-mapped to readable
+   tinted glass on a light ground. */
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded-full"][class*="bg-green-100"],
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded-full"][class*="bg-emerald-50"] {
+  border: 1px solid var(--tm-ok-edge);
+  background: var(--tm-ok-bg) !important;
+  color: var(--tm-ok) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded-full"][class*="bg-red-100"],
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded-full"][class*="bg-red-50"] {
+  border: 1px solid var(--tm-danger-edge);
+  background: var(--tm-danger-bg) !important;
+  color: var(--tm-danger) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded-full"][class*="bg-amber-50"],
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded-full"][class*="bg-yellow-100"] {
+  border: 1px solid var(--tm-warn-edge);
+  background: var(--tm-warn-bg) !important;
+  color: var(--tm-warn) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded-full"][class*="bg-blue-100"],
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded-full"][class*="bg-blue-50"] {
+  border: 1px solid var(--tm-info-edge);
+  background: var(--tm-info-bg) !important;
+  color: var(--tm-info) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   §10 — KPI tiles: one --am-glow per tone drives the top edge, the
+   corner bloom and the icon chip. Plain rgba throughout; color-mix()
+   is avoided so an unsupporting browser can never blank the tile.
+   ═══════════════════════════════════════════════════════════════════ */
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-kpi[data-tone="green"]  { --am-glow: #14b8a6; --am-glow-soft: rgba(20, 184, 166, .55); }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-kpi[data-tone="blue"]   { --am-glow: #38bdf8; --am-glow-soft: rgba(56, 189, 248, .55); }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-kpi[data-tone="amber"]  { --am-glow: #f59e0b; --am-glow-soft: rgba(245, 158, 11, .55); }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-kpi[data-tone="red"]    { --am-glow: #f87171; --am-glow-soft: rgba(248, 113, 113, .55); }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-kpi[data-tone="slate"]  { --am-glow: #94a3b8; --am-glow-soft: rgba(148, 163, 184, .55); }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-kpi[data-tone="purple"] { --am-glow: #a78bfa; --am-glow-soft: rgba(167, 139, 250, .55); }
+
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-kpi {
+  position: relative;
+  overflow: hidden;
+  border-top: 2.5px solid var(--am-glow-soft, rgba(20, 184, 166, .55)) !important;
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-kpi::after {
+  content: "";
+  position: absolute;
+  top: -18px;
+  right: -18px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  filter: blur(26px);
+  opacity: .16;
+  pointer-events: none;
+  background: var(--am-glow, #14b8a6);
+}
+
+/* §4 + §12 — the lift belongs to compact tiles. Large panels holding a
+   table or a chart change border and shadow only: scaling them blurs
+   glyphs and makes sticky table headers jitter. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-kpi:hover {
+  transform: translateY(-3px) scale(1.012);
+  border-color: var(--edge) !important;
+  box-shadow: inset 3px 0 0 0 var(--am-glow, #14b8a6), var(--sh-2), var(--sheen) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-kpi {
+  transition: transform .28s var(--spring), background .25s var(--ease), box-shadow .25s var(--ease), border-color .25s var(--ease);
+}
+
+/* §11 — hairline of gathered light along a panel's top edge. Composited
+   into the existing background so no element needs repositioning.
+   Table wrappers are excluded: some of them carry bg-white/rounded on the
+   very element that scrolls the table, and those were deliberately
+   flattened above (no blur, near-flat fill) to stop double-blur and
+   sticky-header artefacts. Re-glassing them here would undo that. */
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(:has(> table)) {
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, .55), transparent) top center / calc(100% - 24px) 1px no-repeat,
+    var(--g-1) !important;
+}
+
+/* §11 — panel header icon chip picks up the accent */
+html[data-theme="light"] [data-liquid-glass="enabled"] span[class*="bg-[#1B4332]/10"] {
+  background: linear-gradient(150deg, rgba(20, 184, 166, .22), rgba(13, 148, 136, .12)) !important;
+  color: #0f766e !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6);
+}
+
+/* §11 — progress bars follow the accent instead of flat brand green */
+html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="bg-gray-100"][class*="rounded-full"][class*="overflow-hidden"] {
+  background: rgba(23, 43, 99, .07) !important;
+}
+
 @keyframes lgViewIn { 0% { opacity: 0; transform: translateY(18px) scale(.972); filter: blur(10px) saturate(140%); } 50% { opacity: 1; } 100% { opacity: 1; transform: none; filter: none; } }
 @keyframes lgModalIn { from { opacity: 0; transform: translateY(16px) scale(.94); } to { opacity: 1; transform: none; } }
 @keyframes lqPanelIn { 0% { opacity: 0; transform: translateY(-10px) scale(.92); filter: blur(6px); } 55% { opacity: 1; filter: blur(0); } 100% { transform: none; } }
@@ -382,8 +896,39 @@ html[data-theme="light"] [data-liquid-glass="enabled"] ::-webkit-scrollbar-thumb
 @media (max-width: 767px) {
   html[data-theme="light"] [data-liquid-glass="enabled"] aside { margin: 8px !important; height: calc(100vh - 16px) !important; }
   html[data-theme="light"] [data-liquid-glass="enabled"] aside.-translate-x-full { transform: translateX(calc(-100% - 8px)) !important; }
-  html[data-theme="light"] [data-liquid-glass="enabled"] header { top: 8px !important; margin: 8px; }
+  html[data-theme="light"] [data-liquid-glass="enabled"] header { height: 58px; }
+  html[data-theme="light"] [data-liquid-glass="enabled"] header h1 { font-size: 1.15rem; }
   html[data-theme="light"] [data-liquid-glass="enabled"] .md\:ml-64 { margin-left: 0; }
+
+  /* On phones the sidebar is a drawer, never a rail — a 56px drawer would be
+     unusable, so the collapsed state is ignored below the md breakpoint. */
+  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] { width: 260px !important; }
+  html[data-theme="light"] [data-liquid-glass="enabled"]:has(aside[data-collapsed="true"]) .md\:ml-64 { margin-left: 0; }
+  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] img,
+  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span:not([class*="rounded-full"]),
+  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div,
+  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] button[class*="bg-red-500"] > span {
+    display: revert !important;
+  }
+  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a {
+    width: auto;
+    height: auto;
+    justify-content: flex-start;
+  }
+  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span[class*="rounded-full"] {
+    position: static;
+    width: auto;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    font-size: 10px;
+    line-height: 1;
+  }
+  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] button[class*="bg-red-500"] {
+    width: 100%;
+    height: auto;
+    justify-content: flex-start;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

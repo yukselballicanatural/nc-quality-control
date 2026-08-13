@@ -23,7 +23,10 @@ import {
   Clock,
   AlertTriangle,
   ArrowRight,
-  SunMoon,
+  ChevronLeft,
+  ChevronRight,
+  Moon,
+  Sun,
 } from 'lucide-react'
 import { createClient as createBrowserClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -64,6 +67,7 @@ function recheckDayDiff(dateStr: string) {
 
 export function DashboardShell({ profile, children }: DashboardShellProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
   const [recheckUrgentCount, setRecheckUrgentCount] = useState(0)
   const [notifItems, setNotifItems] = useState<NotifItem[]>([])
@@ -76,8 +80,55 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
   const router = useRouter()
   const isLiquidGlassUser = profile.email?.toLowerCase() === 'kalite@naturalclinic.com'
 
+  // The Liquid Glass sidebar can collapse to an icon-only rail (design system §5).
+  // Gated to the test user so every other account keeps the fixed 260px sidebar
+  // with no extra controls and no behaviour change at all.
+  const canCollapse = isLiquidGlassUser
+  const isRailMode = canCollapse && isCollapsed
+
+  const initials =
+    (profile.full_name || profile.email || '')
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part[0]?.toUpperCase() ?? '')
+      .join('') || '—'
+
   // Consultants never see recheck notifications (they can't access the page).
   const canSeeNotifications = profile.role !== 'consultant'
+
+  // Narrow desktop widths start in rail mode — the full sidebar crowds the
+  // content area below ~900px (design system §5.1).
+  useEffect(() => {
+    if (!canCollapse) return
+    if (window.innerWidth <= 900) setIsCollapsed(true)
+  }, [canCollapse])
+
+  // Buckets for the sidebar summary cards. Purely a re-slice of notifItems —
+  // no extra request, and it stays empty until that fetch resolves.
+  const recheckSummary = [
+    {
+      key: 'overdue',
+      tone: 'red',
+      icon: AlertTriangle,
+      label: tx('Geciken', 'Overdue', 'In ritardo'),
+      count: notifItems.filter(item => recheckDayDiff(item.dev_recheck_date) < 0).length,
+    },
+    {
+      key: 'today',
+      tone: 'amber',
+      icon: Clock,
+      label: tx('Bugün', 'Today', 'Oggi'),
+      count: notifItems.filter(item => recheckDayDiff(item.dev_recheck_date) === 0).length,
+    },
+    {
+      key: 'upcoming',
+      tone: 'blue',
+      icon: CalendarClock,
+      label: tx('Yaklaşan', 'Upcoming', 'In arrivo'),
+      count: notifItems.filter(item => recheckDayDiff(item.dev_recheck_date) > 0).length,
+    },
+  ]
 
   useEffect(() => {
     if (!canSeeNotifications) return
@@ -275,6 +326,7 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
 
       {/* Sidebar */}
       <aside
+        data-collapsed={isRailMode ? 'true' : undefined}
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#1B4332] flex flex-col transition-transform duration-300 ease-in-out ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
@@ -289,7 +341,11 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
         </button>
 
         {/* Logo */}
-        <div className="px-5 py-4 border-b border-white/10">
+        <div
+          className={`px-5 py-4 border-b border-white/10 ${
+            canCollapse ? 'flex items-end justify-between gap-2' : ''
+          }`}
+        >
           <Image
             src="/nc-logo-white.png"
             alt="Natural Clinic"
@@ -297,6 +353,22 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
             height={34}
             className="object-contain object-left opacity-90"
           />
+          {canCollapse && (
+            <button
+              type="button"
+              onClick={() => setIsCollapsed(c => !c)}
+              className="lg-rail-toggle hidden md:flex w-[26px] h-[26px] flex-shrink-0 items-center justify-center rounded-lg text-white/60 transition-colors"
+              aria-expanded={!isRailMode}
+              aria-label={isRailMode
+                ? tx('Menüyü genişlet', 'Expand menu', 'Espandi menu')
+                : tx('Menüyü daralt', 'Collapse menu', 'Comprimi menu')}
+              title={isRailMode
+                ? tx('Menüyü genişlet', 'Expand menu', 'Espandi menu')
+                : tx('Menüyü daralt', 'Collapse menu', 'Comprimi menu')}
+            >
+              {isRailMode ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+            </button>
+          )}
         </div>
 
         {/* Navigation */}
@@ -308,6 +380,12 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
                 key={`${item.href}-${item.label}`}
                 href={item.href}
                 onClick={() => setIsMobileOpen(false)}
+                title={isRailMode ? item.label : undefined}
+                // Explicit state marker. Theming must not key off Tailwind class
+                // names here: the inactive rows carry `hover:bg-white/8` and
+                // `hover:text-white`, so a [class*="bg-white"] selector matches
+                // every row and would paint them all as active.
+                data-active={active ? 'true' : undefined}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                   active
                     ? 'bg-white/15 text-white'
@@ -332,22 +410,83 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
           })}
         </nav>
 
+        {/* Recheck summary — derived from the notification rows already
+            fetched above, so this adds no query. Glass test user only. */}
+        {canCollapse && canSeeNotifications && (
+          <div className="lg-summary px-3 pb-2">
+            <p className="lg-summary-label px-1 pb-1.5">
+              {tx('TEKRAR KONTROL', 'RECHECK SUMMARY', 'RIEPILOGO CONTROLLI')}
+            </p>
+            <div className="space-y-1.5">
+              {recheckSummary.map(card => (
+                <div
+                  key={card.key}
+                  data-tone={card.tone}
+                  className="lg-summary-card flex items-center justify-between gap-2 rounded-xl px-3 py-2.5"
+                  title={isRailMode ? `${card.label}: ${card.count}` : undefined}
+                >
+                  <span className="min-w-0">
+                    <span className="lg-summary-card-label block truncate">{card.label}</span>
+                    <span className="lg-summary-card-value block">{card.count}</span>
+                  </span>
+                  <span className="lg-summary-card-icon flex-shrink-0 flex items-center justify-center rounded-full">
+                    <card.icon className="w-[15px] h-[15px]" />
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Language + appearance live in the menu for the glass user, matching
+            the reference layout. They stay in the header for everyone else. */}
+        {canCollapse && (
+          <div className="lg-menu-controls px-3 pb-2 flex items-center gap-2">
+            <GlassLanguageToggle value={lang} onChange={setLang} ariaLabel={t.settings.language} />
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="lg-theme-toggle flex items-center justify-center flex-shrink-0"
+              aria-label={tx('Görünüm', 'Appearance', 'Aspetto')}
+              title={tx('Görünüm', 'Appearance', 'Aspetto')}
+            >
+              <Moon className="lg-icon-moon w-4 h-4" />
+              <Sun className="lg-icon-sun w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {/* User + Logout */}
         <div className="px-3 pb-4 pt-2 border-t border-white/10 space-y-1">
-          <div className="px-3 py-2.5 rounded-xl bg-white/5">
-            <p className="text-white text-sm font-medium truncate leading-snug">
-              {profile.full_name || profile.email}
-            </p>
-            <p className="text-white/45 text-xs truncate mt-0.5">
-              {t.roles[profile.role]}
-            </p>
+          <div
+            className={`px-3 py-2.5 rounded-xl bg-white/5 ${
+              canCollapse ? 'lg-user-card flex items-center gap-2.5' : ''
+            }`}
+          >
+            {canCollapse && (
+              <span
+                className="lg-user-avatar flex-shrink-0 flex items-center justify-center rounded-full text-white font-extrabold"
+                aria-hidden="true"
+              >
+                {initials}
+              </span>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-white text-sm font-medium truncate leading-snug">
+                {profile.full_name || profile.email}
+              </p>
+              <p className="text-white/45 text-xs truncate mt-0.5">
+                {t.roles[profile.role]}
+              </p>
+            </div>
           </div>
           <button
             onClick={handleLogout}
+            title={isRailMode ? t.auth.logout : undefined}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white transition-all duration-200"
           >
-            <LogOut className="w-[18px] h-[18px]" />
-            {t.auth.logout}
+            <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
+            <span>{t.auth.logout}</span>
           </button>
         </div>
       </aside>
@@ -398,20 +537,10 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
 
           {/* Right controls */}
           <div className="flex items-center gap-2">
-            {isLiquidGlassUser && (
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-                aria-label="Toggle theme"
-                title="Toggle theme"
-              >
-                <SunMoon className="w-5 h-5" />
-              </button>
+            {/* Language toggle — moved into the menu for the glass user */}
+            {!isLiquidGlassUser && (
+              <GlassLanguageToggle value={lang} onChange={setLang} ariaLabel={t.settings.language} />
             )}
-
-            {/* Language toggle */}
-            <GlassLanguageToggle value={lang} onChange={setLang} ariaLabel={t.settings.language} />
 
             {/* Notifications */}
             {canSeeNotifications && (

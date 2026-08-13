@@ -280,7 +280,10 @@ function StatCard({
   }
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-5">
+    <div
+      data-tone={tone}
+      className="lg-kpi rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-5"
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="text-2xl font-bold leading-tight text-gray-950">{value}</div>

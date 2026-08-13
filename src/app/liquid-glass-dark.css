@@ -50,9 +50,9 @@ html[data-theme="dark"] [data-liquid-glass="enabled"]::before {
 }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside {
-  margin: 10px !important;
-  width: 260px !important;
-  height: calc(100vh - 20px) !important;
+  margin: 12px !important;
+  width: 258px !important;
+  height: calc(100vh - 24px) !important;
   border: 1px solid var(--d-edge-soft) !important;
   border-radius: var(--d-r-lg) !important;
   overflow: hidden;
@@ -62,21 +62,100 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] aside {
   box-shadow: var(--d-sh-2), var(--d-sheen) !important;
 }
 
-html[data-theme="dark"] [data-liquid-glass="enabled"] .md\:ml-64 { margin-left: 280px; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .md\:ml-64 { margin-left: 282px; }
 
+/* No header slab, same as the light sheet: an almost invisible sticky pane
+   that still masks the rows scrolling underneath. */
 html[data-theme="dark"] [data-liquid-glass="enabled"] header {
-  top: 10px !important;
-  height: 62px;
-  margin: 10px 10px 0 0;
-  border: 1px solid var(--d-edge-soft) !important;
-  border-radius: var(--d-r-lg) !important;
-  background: var(--d-1) !important;
-  -webkit-backdrop-filter: blur(var(--d-blur)) saturate(var(--d-sat));
-  backdrop-filter: blur(var(--d-blur)) saturate(var(--d-sat));
-  box-shadow: var(--d-sh-2), var(--d-sheen) !important;
+  position: static !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0;
+  padding: 22px 26px 2px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none !important;
 }
 
-html[data-theme="dark"] [data-liquid-glass="enabled"] main { position: relative; z-index: 1; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] header h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--d-ink) !important;
+}
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] main { position: relative; z-index: 1; padding-top: 14px !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .md\:ml-64,
+html[data-theme="dark"] [data-liquid-glass="enabled"] main { min-width: 0 !important; }
+
+/* Popover escape hatch — see the light sheet for the backdrop-filter reason. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="rounded"]:has(div[class*="z-[200]"]) {
+  position: relative;
+  z-index: 80 !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="rounded"]:has(div[class*="z-[200]"]) :is(thead th, tbody td) {
+  position: static !important;
+}
+
+/* Compact controls: 34px strip, same as the light sheet. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lq-trigger,
+html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*="bg-white"] {
+  padding: 6px 11px !important;
+  font-size: 12.5px !important;
+  border-radius: 11px !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(input, .lq-trigger, .relative > button[class*="bg-white"]):not(textarea) {
+  height: 34px;
+  min-height: 34px;
+  box-sizing: border-box;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] textarea { height: auto; min-height: 68px; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*="rounded-xl"][class*="border"] {
+  height: 34px;
+  min-height: 34px;
+  padding: 6px 11px !important;
+  font-size: 12.5px !important;
+  box-sizing: border-box;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*="rounded-xl"] svg { width: 14px; height: 14px; }
+
+/* Menu control strip */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-menu-controls > :first-child { flex: 0 1 auto; min-width: 0; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-menu-controls button:not(.lg-theme-toggle) {
+  min-width: 38px !important;
+  padding: 5px 8px !important;
+  font-size: 10px !important;
+  letter-spacing: .12em !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-menu-controls [role="radiogroup"] {
+  border: 1px solid var(--d-edge) !important;
+  background: var(--d-3) !important;
+}
+/* Active button carries the pill — see the light sheet for why the indicator
+   layers are dropped instead of restyled. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-menu-controls .seg-indicator,
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-menu-controls [role="radiogroup"] > span[aria-hidden="true"] {
+  display: none !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-menu-controls [aria-checked="true"] {
+  background: var(--d-sel) !important;
+  color: var(--d-ink) !important;
+  box-shadow: var(--d-sh-1) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-menu-controls [aria-checked="false"] {
+  background: transparent !important;
+  color: var(--d-ink-3) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-menu-controls [role="radiogroup"] { display: none !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-menu-controls {
+  justify-content: center;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
 html[data-theme="dark"] [data-liquid-glass="enabled"] main > div { animation: lgViewInDark .62s var(--d-spring); }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"],
@@ -102,9 +181,12 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a {
 }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a:hover { background: rgba(255, 255, 255, 0.12) !important; color: #fff !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a svg { color: #aebbd0; opacity: .96; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav:not(.seg-ready) a[class*="bg-white"] { background: var(--d-sel) !important; box-shadow: var(--d-sh-1), var(--d-sheen) !important; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav.seg-ready a[class*="bg-white"] { background: transparent !important; box-shadow: none !important; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a[class*="bg-white"] svg { color: #fff !important; opacity: 1; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav:not(.seg-ready) a[data-active="true"] { background: var(--d-sel) !important; box-shadow: var(--d-sh-1), var(--d-sheen) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav.seg-ready a[data-active="true"] { background: transparent !important; box-shadow: none !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a[data-active="true"],
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a[data-active="true"] span { color: #fff !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a[data-active="true"] svg { color: #fff !important; opacity: 1; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a > span { color: inherit !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside div[class*="bg-white/5"] { border: 1px solid var(--d-edge); background: rgba(255, 255, 255, 0.08) !important; box-shadow: var(--d-sheen); }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside div[class*="bg-white/5"] p:first-child { color: #f5f7fb !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside div[class*="bg-white/5"] p:last-child { color: #aebbd0 !important; }
@@ -170,6 +252,13 @@ html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt:hover,
 html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt[aria-selected="true"] { background: var(--d-hover); color: var(--d-ink); }
 html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt:disabled { opacity: .45; cursor: not-allowed; }
 
+/* Only the selected day fills — unselected cells carry hover:bg-[#1B4332]/8,
+   whose class NAME would match a [class*="bg-[#1B4332]"] selector. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] div[class*="z-[200]"] button[class*="from-[#1B4332]"] {
+  color: #fff !important;
+  background: linear-gradient(150deg, #14b8a6, #0d9488) !important;
+}
+
 html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > div[class*="top-full"][class*="bg-white"],
 html[data-theme="dark"] [data-liquid-glass="enabled"] div[class*="z-[200]"][class*="bg-white"] {
   border: 1px solid var(--d-edge) !important;
@@ -200,9 +289,12 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .fixed.inset-0[class*="bg-
 html[data-theme="dark"] [data-liquid-glass="enabled"] .fixed.inset-0 > div[class*="bg-white"] { border: 1px solid var(--d-edge) !important; border-radius: 28px !important; background: rgba(20, 26, 42, 0.78) !important; -webkit-backdrop-filter: blur(44px) saturate(175%); backdrop-filter: blur(44px) saturate(175%); box-shadow: var(--d-sh-3), var(--d-sheen) !important; animation: lgModalInDark .46s var(--d-spring); }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] table { border-collapse: separate !important; border-spacing: 0 !important; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] thead th { position: sticky; top: 0; z-index: 2; border-bottom: 1px solid var(--d-edge) !important; background: rgba(15, 23, 42, 0.96) !important; color: var(--d-ink-2) !important; -webkit-backdrop-filter: blur(18px) saturate(170%); backdrop-filter: blur(18px) saturate(170%); }
-html[data-theme="dark"] [data-liquid-glass="enabled"] tbody td { border-bottom: 1px solid rgba(255, 255, 255, 0.045) !important; font-variant-numeric: tabular-nums; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.026) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] thead th { position: sticky; top: 0; z-index: 2; border-bottom: 1px solid var(--d-edge) !important; background: rgba(15, 23, 42, 0.97) !important; color: var(--d-ink-2) !important; font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; -webkit-backdrop-filter: blur(18px) saturate(170%); backdrop-filter: blur(18px) saturate(170%); }
+html[data-theme="dark"] [data-liquid-glass="enabled"] thead th { padding-top: 9px !important; padding-bottom: 9px !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody td { padding-top: 9px !important; padding-bottom: 9px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.045) !important; font-variant-numeric: tabular-nums; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody tr:nth-child(odd) td { background: rgba(255, 255, 255, 0.012) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.042) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody td :is(.font-mono, [class*="font-mono"]) { color: #5eead4 !important; letter-spacing: .01em; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] tbody tr:hover td { background: rgba(45, 212, 191, 0.105) !important; }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.text-gray-950, .text-gray-900, .text-gray-800, .text-gray-700) { color: var(--d-ink) !important; }
@@ -214,6 +306,312 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] ::-webkit-scrollbar-track 
 html[data-theme="dark"] [data-liquid-glass="enabled"] ::-webkit-scrollbar-thumb { border-radius: 99px; background: rgba(255, 255, 255, 0.20) !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.34) !important; }
 
+/* ═══════════════════════════════════════════════════════════════════
+   §2.3 — Semantic token layer. Same names as the light theme, values
+   inverted: bright ink on tinted darkness.
+   ═══════════════════════════════════════════════════════════════════ */
+html[data-theme="dark"] {
+  --tm-surface:   var(--d-2, rgba(255, 255, 255, .038));
+  --tm-surface-2: rgba(255, 255, 255, .024);
+  --tm-hover:     var(--d-hover, rgba(255, 255, 255, .13));
+  --tm-edge:      var(--d-edge-soft, rgba(255, 255, 255, .09));
+  --tm-sheen:     inset 0 1px 0 0 rgba(255, 255, 255, .12);
+  --tm-ink:       var(--d-ink, #f2f5fa);
+  --tm-ink-2:     var(--d-ink-2, #a9b4c8);
+  --tm-ink-3:     var(--d-ink-3, #78849c);
+  --tm-tip-bg:    var(--d-strong, rgba(20, 26, 42, .92));
+
+  --tm-danger: #fca5a5;  --tm-danger-bg: rgba(239, 68, 68, .11);  --tm-danger-edge: rgba(248, 113, 113, .28);
+  --tm-warn:   #fcd34d;  --tm-warn-bg:   rgba(245, 158, 11, .11); --tm-warn-edge:   rgba(251, 191, 36, .26);
+  --tm-info:   #c7d2fe;  --tm-info-bg:   rgba(99, 102, 241, .13); --tm-info-edge:   rgba(165, 180, 252, .28);
+  --tm-ok:     #6ee7b7;  --tm-ok-bg:     rgba(16, 185, 129, .13); --tm-ok-edge:     rgba(52, 211, 153, .28);
+  --tm-accent: #5eead4;  --tm-accent-bg: rgba(13, 148, 136, .17); --tm-accent-edge: rgba(45, 212, 191, .32);
+}
+
+/* §13 */
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(h1, h2, h3, h4) {
+  font-family: var(--font-outfit), Inter, sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   §5 — Collapsible sidebar. Geometry is identical to the light theme;
+   only surface colours differ.
+   ═══════════════════════════════════════════════════════════════════ */
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside { transition: width .25s var(--d-ease); }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] { width: 56px !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"]:has(aside[data-collapsed="true"]) .md\:ml-64 { margin-left: 80px; }
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] img,
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span:not([class*="rounded-full"]),
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div,
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] button[class*="bg-red-500"] > span {
+  display: none !important;
+}
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] > div:first-child {
+  justify-content: center;
+  padding: 12px 0 10px !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav { padding: 12px 10px !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  padding: 0 !important;
+  gap: 0 !important;
+  justify-content: center;
+  border-radius: 10px !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span[class*="rounded-full"] {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  min-width: 0;
+  height: 8px;
+  padding: 0;
+  font-size: 0;
+  line-height: 0;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] > div:last-child { padding: 8px 10px 12px !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card { justify-content: center; padding: 6px !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] button[class*="bg-red-500"] {
+  width: 36px;
+  height: 36px;
+  padding: 0 !important;
+  gap: 0 !important;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-rail-toggle {
+  border: 1px solid var(--d-edge) !important;
+  background: var(--d-2) !important;
+  color: var(--d-ink-2) !important;
+  box-shadow: var(--d-sheen) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-rail-toggle:hover {
+  background: linear-gradient(150deg, #14b8a6, #0d9488) !important;
+  color: #fff !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-rail-toggle:active { transform: scale(.93); }
+
+/* Sidebar summary cards — same geometry, tinted darkness instead of pastel. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-summary-label {
+  color: var(--d-ink-3) !important;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-summary-card {
+  border: 1px solid var(--tone-edge) !important;
+  background: var(--tone-bg) !important;
+  box-shadow: var(--d-sheen);
+  transition: background .22s var(--d-ease), border-color .22s var(--d-ease);
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-summary-card[data-tone="red"]   { --tone-bg: var(--tm-danger-bg); --tone-edge: var(--tm-danger-edge); --tone-ink: var(--tm-danger); }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-summary-card[data-tone="amber"] { --tone-bg: var(--tm-warn-bg);   --tone-edge: var(--tm-warn-edge);   --tone-ink: var(--tm-warn); }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-summary-card[data-tone="blue"]  { --tone-bg: var(--tm-info-bg);   --tone-edge: var(--tm-info-edge);   --tone-ink: var(--tm-info); }
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-summary-card-label {
+  color: var(--tone-ink) !important;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .09em;
+  opacity: .82;
+  text-transform: uppercase;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-summary-card-value {
+  margin-top: 1px;
+  color: var(--tone-ink) !important;
+  font-family: var(--font-outfit), Inter, sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-summary-card-icon {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--tone-edge);
+  background: rgba(255, 255, 255, .06);
+  color: var(--tone-ink);
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-summary { display: none; }
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-user-avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 12px;
+  letter-spacing: .02em;
+  background: linear-gradient(135deg, #14b8a6, #0f766e) !important;
+  color: #fff !important;
+  box-shadow: 0 6px 18px -4px rgba(13, 148, 136, .5), var(--d-sheen);
+}
+
+/* §5.4 — icon swap itself lives in the light sheet (theme-independent) */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-theme-toggle {
+  border: 1px solid var(--d-edge) !important;
+  border-radius: 999px !important;
+  background: var(--d-3) !important;
+  color: var(--d-ink-2) !important;
+  box-shadow: var(--d-sheen) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-theme-toggle:hover {
+  background: linear-gradient(150deg, #14b8a6, #0d9488) !important;
+  color: #fff !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-theme-toggle:active { transform: scale(.92); }
+
+/* §6.4 — single primary button treatment */
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"]),
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"]) {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .16) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(150deg, #15b6a4 0%, #0d9488 55%, #0b6f66 100%) !important;
+  color: #fff !important;
+  letter-spacing: .01em;
+  box-shadow: 0 6px 20px -5px rgba(13, 148, 136, .48),
+              inset 0 1px 0 rgba(255, 255, 255, .22) !important;
+  transition: box-shadow .26s var(--d-ease), transform .3s var(--d-spring), filter .2s var(--d-ease) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"])::after,
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"])::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 52% 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(rgba(255, 255, 255, .16), rgba(255, 255, 255, 0));
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"]):hover,
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"]):hover {
+  transform: translateY(-1.5px);
+  filter: saturate(115%) brightness(1.08);
+  box-shadow: 0 10px 28px -6px rgba(13, 148, 136, .6), inset 0 1px 0 rgba(255, 255, 255, .3) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"]):active,
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"]):active {
+  transform: scale(.965);
+}
+
+/* §6.5 */
+html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-100"]:not(aside *),
+html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"]:not(aside *) {
+  border: 1px solid var(--d-edge) !important;
+  border-radius: 12px !important;
+  background: var(--d-3) !important;
+  color: var(--d-ink-2) !important;
+  box-shadow: var(--d-sheen) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-100"]:not(aside *):hover,
+html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"]:not(aside *):hover {
+  background: var(--d-hover) !important;
+  color: var(--d-ink) !important;
+}
+
+/* §6.6 */
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside button:not(.lg-rail-toggle) {
+  border: 1px solid var(--d-edge-soft) !important;
+  box-shadow: var(--d-sheen);
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside button:not(.lg-rail-toggle):active { transform: scale(.93); }
+
+/* §6.7 */
+html[data-theme="dark"] [data-liquid-glass="enabled"] div[class*="flex-wrap"][class*="items-center"][class*="gap-2.5"] :is(button, input, .lq-trigger) {
+  height: 34px;
+  box-sizing: border-box;
+}
+
+/* §9 — tinted badges and status strips.
+   These must NOT be gated on rounded-full: the score badge uses rounded-lg, so
+   that gate left it on Tailwind's pale `bg-red-100` fill in the dark theme —
+   a light pill floating on a dark table. Every pale tint utility is remapped to
+   its semantic dark pair instead, and the paired dark ink is lifted to the light
+   tone so the text keeps its meaning. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded"]:is([class*="bg-green-100"], [class*="bg-green-50"], [class*="bg-emerald-100"], [class*="bg-emerald-50"]) {
+  border: 1px solid var(--tm-ok-edge);
+  background: var(--tm-ok-bg) !important;
+  color: var(--tm-ok) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded"]:is([class*="bg-red-100"], [class*="bg-red-50"], [class*="bg-rose-100"], [class*="bg-rose-50"]) {
+  border: 1px solid var(--tm-danger-edge);
+  background: var(--tm-danger-bg) !important;
+  color: var(--tm-danger) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded"]:is([class*="bg-amber-100"], [class*="bg-amber-50"], [class*="bg-yellow-100"], [class*="bg-yellow-50"], [class*="bg-orange-100"], [class*="bg-orange-50"]) {
+  border: 1px solid var(--tm-warn-edge);
+  background: var(--tm-warn-bg) !important;
+  color: var(--tm-warn) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded"]:is([class*="bg-blue-100"], [class*="bg-blue-50"], [class*="bg-violet-100"], [class*="bg-violet-50"], [class*="bg-indigo-100"], [class*="bg-indigo-50"]) {
+  border: 1px solid var(--tm-info-edge);
+  background: var(--tm-info-bg) !important;
+  color: var(--tm-info) !important;
+}
+
+/* The dark ink utilities that ride along with those tints would land near-black
+   on the new dark fills, so they follow their tint to the light tone. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.text-green-800, .text-green-700, .text-emerald-800, .text-emerald-700) { color: var(--tm-ok) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.text-red-800, .text-red-700, .text-red-600, .text-rose-800, .text-rose-700) { color: var(--tm-danger) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.text-amber-800, .text-amber-700, .text-amber-600, .text-yellow-800, .text-yellow-700, .text-orange-700, .text-orange-600) { color: var(--tm-warn) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.text-blue-800, .text-blue-700, .text-blue-600, .text-violet-700, .text-violet-600, .text-indigo-700) { color: var(--tm-info) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.text-teal-700, .text-teal-600, .text-\[\#1B4332\]) { color: var(--tm-accent) !important; }
+
+/* §10 — KPI glow */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-kpi[data-tone="green"]  { --am-glow: #2dd4bf; --am-glow-soft: rgba(45, 212, 191, .5); }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-kpi[data-tone="blue"]   { --am-glow: #38bdf8; --am-glow-soft: rgba(56, 189, 248, .5); }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-kpi[data-tone="amber"]  { --am-glow: #fbbf24; --am-glow-soft: rgba(251, 191, 36, .5); }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-kpi[data-tone="red"]    { --am-glow: #f87171; --am-glow-soft: rgba(248, 113, 113, .5); }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-kpi[data-tone="slate"]  { --am-glow: #94a3b8; --am-glow-soft: rgba(148, 163, 184, .5); }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-kpi[data-tone="purple"] { --am-glow: #a78bfa; --am-glow-soft: rgba(167, 139, 250, .5); }
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-kpi {
+  position: relative;
+  overflow: hidden;
+  border-top: 2.5px solid var(--am-glow-soft, rgba(45, 212, 191, .5)) !important;
+  transition: transform .28s var(--d-spring), background .25s var(--d-ease), box-shadow .25s var(--d-ease), border-color .25s var(--d-ease);
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-kpi::after {
+  content: "";
+  position: absolute;
+  top: -18px;
+  right: -18px;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  filter: blur(18px);
+  opacity: .35;
+  pointer-events: none;
+  background: var(--am-glow, #2dd4bf);
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-kpi:hover {
+  transform: translateY(-3px) scale(1.012);
+  border-color: var(--d-edge) !important;
+  box-shadow: inset 3px 0 0 0 var(--am-glow, #2dd4bf), var(--d-sh-2), var(--d-sheen) !important;
+}
+
+/* §11 — top hairline composited into the panel background. Table wrappers
+   stay excluded (see the light sheet for why). */
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(:has(> table)) {
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, .25), transparent) top center / calc(100% - 24px) 1px no-repeat,
+    var(--d-1) !important;
+}
+
+/* §11 — panel header icon chip */
+html[data-theme="dark"] [data-liquid-glass="enabled"] span[class*="bg-[#1B4332]/10"] {
+  background: var(--tm-accent-bg) !important;
+  color: var(--tm-accent) !important;
+  box-shadow: var(--d-sheen);
+}
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] div[class*="bg-gray-100"][class*="rounded-full"][class*="overflow-hidden"] {
+  background: rgba(255, 255, 255, .07) !important;
+}
+
 @keyframes lgViewInDark { 0% { opacity: 0; transform: translateY(18px) scale(.972); filter: blur(10px) saturate(140%); } 50% { opacity: 1; } 100% { opacity: 1; transform: none; filter: none; } }
 @keyframes lgModalInDark { from { opacity: 0; transform: translateY(16px) scale(.94); } to { opacity: 1; transform: none; } }
 @keyframes lqPanelInDark { 0% { opacity: 0; transform: translateY(-10px) scale(.92); filter: blur(6px); } 55% { opacity: 1; filter: blur(0); } 100% { transform: none; } }
@@ -223,8 +621,38 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] ::-webkit-scrollbar-thumb:
 @media (max-width: 767px) {
   html[data-theme="dark"] [data-liquid-glass="enabled"] aside { margin: 8px !important; height: calc(100vh - 16px) !important; }
   html[data-theme="dark"] [data-liquid-glass="enabled"] aside.-translate-x-full { transform: translateX(calc(-100% - 8px)) !important; }
-  html[data-theme="dark"] [data-liquid-glass="enabled"] header { top: 8px !important; margin: 8px; }
+  html[data-theme="dark"] [data-liquid-glass="enabled"] header { height: 58px; }
+  html[data-theme="dark"] [data-liquid-glass="enabled"] header h1 { font-size: 1.15rem; }
   html[data-theme="dark"] [data-liquid-glass="enabled"] .md\:ml-64 { margin-left: 0; }
+
+  /* Phones get the drawer, never the rail (see the light sheet). */
+  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] { width: 260px !important; }
+  html[data-theme="dark"] [data-liquid-glass="enabled"]:has(aside[data-collapsed="true"]) .md\:ml-64 { margin-left: 0; }
+  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] img,
+  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span:not([class*="rounded-full"]),
+  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div,
+  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] button[class*="bg-red-500"] > span {
+    display: revert !important;
+  }
+  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a {
+    width: auto;
+    height: auto;
+    justify-content: flex-start;
+  }
+  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span[class*="rounded-full"] {
+    position: static;
+    width: auto;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    font-size: 10px;
+    line-height: 1;
+  }
+  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] button[class*="bg-red-500"] {
+    width: 100%;
+    height: auto;
+    justify-content: flex-start;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
