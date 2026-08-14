@@ -1901,3 +1901,11 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-badge.nc-rc-badge[
 html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="bg-gray-100"][class*="rounded-full"][class*="overflow-hidden"] {
   background: rgba(23, 43, 99, .09) !important;
 }
+
+/* ── Evaluations: filter control width ──────────────────────────────────────
+   The fields were 168-200px each with 12px text inside, so every one of them
+   sat well short of its own box and the row read as oversized. One width for
+   all of them, sized to the longest placeholder ("Takım Lideri: Tümü"). */
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-filter-w {
+  width: 158px !important;
+}

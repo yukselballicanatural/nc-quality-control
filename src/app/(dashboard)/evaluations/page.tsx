@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import nextDynamic from 'next/dynamic'
 import { getCurrentProfile } from '@/lib/current-profile'
 import { canCreateEvaluation, isRestrictedQualityUser } from '@/lib/access-control'
-import { isTeamLeaderRole } from '@/lib/agents'
+import { deriveTeamLeaderName, isTeamLeaderRole } from '@/lib/agents'
 import type { ChannelType, ConversationResult, EvaluationStatus } from '@/types/supabase'
 import type { EvaluationListItem } from '@/types'
 
@@ -47,6 +47,7 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
   const result = typeof sp.result === 'string' ? sp.result : ''
   const evaluatorId = typeof sp.evaluator === 'string' ? sp.evaluator : ''
   const filterAgentId = typeof sp.consultant === 'string' ? sp.consultant : ''
+  const teamLeader = typeof sp.teamLeader === 'string' ? sp.teamLeader : ''
   const startDate = typeof sp.startDate === 'string' ? sp.startDate : ''
   const endDate = typeof sp.endDate === 'string' ? sp.endDate : ''
   const page = typeof sp.page === 'string' ? Math.max(1, parseInt(sp.page) || 1) : 1
@@ -111,6 +112,10 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
   if (result) query = query.eq('conversation_result', result as ConversationResult)
   if (evaluatorId && profile.role === 'manager') query = query.eq('evaluator_id', evaluatorId)
   if (filterAgentId) query = query.eq('agent_id', filterAgentId)
+  // team_leader_name, not team_leader_id: the evaluation form only ever writes
+  // the name (derived from the consultant's agent record), so the id column is
+  // null on every row and an id filter would match nothing.
+  if (teamLeader) query = query.eq('team_leader_name', teamLeader)
   // Date-range filter targets evaluation_date (when the QC was performed),
   // consistent with the dashboard and reports.
   if (startDate) query = query.gte('evaluation_date', startDate)
@@ -145,6 +150,17 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
     .filter(a => !isTeamLeaderRole(a.role))
     .map(a => ({ id: a.id, fullName: [a.first_name, a.last_name].filter(Boolean).join(' ').trim() || a.id }))
 
+  // Every value team_leader_name can hold is derivable from the agents table,
+  // so the options come from there rather than from a distinct-scan of the
+  // evaluations rows on the current page.
+  const teamLeaderOptions = Array.from(
+    new Set(
+      (agentsResult.data ?? [])
+        .map(a => deriveTeamLeaderName(a))
+        .filter((name): name is string => Boolean(name))
+    )
+  ).sort((a, b) => a.localeCompare(b, 'tr'))
+
   return (
     <EvaluationsContent
       evaluations={(evals ?? []) as unknown as EvaluationListItem[]}
@@ -158,11 +174,13 @@ export default async function EvaluationsPage({ searchParams }: PageProps) {
       filterResult={result}
       filterEvaluator={evaluatorId}
       filterConsultant={filterAgentId}
+      filterTeamLeader={teamLeader}
       filterStartDate={startDate}
       filterEndDate={endDate}
       searchQuery={q}
       evaluatorOptions={evaluatorsResult.data ?? []}
       consultantOptions={consultantOptions}
+      teamLeaderOptions={teamLeaderOptions}
       sortBy={sortBy}
       sortDir={ascending ? 'asc' : 'desc'}
     />

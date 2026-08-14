@@ -7,7 +7,7 @@ import Link from 'next/link'
 import {
   Search, X, Plus, ChevronLeft, ChevronRight, Eye, Pencil, Trash2,
   MessageSquare, Phone, ChevronsUpDown, ChevronUp, ChevronDown,
-  CheckCircle2, SlidersHorizontal, Radio, Flag, Target, UserCog, User,
+  CheckCircle2, SlidersHorizontal, Radio, Flag, Target, UserCog, User, Users,
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import { getScoreLevel } from '@/lib/scoring'
@@ -43,11 +43,13 @@ interface Props {
   filterResult: string
   filterEvaluator: string
   filterConsultant: string
+  filterTeamLeader: string
   filterStartDate: string
   filterEndDate: string
   searchQuery: string
   evaluatorOptions: ProfileOption[]
   consultantOptions: ConsultantOption[]
+  teamLeaderOptions: string[]
   sortBy: string
   sortDir: string
 }
@@ -128,11 +130,13 @@ export function EvaluationsContent({
   filterResult,
   filterEvaluator,
   filterConsultant,
+  filterTeamLeader,
   filterStartDate,
   filterEndDate,
   searchQuery,
   evaluatorOptions,
   consultantOptions,
+  teamLeaderOptions,
   sortBy: serverSortBy,
   sortDir: serverSortDir,
 }: Props) {
@@ -168,6 +172,14 @@ export function EvaluationsContent({
   const canDelete = role === 'quality_team' || role === 'manager'
   const showConsultant = role !== 'consultant'
   const showEvaluator = role !== 'consultant'
+  // The server honours ?evaluator for managers only, and loads the options
+  // for managers only — for the quality team this rendered an empty dropdown
+  // that could not narrow anything, since their rows are already scoped to
+  // themselves. The table column keeps its own, wider condition.
+  const showEvaluatorFilter = role === 'manager' && evaluatorOptions.length > 0
+  // A team leader's rows are already restricted to their own team, so the
+  // filter could only ever match everything or nothing for them.
+  const showTeamLeaderFilter = role !== 'consultant' && role !== 'team_leader'
 
   // Keep local search in sync when URL changes
   useEffect(() => {
@@ -212,6 +224,7 @@ export function EvaluationsContent({
       result: filterResult,
       evaluator: filterEvaluator,
       consultant: filterConsultant,
+      teamLeader: filterTeamLeader,
       startDate: filterStartDate,
       endDate: filterEndDate,
       sortBy: serverSortBy,
@@ -422,7 +435,8 @@ export function EvaluationsContent({
   // ── Derived ────────────────────────────────────────────────────
 
   const hasFilters =
-    localSearch || filterChannel || filterStatus || filterResult || filterEvaluator || filterConsultant || filterStartDate || filterEndDate
+    localSearch || filterChannel || filterStatus || filterResult || filterEvaluator || filterConsultant ||
+    filterTeamLeader || filterStartDate || filterEndDate
   const totalPages = Math.ceil(totalCount / pageSize)
   const deleteEvaluation = deletingId
     ? evaluations.find(evaluation => evaluation.id === deletingId) ?? null
@@ -659,7 +673,7 @@ export function EvaluationsContent({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <div className="w-[168px] flex-shrink-0">
+          <div className="nc-filter-w w-[168px] flex-shrink-0">
             <SearchableSelect
               value={filterChannel}
               onChange={v => updateFilter('channel', v)}
@@ -673,7 +687,7 @@ export function EvaluationsContent({
             />
           </div>
 
-          <div className="w-[168px] flex-shrink-0">
+          <div className="nc-filter-w w-[168px] flex-shrink-0">
             <SearchableSelect
               value={filterStatus}
               onChange={v => updateFilter('status', v)}
@@ -685,7 +699,7 @@ export function EvaluationsContent({
             />
           </div>
 
-          <div className="w-[176px] flex-shrink-0">
+          <div className="nc-filter-w w-[176px] flex-shrink-0">
             <SearchableSelect
               value={filterResult}
               onChange={v => updateFilter('result', v)}
@@ -697,8 +711,8 @@ export function EvaluationsContent({
             />
           </div>
 
-          {showEvaluator && (
-            <div className="w-[200px] flex-shrink-0">
+          {showEvaluatorFilter && (
+            <div className="nc-filter-w w-[200px] flex-shrink-0">
               <SearchableSelect
                 value={filterEvaluator}
                 onChange={v => updateFilter('evaluator', v)}
@@ -711,8 +725,20 @@ export function EvaluationsContent({
             </div>
           )}
 
+          {showTeamLeaderFilter && teamLeaderOptions.length > 0 && (
+            <div className="nc-filter-w w-[200px] flex-shrink-0">
+              <SearchableSelect
+                value={filterTeamLeader}
+                onChange={v => updateFilter('teamLeader', v)}
+                options={teamLeaderOptions.map(name => ({ value: name, label: name }))}
+                placeholder={tx('Takım Lideri: Tümü', 'Team Leader: All', 'Team Leader: Tutti')}
+                icon={Users}
+              />
+            </div>
+          )}
+
           {showConsultant && consultantOptions.length > 0 && (
-            <div className="w-[200px] flex-shrink-0">
+            <div className="nc-filter-w w-[200px] flex-shrink-0">
               <SearchableSelect
                 value={filterConsultant}
                 onChange={v => updateFilter('consultant', v)}
