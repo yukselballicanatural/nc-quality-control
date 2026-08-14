@@ -244,7 +244,14 @@
     });
     this.mutationObserver.observe(container, { attributes: true, attributeFilter: ['class', 'style', 'aria-checked', 'aria-selected', 'aria-current'], subtree: true });
 
-    this.resizeObserver = new ResizeObserver(function () { self.update(true); });
+    // The first callback is the initial layout, so it snaps. Later ones fire
+    // because the active item changed size, which is precisely when a slide is
+    // in flight — snapping there cancelled the animation outright.
+    this.resizeSeen = false;
+    this.resizeObserver = new ResizeObserver(function () {
+      self.update(!self.resizeSeen);
+      self.resizeSeen = true;
+    });
     this.resizeObserver.observe(container);
     window.addEventListener('resize', function () { self.update(true); });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { self.update(true); });

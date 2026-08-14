@@ -382,7 +382,7 @@ function Tab({ active, onClick, label, count, urgentCls = '' }: {
   active: boolean; onClick: () => void; label: string; count: number; urgentCls?: string
 }) {
   return (
-    <button onClick={onClick} data-active={active ? 'true' : 'false'} className={`nc-rc-tab flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${
+    <button onClick={onClick} role="tab" aria-selected={active} data-active={active ? 'true' : 'false'} className={`nc-rc-tab flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${
       active ? 'bg-[#1B4332] text-white shadow-lg shadow-[#1B4332]/20' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
     }`}>
       {label}
@@ -524,11 +524,13 @@ export function RecheckContent({ items: initialItems, currentUserId, role }: Pro
             className="nc-rc-filterbar bg-white rounded-2xl border border-gray-100 shadow-sm">
             <div className="nc-rc-accent h-[3px] bg-gradient-to-r from-[#52B788] via-[#1B4332] to-[#52B788] rounded-t-2xl" />
             <div className="px-4 py-3 flex items-center gap-2 flex-wrap">
-              {tabs.map(tab => (
-                <Tab key={tab.id} active={activeFilter === tab.id && !customDate}
-                  onClick={() => handleTabClick(tab.id)} label={tab.label}
-                  count={counts[tab.id]} urgentCls={tab.urgentCls} />
-              ))}
+              <div role="tablist" className="nc-rc-tabs flex items-center gap-2 flex-wrap">
+                {tabs.map(tab => (
+                  <Tab key={tab.id} active={activeFilter === tab.id && !customDate}
+                    onClick={() => handleTabClick(tab.id)} label={tab.label}
+                    count={counts[tab.id]} urgentCls={tab.urgentCls} />
+                ))}
+              </div>
               <div className="w-px h-6 bg-gray-200 mx-1" />
               <div className="flex items-center gap-2">
                 <div className="w-44">
