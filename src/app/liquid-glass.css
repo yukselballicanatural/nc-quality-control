@@ -171,7 +171,7 @@ html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div
 html[data-theme="light"] [data-liquid-glass="enabled"] :is(.rounded-2xl, .rounded-3xl):not(.nc-cal-popup) { border-radius: var(--r-md) !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] :is(.rounded-xl, .rounded-lg):not(.nc-cal-day):not(.nc-date-trigger):not(input):not(select):not(.lq-trigger) { border-radius: var(--r-sm) !important; }
 
-html[data-theme="light"] [data-liquid-glass="enabled"] :is(.border-gray-50, .border-gray-100, .border-gray-200, [class*="border-gray"]):not(.nc-date-trigger) {
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(.border-gray-50, .border-gray-100, .border-gray-200, [class*="border-gray"]):not(.nc-date-trigger):not(input) {
   border-color: var(--edge-soft) !important;
 }
 
@@ -1605,3 +1605,74 @@ html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"] {
   box-shadow: 0 8px 24px rgba(23, 43, 99, .14), 0 32px 80px -16px rgba(23, 43, 99, .32), inset 0 1px 0 rgba(255, 255, 255, .85) !important;
 }
 html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"] :is(p, li, dd) { line-height: 1.6; }
+
+/* ── Evaluations: table type, checkboxes, header ────────────────────────── */
+
+/* Body cells sit at the 12px body step; the sizing rules above only cover
+   form controls. */
+html[data-theme="light"] [data-liquid-glass="enabled"] tbody td { font-size: 12px; }
+
+/* Header cells: one padding, one alignment rule, so the labels and their sort
+   carets share a baseline across every column. */
+html[data-theme="light"] [data-liquid-glass="enabled"] thead th {
+  padding: 10px 12px !important;
+  vertical-align: middle;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] thead th > * { vertical-align: middle; }
+html[data-theme="light"] [data-liquid-glass="enabled"] thead th svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+/* Checkboxes were being caught by the control-sizing rules — stretched to the
+   34px field height and given a field fill, which is the white block that
+   appeared down the left of every row. Redrawn as a real 16px box. */
+html[data-theme="light"] [data-liquid-glass="enabled"] input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px !important;
+  height: 16px !important;
+  min-height: 0 !important;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0 !important;
+  border: 1.5px solid rgba(23, 43, 99, .25) !important;
+  border-radius: 5px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+  transition: background .18s ease, border-color .18s ease;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] input[type="checkbox"]::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  transform: scale(0);
+  transform-origin: center;
+  transition: transform .16s var(--ease);
+  box-shadow: inset 1em 1em #fff;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] input[type="checkbox"]:checked {
+  border-color: #0d9488 !important;
+  background: #0d9488 !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] input[type="checkbox"]:checked::before { transform: scale(1); }
+html[data-theme="light"] [data-liquid-glass="enabled"] input[type="checkbox"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, .18) !important;
+}
+/* Centre the box in its cell so there is no band above or below it. */
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(th, td):has(> input[type="checkbox"]),
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(th, td) > label:has(> input[type="checkbox"]) {
+  vertical-align: middle;
+  text-align: center;
+}
+
+/* The shell header already prints the page title; this in-page copy is a
+   duplicate. The record count stays as the one secondary line beneath it. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-page-title-dup { display: none; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-record-count {
+  margin-top: 0;
+  color: var(--ink-3) !important;
+  font-size: 11px;
+}

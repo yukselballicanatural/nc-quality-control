@@ -577,8 +577,10 @@ export function EvaluationsContent({
       {/* ── Header ─────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">{t.evaluations.pageTitle}</h1>
-          <p className="text-sm text-gray-400 mt-0.5">
+          {/* The shell header already prints this title. Class hook only — the
+              glass sheet hides this copy; other accounts are untouched. */}
+          <h1 className="nc-page-title-dup text-xl font-bold text-gray-900">{t.evaluations.pageTitle}</h1>
+          <p className="nc-record-count text-sm text-gray-400 mt-0.5">
             {totalCount} {tx('kayıt', 'records', 'record')}
           </p>
         </div>
