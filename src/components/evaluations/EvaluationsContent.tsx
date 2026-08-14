@@ -580,8 +580,10 @@ export function EvaluationsContent({
           {/* The shell header already prints this title. Class hook only — the
               glass sheet hides this copy; other accounts are untouched. */}
           <h1 className="nc-page-title-dup text-xl font-bold text-gray-900">{t.evaluations.pageTitle}</h1>
+          {/* Class hooks only — the span lets the glass sheet weight the
+              figure apart from its label. Other accounts render as before. */}
           <p className="nc-record-count text-sm text-gray-400 mt-0.5">
-            {totalCount} {tx('kayıt', 'records', 'record')}
+            <span className="nc-record-num">{totalCount}</span> {tx('kayıt', 'records', 'record')}
           </p>
         </div>
         {canCreate && (
