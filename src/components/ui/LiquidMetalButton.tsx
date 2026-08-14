@@ -189,7 +189,9 @@ export function LiquidMetalButton({
               transform: 'translateZ(20px)',
               zIndex: 30,
               pointerEvents: 'none',
-              color: '#666666',
+              /* The reference uses #666666, which is unreadable on the
+                 #202020→#000 body it also specifies. */
+              color: '#ffffff',
             }}
           >
             {icon && (
