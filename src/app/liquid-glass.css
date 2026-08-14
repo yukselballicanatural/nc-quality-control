@@ -1913,3 +1913,76 @@ html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="bg-gray-100"]
 html[data-theme="light"] [data-liquid-glass="enabled"] .nc-filter-w {
   width: 158px !important;
 }
+
+/* ── Scored answer / score buttons (evaluation + training exam) ─────────────
+   Both forms mark a chosen answer with `border-<c>-500 bg-<c>-500 text-white`
+   plus a heavy coloured drop shadow — the only solid, fully saturated slabs
+   left in either form. The rest of the system states a choice with a tint, an
+   edge and the hue carried by the ink, so these follow suit. Scoped by
+   `border-2`, which only these option buttons carry, so the -500 fills used by
+   the delete button and the recheck badge are untouched. */
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-red-500"] {
+  border-color: rgba(239, 68, 68, .34) !important;
+  background: rgba(239, 68, 68, .18) !important;
+  color: #b91c1c !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-red-500"] :is(span, svg) { color: #b91c1c !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-red-500"] div[class*="bg-white/30"] {
+  border: 0 !important;
+  background: rgba(239, 68, 68, .5) !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-red-500"] div[class*="bg-white/30"] svg { color: #fff !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-orange-500"] {
+  border-color: rgba(249, 115, 22, .34) !important;
+  background: rgba(249, 115, 22, .18) !important;
+  color: #c2410c !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-orange-500"] :is(span, svg) { color: #c2410c !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-orange-500"] div[class*="bg-white/30"] {
+  border: 0 !important;
+  background: rgba(249, 115, 22, .5) !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-orange-500"] div[class*="bg-white/30"] svg { color: #fff !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-amber-500"] {
+  border-color: rgba(245, 158, 11, .36) !important;
+  background: rgba(245, 158, 11, .2) !important;
+  color: #b45309 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-amber-500"] :is(span, svg) { color: #b45309 !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-amber-500"] div[class*="bg-white/30"] {
+  border: 0 !important;
+  background: rgba(245, 158, 11, .5) !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-amber-500"] div[class*="bg-white/30"] svg { color: #fff !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-blue-500"] {
+  border-color: rgba(59, 130, 246, .34) !important;
+  background: rgba(59, 130, 246, .18) !important;
+  color: #1d4ed8 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-blue-500"] :is(span, svg) { color: #1d4ed8 !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-blue-500"] div[class*="bg-white/30"] {
+  border: 0 !important;
+  background: rgba(59, 130, 246, .5) !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-blue-500"] div[class*="bg-white/30"] svg { color: #fff !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-emerald-500"] {
+  border-color: rgba(16, 185, 129, .34) !important;
+  background: rgba(16, 185, 129, .18) !important;
+  color: #047857 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-emerald-500"] :is(span, svg) { color: #047857 !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-emerald-500"] div[class*="bg-white/30"] {
+  border: 0 !important;
+  background: rgba(16, 185, 129, .5) !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-emerald-500"] div[class*="bg-white/30"] svg { color: #fff !important; }
