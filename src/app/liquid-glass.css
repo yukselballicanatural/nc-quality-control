@@ -540,11 +540,9 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside {
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] { width: 56px !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"]:has(aside[data-collapsed="true"]) .md\:ml-64 { margin-left: 80px; }
 
-/* Rail: logo, labels and the user text block step aside for icons only. */
-html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] img,
-html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span:not([class*="rounded-full"]),
-html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div,
-html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) > span {
+/* Rail: the wordmark has no icon-sized form, so it goes. The text labels fold
+   instead (see the .lg-apps-btn/.lg-user-card fold rules further down). */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] img {
   display: none !important;
 }
 
@@ -675,9 +673,6 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .lg-user-avatar {
    uses (see SelectEnhancement in liquid-ui.js) — so its glass fill, open
    animation and option-row styling all come from the shared rules below
    (§8), not from anything sidebar-specific. Only sizing lives here. */
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-lang-field { min-width: 0; }
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-lang-field .lq-trigger { font-weight: 600; }
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-lang-field .lq-trigger-label { text-align: left; }
 
 /* Apps switcher — neutral glass pill, same family as the rail toggle. */
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-apps-btn {
@@ -768,11 +763,11 @@ html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="bg-gray-50
 /* .lg-logout-btn/.lg-apps-btn are excluded: this generic rule's border-color
    would otherwise cascade AFTER (and override) their own tinted borders, since
    both declarations carry !important and this one sits later in the file. */
-html[data-theme="light"] [data-liquid-glass="enabled"] aside button:not(.lg-rail-toggle):not(.lg-logout-btn):not(.lg-apps-btn) {
+html[data-theme="light"] [data-liquid-glass="enabled"] aside button:not(.lg-rail-toggle):not(.lg-logout-btn):not(.lg-apps-btn):not(.lang-trigger):not(.lang-item) {
   border: 1px solid var(--edge-soft) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55);
 }
-html[data-theme="light"] [data-liquid-glass="enabled"] aside button:not(.lg-rail-toggle):active { transform: scale(.93); }
+html[data-theme="light"] [data-liquid-glass="enabled"] aside button:not(.lg-rail-toggle):not(.lang-trigger):not(.lang-item):active { transform: scale(.93); }
 
 /* §6.7 — a filter rail mixes inputs, selects and buttons; pin them all to
    one height so 1px glass borders can't knock them out of line. */
@@ -945,40 +940,135 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .lg-summary-card-icon {
   opacity: .75;
 }
 
-/* Language: full-width row with a code chip, opened by the shared dropdown. */
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-lang-field { position: relative; }
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-lang-field .lq-trigger {
-  height: 42px !important;
-  min-height: 42px !important;
-  padding: 6px 12px 6px 47px !important;
-  border-radius: 13px !important;
-  font-size: 12.5px !important;
-  font-weight: 600 !important;
-  background: rgba(255, 255, 255, .62) !important;
-  border: 1px solid rgba(255, 255, 255, .92) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85), 0 2px 8px rgba(38, 52, 110, .06) !important;
-}
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-lang-field .lq-trigger:hover { background: rgba(255, 255, 255, .82) !important; }
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-lang-chip {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  z-index: 2;
-  transform: translateY(-50%);
+/* ── Language dropdown (.lang-dd) ─────────────────────────────────────
+   Pill trigger + panel that opens UPWARDS: this row sits low in the
+   sidebar, so a downward panel would leave the viewport. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-dd { position: relative; }
+
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-trigger {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 29px;
-  height: 20px;
-  border: 1px solid rgba(13, 148, 136, .2);
-  border-radius: 7px;
-  background: rgba(13, 148, 136, .13);
+  gap: 8px;
+  width: 100%;
+  padding: 7px 11px;
+  border: 1px solid rgba(255, 255, 255, .34);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .52);
+  backdrop-filter: blur(14px) saturate(170%);
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75), 0 2px 8px rgba(23, 43, 99, .07);
+  color: #2a3350;
+  font-size: 11px;
+  font-weight: 700;
+  transition: background .22s var(--ease), color .22s var(--ease),
+              border-color .22s var(--ease), box-shadow .25s var(--ease),
+              transform .18s var(--ease);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-trigger:hover {
+  background: rgba(255, 255, 255, .78);
+  color: #141a2c;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-trigger:active { transform: scale(.975); }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-open .lang-trigger {
+  background: rgba(255, 255, 255, .84);
+  border-color: rgba(13, 148, 136, .55);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 0 0 3px rgba(13, 148, 136, .13);
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-code {
+  flex-shrink: 0;
+  min-width: 23px;
+  padding: 2px 5px;
+  border: 1px solid rgba(13, 148, 136, .3);
+  border-radius: 6px;
+  background: rgba(13, 148, 136, .18);
   color: #0f766e;
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 800;
   letter-spacing: .06em;
-  pointer-events: none;
+  text-align: center;
 }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-chev {
+  flex-shrink: 0;
+  width: 11px;
+  height: 11px;
+  transition: transform .38s var(--spring), color .2s var(--ease);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-open .lang-chev {
+  transform: rotate(180deg);
+  color: #0f766e;
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-menu {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 90;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, .42);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .8);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  box-shadow: 0 2px 8px rgba(23, 43, 99, .1), 0 22px 48px -14px rgba(23, 43, 99, .28),
+              inset 0 1px 0 rgba(255, 255, 255, .85);
+  transform-origin: bottom center;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-open .lang-menu {
+  display: block;
+  animation: langFadeIn .38s cubic-bezier(.34, 1.4, .56, 1) both;
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 11px;
+  background: none;
+  color: #2a3350;
+  font-size: 11.5px;
+  font-weight: 600;
+  transition: background .18s var(--ease), color .18s var(--ease);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-open .lang-item {
+  animation: langItemIn .34s cubic-bezier(.34, 1.4, .56, 1) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-item:hover { background: rgba(18, 22, 34, .1); }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-on {
+  background: rgba(18, 22, 34, .62);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18);
+  color: #fff;
+  font-weight: 800;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-on:hover { background: rgba(18, 22, 34, .74); }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-on .lang-code {
+  border-color: rgba(255, 255, 255, .3);
+  background: rgba(255, 255, 255, .18);
+  color: #fff;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-check {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  color: #2dd4bf;
+  opacity: 0;
+  transition: opacity .2s var(--ease);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lang-on .lang-check { opacity: 1; }
 
 /* Appearance row */
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-appearance-inner {
@@ -1006,22 +1096,64 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .lg-apps-btn svg { color:
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-apps-btn:hover { background: rgba(255, 255, 255, .82) !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-apps-btn:hover svg { color: #1e2740; }
 
+/* Logout: neutral dark slab at rest, the danger reading only arrives on hover.
+   The arrow keeps its rose tint in both states so the action stays legible. */
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-logout-btn {
-  border: 1px solid rgba(226, 128, 128, .3) !important;
-  background: rgba(254, 226, 226, .62) !important;
-  color: #a3243f !important;
-  font-size: 13px !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6) !important;
+  border: 1px solid #334155 !important;
+  border-radius: 12px !important;
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06) !important;
+  transition: background .22s var(--ease), border-color .22s var(--ease),
+              color .22s var(--ease), transform .18s var(--ease) !important;
 }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-logout-btn svg { color: #fb7185 !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-logout-btn:hover {
-  background: rgba(254, 205, 205, .8) !important;
-  color: #8c1d33 !important;
+  border-color: #be123c !important;
+  background: rgba(136, 19, 55, .4) !important;
+  color: #fda4af !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-logout-btn:active { transform: scale(.975); }
+
+/* Rail mode: only icons survive. Whole sections with no icon-sized equivalent
+   are dropped outright; a label sitting *next to* an icon instead folds to zero
+   width, so it is still in the DOM and reappears the instant we expand. */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-brand-sub, .lg-section-label, .lang-dd, .lg-appearance-row) {
+  display: none !important;
 }
 
-/* Rail mode: only icons survive. */
-html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-brand-sub, .lg-section-label, .lg-lang-field, .lg-appearance-row, .lg-user-card > div),
-html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-apps-btn, .lg-logout-btn) > span {
+html[data-theme="light"] [data-liquid-glass="enabled"] aside :is(.lg-apps-btn, .lg-logout-btn) > span,
+html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a > span:not([class*="rounded-full"]),
+html[data-theme="light"] [data-liquid-glass="enabled"] aside .lg-user-card > div {
+  max-width: 100%;
+  opacity: 1;
+  transition: max-width .25s var(--ease), opacity .18s var(--ease);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-apps-btn, .lg-logout-btn) > span,
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span:not([class*="rounded-full"]),
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div {
+  max-width: 0 !important;
+  margin: 0 !important;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* The active-row dot is the one nav child that isn't a span; left in place it
+   shifted the active icon ~3px off the rail's centre line. */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > div {
   display: none !important;
+}
+
+/* The collapse chevron is one element that spins, not two that swap. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-rail-chev {
+  transition: transform .3s var(--spring);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-rail-chev {
+  transform: rotate(180deg);
 }
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-brand { padding: 14px 0 10px; }
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-brand > div { justify-content: center; }
@@ -1041,6 +1173,8 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="tru
 @keyframes lqPanelIn { 0% { opacity: 0; transform: translateY(-10px) scale(.92); filter: blur(6px); } 55% { opacity: 1; filter: blur(0); } 100% { transform: none; } }
 @keyframes lqOptIn { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: none; } }
 @keyframes calIn { from { opacity: 0; transform: translateY(-10px) scale(.95); } to { opacity: 1; transform: none; } }
+@keyframes langFadeIn { 0% { opacity: 0; transform: translateY(6px) scale(.94); filter: blur(6px); } 55% { opacity: 1; filter: blur(0); } 100% { opacity: 1; transform: none; filter: none; } }
+@keyframes langItemIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 
 @media (max-width: 767px) {
   html[data-theme="light"] [data-liquid-glass="enabled"] aside { margin: 8px !important; height: calc(100vh - 16px) !important; }
@@ -1053,11 +1187,17 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="tru
      unusable, so the collapsed state is ignored below the md breakpoint. */
   html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] { width: 260px !important; }
   html[data-theme="light"] [data-liquid-glass="enabled"]:has(aside[data-collapsed="true"]) .md\:ml-64 { margin-left: 0; }
-  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] img,
-  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span:not([class*="rounded-full"]),
-  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div,
-  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) > span {
+  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(img, .lg-brand-sub, .lg-section-label, .lang-dd, .lg-appearance-row),
+  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > div {
     display: revert !important;
+  }
+  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) > span,
+  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span:not([class*="rounded-full"]),
+  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div {
+    max-width: 100% !important;
+    opacity: 1;
+    overflow: visible;
+    pointer-events: auto;
   }
   html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a {
     width: auto;

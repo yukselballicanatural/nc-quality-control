@@ -24,7 +24,6 @@ import {
   AlertTriangle,
   ArrowRight,
   ChevronLeft,
-  ChevronRight,
   Moon,
   Sun,
   LayoutGrid,
@@ -36,9 +35,10 @@ import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n'
 import { canSeeAdminLogs, isRestrictedQualityUser } from '@/lib/access-control'
 import { GlassLanguageToggle } from '@/components/ui/GlassLanguageToggle'
+import { GlassLangDropdown } from '@/components/ui/GlassLangDropdown'
 import { CinematicThemeSwitcher } from '@/components/ui/CinematicThemeSwitcher'
 import { AnimatedLogOutIcon } from '@/components/ui/AnimatedLogOutIcon'
-import type { Profile, Language } from '@/types'
+import type { Profile } from '@/types'
 import type { UserRole } from '@/types/supabase'
 
 interface NavItem {
@@ -100,12 +100,26 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
   // Consultants never see recheck notifications (they can't access the page).
   const canSeeNotifications = profile.role !== 'consultant'
 
-  // Narrow desktop widths start in rail mode — the full sidebar crowds the
-  // content area below ~900px (design system §5.1).
+  // A stored preference wins; otherwise narrow desktop widths start in rail
+  // mode, because the full sidebar crowds the content area below ~900px
+  // (design system §5.1).
   useEffect(() => {
     if (!canCollapse) return
+    const stored = localStorage.getItem('lg_sidebar_collapsed')
+    if (stored === '1' || stored === '0') {
+      setIsCollapsed(stored === '1')
+      return
+    }
     if (window.innerWidth <= 900) setIsCollapsed(true)
   }, [canCollapse])
+
+  function toggleRail() {
+    setIsCollapsed(prev => {
+      const next = !prev
+      localStorage.setItem('lg_sidebar_collapsed', next ? '1' : '0')
+      return next
+    })
+  }
 
   // Buckets for the sidebar summary cards. Purely a re-slice of notifItems —
   // no extra request, and it stays empty until that fetch resolves.
@@ -413,13 +427,15 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
               </div>
               <button
                 type="button"
-                onClick={() => setIsCollapsed(c => !c)}
+                onClick={toggleRail}
                 className="lg-rail-toggle hidden md:flex w-[26px] h-[26px] flex-shrink-0 items-center justify-center rounded-lg transition-colors"
                 aria-expanded={!isRailMode}
                 aria-label={collapseLabel}
                 title={collapseLabel}
               >
-                {isRailMode ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+                {/* One chevron that spins 180° in the rail — swapping icons
+                    would cut the rotation animation short. */}
+                <ChevronLeft className="lg-rail-chev w-3 h-3" />
               </button>
             </div>
 
@@ -467,24 +483,10 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
               </div>
             )}
 
-            {/* Language. A plain native <select>: liquid-ui.js auto-enhances
-                every select on the page into the same trigger + dropdown-list
-                widget used everywhere else (SelectEnhancement in
-                public/api/liquid-ui.js), so the open animation and row layout
-                are the same code path as our other dropdowns, not a lookalike. */}
+            {/* Language. Opens upwards — this row sits low in the sidebar, so a
+                downward panel would fall outside the viewport. */}
             <div className="lg-menu-controls px-3 pt-3">
-              <div className="lg-lang-field">
-                <span className="lg-lang-chip" aria-hidden="true">{lang.toUpperCase()}</span>
-                <select
-                  value={lang}
-                  onChange={e => setLang(e.target.value as Language)}
-                  aria-label={t.settings.language}
-                >
-                  <option value="tr">Türkçe</option>
-                  <option value="en">English</option>
-                  <option value="it">Italiano</option>
-                </select>
-              </div>
+              <GlassLangDropdown value={lang} onChange={setLang} ariaLabel={t.settings.language} />
             </div>
 
             <div className="lg-appearance-row px-3 pt-2">

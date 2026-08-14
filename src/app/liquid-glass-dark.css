@@ -125,13 +125,6 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*=
 }
 html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*="rounded-xl"] svg { width: 14px; height: 14px; }
 
-/* Menu control strip: language dropdown + appearance toggle — see the light
-   sheet for why the language control is a plain <select> (it's enhanced into
-   the shared .lq-trigger/.lq-panel widget, so its glass fill and open
-   animation come from the shared rules above, not from anything here). */
-html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-lang-field { min-width: 0; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-lang-field .lq-trigger { font-weight: 600; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-lang-field .lq-trigger-label { text-align: left; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] main > div { animation: lgViewInDark .62s var(--d-spring); }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"],
@@ -323,10 +316,8 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] aside { transition: width 
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] { width: 56px !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"]:has(aside[data-collapsed="true"]) .md\:ml-64 { margin-left: 80px; }
 
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] img,
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span:not([class*="rounded-full"]),
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div,
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) > span {
+/* The wordmark has no icon-sized form; the text labels fold instead. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] img {
   display: none !important;
 }
 
@@ -510,11 +501,11 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"
 
 /* §6.6 */
 /* Same exclusion as the light sheet — see there for why. */
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside button:not(.lg-rail-toggle):not(.lg-logout-btn):not(.lg-apps-btn) {
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside button:not(.lg-rail-toggle):not(.lg-logout-btn):not(.lg-apps-btn):not(.lang-trigger):not(.lang-item) {
   border: 1px solid var(--d-edge-soft) !important;
   box-shadow: var(--d-sheen);
 }
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside button:not(.lg-rail-toggle):active { transform: scale(.93); }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside button:not(.lg-rail-toggle):not(.lang-trigger):not(.lang-item):active { transform: scale(.93); }
 
 /* §6.7 */
 html[data-theme="dark"] [data-liquid-glass="enabled"] div[class*="flex-wrap"][class*="items-center"][class*="gap-2.5"] :is(button, input, .lq-trigger) {
@@ -675,38 +666,133 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-summary-card-icon {
   opacity: .8;
 }
 
-html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-lang-field { position: relative; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-lang-field .lq-trigger {
-  height: 42px !important;
-  min-height: 42px !important;
-  padding: 6px 12px 6px 47px !important;
-  border-radius: 13px !important;
-  font-size: 12.5px !important;
-  font-weight: 600 !important;
-  background: var(--d-3) !important;
-  border: 1px solid var(--d-edge) !important;
-}
-html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-lang-field .lq-trigger:hover { background: var(--d-hover) !important; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-lang-chip {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  z-index: 2;
-  transform: translateY(-50%);
+/* ── Language dropdown (.lang-dd) ─────────────────────────────────────
+   Same structure as the light sheet, dark tokens. Opens upwards. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-dd { position: relative; }
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-trigger {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 29px;
-  height: 20px;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 11px;
+  border: 1px solid var(--d-edge);
+  border-radius: 999px;
+  background: var(--d-3);
+  backdrop-filter: blur(14px) saturate(170%);
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+  box-shadow: var(--d-sheen), 0 2px 8px rgba(0, 0, 0, .3);
+  color: var(--d-ink);
+  font-size: 11px;
+  font-weight: 700;
+  transition: background .22s var(--d-ease), color .22s var(--d-ease),
+              border-color .22s var(--d-ease), box-shadow .25s var(--d-ease),
+              transform .18s var(--d-ease);
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-trigger:hover {
+  background: var(--d-hover);
+  color: #fff;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-trigger:active { transform: scale(.975); }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-open .lang-trigger {
+  background: var(--d-hover);
+  border-color: var(--tm-accent-edge);
+  box-shadow: var(--d-sheen), 0 0 0 3px var(--tm-accent-bg);
+}
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-code {
+  flex-shrink: 0;
+  min-width: 23px;
+  padding: 2px 5px;
   border: 1px solid var(--tm-accent-edge);
-  border-radius: 7px;
+  border-radius: 6px;
   background: var(--tm-accent-bg);
   color: var(--tm-accent);
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 800;
   letter-spacing: .06em;
-  pointer-events: none;
+  text-align: center;
 }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-chev {
+  flex-shrink: 0;
+  width: 11px;
+  height: 11px;
+  transition: transform .38s var(--d-spring), color .2s var(--d-ease);
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-open .lang-chev {
+  transform: rotate(180deg);
+  color: var(--tm-accent);
+}
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-menu {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 90;
+  padding: 6px;
+  border: 1px solid var(--d-edge);
+  border-radius: 16px;
+  /* Near-opaque on purpose: --d-2 is a 3.8% white wash, and at that alpha the
+     summary cards sitting behind the panel read straight through it. */
+  background: rgba(18, 24, 40, .94);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .38), 0 22px 48px -14px rgba(0, 0, 0, .62), var(--d-sheen);
+  transform-origin: bottom center;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-open .lang-menu {
+  display: block;
+  animation: langFadeInDark .38s cubic-bezier(.34, 1.4, .56, 1) both;
+}
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 11px;
+  background: none;
+  color: var(--d-ink-2);
+  font-size: 11.5px;
+  font-weight: 600;
+  transition: background .18s var(--d-ease), color .18s var(--d-ease);
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-open .lang-item {
+  animation: langItemInDark .34s cubic-bezier(.34, 1.4, .56, 1) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-item:hover {
+  background: rgba(255, 255, 255, .08);
+  color: var(--d-ink);
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-on {
+  background: rgba(255, 255, 255, .16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14);
+  color: #fff;
+  font-weight: 800;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-on:hover { background: rgba(255, 255, 255, .22); }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-check {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  color: var(--tm-accent);
+  opacity: 0;
+  transition: opacity .2s var(--d-ease);
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lang-on .lang-check { opacity: 1; }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-appearance-inner {
   padding: 5px 6px 5px 14px;
@@ -731,21 +817,60 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-apps-btn {
 html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-apps-btn svg { color: var(--d-ink-2); }
 html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-apps-btn:hover { background: var(--d-hover) !important; }
 
+/* Logout: neutral dark slab at rest, danger only on hover (see light sheet). */
 html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-logout-btn {
-  border: 1px solid var(--tm-danger-edge) !important;
-  background: var(--tm-danger-bg) !important;
-  color: var(--tm-danger) !important;
-  font-size: 13px !important;
-  box-shadow: var(--d-sheen) !important;
+  border: 1px solid #334155 !important;
+  border-radius: 12px !important;
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06) !important;
+  transition: background .22s var(--d-ease), border-color .22s var(--d-ease),
+              color .22s var(--d-ease), transform .18s var(--d-ease) !important;
 }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-logout-btn svg { color: #fb7185 !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-logout-btn:hover {
-  background: rgba(239, 68, 68, .2) !important;
-  color: #fecaca !important;
+  border-color: #be123c !important;
+  background: rgba(136, 19, 55, .4) !important;
+  color: #fda4af !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-logout-btn:active { transform: scale(.975); }
+
+/* Rail mode: sections without an icon form are dropped; labels beside an icon
+   fold to zero width so they return instantly when we expand. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-brand-sub, .lg-section-label, .lang-dd, .lg-appearance-row) {
+  display: none !important;
 }
 
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-brand-sub, .lg-section-label, .lg-lang-field, .lg-appearance-row, .lg-user-card > div),
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-apps-btn, .lg-logout-btn) > span {
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside :is(.lg-apps-btn, .lg-logout-btn) > span,
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a > span:not([class*="rounded-full"]),
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside .lg-user-card > div {
+  max-width: 100%;
+  opacity: 1;
+  transition: max-width .25s var(--d-ease), opacity .18s var(--d-ease);
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-apps-btn, .lg-logout-btn) > span,
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span:not([class*="rounded-full"]),
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div {
+  max-width: 0 !important;
+  margin: 0 !important;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* See the light sheet: the active-row dot would nudge that icon off centre. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > div {
   display: none !important;
+}
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-rail-chev {
+  transition: transform .3s var(--d-spring);
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-rail-chev {
+  transform: rotate(180deg);
 }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-brand { padding: 14px 0 10px; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-brand > div { justify-content: center; }
@@ -765,6 +890,8 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true
 @keyframes lqPanelInDark { 0% { opacity: 0; transform: translateY(-10px) scale(.92); filter: blur(6px); } 55% { opacity: 1; filter: blur(0); } 100% { transform: none; } }
 @keyframes lqOptInDark { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: none; } }
 @keyframes calInDark { from { opacity: 0; transform: translateY(-10px) scale(.95); } to { opacity: 1; transform: none; } }
+@keyframes langFadeInDark { 0% { opacity: 0; transform: translateY(6px) scale(.94); filter: blur(6px); } 55% { opacity: 1; filter: blur(0); } 100% { opacity: 1; transform: none; filter: none; } }
+@keyframes langItemInDark { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 
 @media (max-width: 767px) {
   html[data-theme="dark"] [data-liquid-glass="enabled"] aside { margin: 8px !important; height: calc(100vh - 16px) !important; }
@@ -776,11 +903,17 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true
   /* Phones get the drawer, never the rail (see the light sheet). */
   html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] { width: 260px !important; }
   html[data-theme="dark"] [data-liquid-glass="enabled"]:has(aside[data-collapsed="true"]) .md\:ml-64 { margin-left: 0; }
-  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] img,
-  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span:not([class*="rounded-full"]),
-  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div,
-  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) > span {
+  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(img, .lg-brand-sub, .lg-section-label, .lang-dd, .lg-appearance-row),
+  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > div {
     display: revert !important;
+  }
+  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) > span,
+  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > span:not([class*="rounded-full"]),
+  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div {
+    max-width: 100% !important;
+    opacity: 1;
+    overflow: visible;
+    pointer-events: auto;
   }
   html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a {
     width: auto;
