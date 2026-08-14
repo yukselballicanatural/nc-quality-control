@@ -295,8 +295,9 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-cal-popup {
   box-shadow: var(--d-sh-3), var(--d-sheen) !important;
 }
 html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-cal-popup > div:last-child { padding: 14px !important; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-cal-popup div[class*="bg-gradient-to-r"] {
-  background: linear-gradient(90deg, #5eead4, #0d9488, #5eead4) !important;
+/* No accent bar on the calendar — the popup reads as one clean pane. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-cal-popup > div[class*="bg-gradient-to-r"] {
+  display: none !important;
 }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-cal-grid { gap: 1px !important; }
