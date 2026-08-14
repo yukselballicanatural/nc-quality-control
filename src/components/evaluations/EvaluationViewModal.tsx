@@ -716,10 +716,19 @@ export function EvaluationViewModal({ evalId, evaluation, loading, canEdit, onCl
             key="card"
             className="nc-modal-panel"
             data-liquid-owned={liquidOwned}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.97 }}
-            transition={{ type: 'spring', stiffness: 380, damping: 32, mass: 0.85 }}
+            /* The portal drops this card outside the app shell, so the glass
+               sheet's scope selector no longer reaches it and every card in
+               the body renders as flat `bg-white`. Re-declaring the scope
+               here puts the whole modal back under the same rules. */
+            data-liquid-glass={liquidOwned ? 'enabled' : undefined}
+            initial={liquidOwned ? { opacity: 0, scale: 0.94, y: -10 } : { opacity: 0, scale: 0.95 }}
+            animate={liquidOwned ? { opacity: 1, scale: 1, y: 0 } : { opacity: 1, scale: 1 }}
+            exit={liquidOwned ? { opacity: 0, scale: 0.96, y: -6 } : { opacity: 0, scale: 0.97 }}
+            transition={
+              liquidOwned
+                ? { duration: 0.38, ease: [0.34, 1.4, 0.56, 1] }
+                : { type: 'spring', stiffness: 380, damping: 32, mass: 0.85 }
+            }
             onClick={e => e.stopPropagation()}
             style={{
               width: '100%',
