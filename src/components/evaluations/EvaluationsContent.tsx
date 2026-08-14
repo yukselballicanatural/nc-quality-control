@@ -17,7 +17,7 @@ import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import type { UserRole, ChannelType, ConversationResult, EvaluationStatus } from '@/types/supabase'
 import type { EvaluationListItem, EvaluationWithRelations } from '@/types'
 import { EvaluationViewModal } from './EvaluationViewModal'
-import { LiquidMetalButton } from '@/components/ui/LiquidMetalButton'
+import { LiquidGlassButton } from '@/components/ui/LiquidGlassButton'
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -593,14 +593,12 @@ export function EvaluationsContent({
           </p>
         </div>
         {canCreate && (glass ? (
-          /* Glass accounts get the liquid-metal treatment; every other account
+          /* Glass accounts get the liquid-glass pill; every other account
              keeps the flat brand button below, byte for byte. */
-          <LiquidMetalButton
-            href="/evaluations/new"
-            label={t.evaluations.newEvaluation}
-            icon={<Plus className="w-4 h-4" />}
-            className="flex-shrink-0"
-          />
+          <LiquidGlassButton href="/evaluations/new">
+            <Plus />
+            <span>{t.evaluations.newEvaluation}</span>
+          </LiquidGlassButton>
         ) : (
           <Link
             href="/evaluations/new"

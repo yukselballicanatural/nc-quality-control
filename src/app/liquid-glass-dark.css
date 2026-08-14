@@ -1382,3 +1382,83 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-record-count {
   color: var(--d-ink-3) !important;
   font-size: 11px;
 }
+
+/* ── Liquid glass button ────────────────────────────────────────────────────
+   Geometry is identical to the light sheet on purpose — only the rim colours
+   and the label ink change between themes. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lqg-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent !important;
+  color: #d7fff4 !important;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -.005em;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  outline: none;
+  isolation: isolate;
+  transition: transform .3s var(--d-spring);
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lqg-btn[data-size="lg"] { height: 44px; padding: 0 26px; font-size: 14px; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lqg-btn[data-size="xl"] { height: 52px; padding: 0 32px; font-size: 15px; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lqg-btn:hover { transform: scale(1.05); }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lqg-btn:active { transform: scale(.98); }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lqg-btn:focus-visible .lqg-rim { outline: 3px solid rgba(20, 184, 166, .45); outline-offset: 2px; }
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lqg-rim {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 999px;
+  pointer-events: none;
+  transition: box-shadow .3s var(--d-ease);
+  box-shadow:
+    0 0 8px rgba(0, 0, 0, .03),
+    0 2px 6px rgba(0, 0, 0, .08),
+    inset 3px 3px .5px -3.5px rgba(255, 255, 255, .09),
+    inset -3px -3px .5px -3.5px rgba(255, 255, 255, .85),
+    inset 1px 1px 1px -.5px rgba(255, 255, 255, .6),
+    inset -1px -1px 1px -.5px rgba(255, 255, 255, .6),
+    inset 0 0 6px 6px rgba(255, 255, 255, .12),
+    inset 0 0 2px 2px rgba(255, 255, 255, .06),
+    0 0 12px rgba(0, 0, 0, .15);
+}
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lqg-warp {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: 999px;
+  pointer-events: none;
+  isolation: isolate;
+  -webkit-backdrop-filter: blur(3px) saturate(150%);
+  backdrop-filter: blur(3px) saturate(150%);
+  background: rgba(255, 255, 255, .06);
+}
+@supports (-moz-appearance: none) {
+  html[data-theme="dark"] [data-liquid-glass="enabled"] .lqg-warp {
+    -webkit-backdrop-filter: url("#lqg-container-glass");
+    backdrop-filter: url("#lqg-container-glass");
+  }
+}
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lqg-label {
+  position: relative;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lqg-label svg { width: 16px; height: 16px; flex-shrink: 0; }

@@ -1718,3 +1718,86 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .nc-record-count {
   color: var(--ink-3) !important;
   font-size: 11px;
 }
+
+/* ── Liquid glass button ────────────────────────────────────────────────────
+   The rim shadow is the reference's, value for value. It is a box-shadow on
+   an overlay rather than on the button itself so the label never inherits the
+   inset bevel. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .lqg-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent !important;
+  color: #10322a !important;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -.005em;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  outline: none;
+  isolation: isolate;
+  transition: transform .3s var(--spring);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lqg-btn[data-size="lg"] { height: 44px; padding: 0 26px; font-size: 14px; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lqg-btn[data-size="xl"] { height: 52px; padding: 0 32px; font-size: 15px; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lqg-btn:hover { transform: scale(1.05); }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lqg-btn:active { transform: scale(.98); }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lqg-btn:focus-visible .lqg-rim { outline: 3px solid rgba(13, 148, 136, .4); outline-offset: 2px; }
+
+html[data-theme="light"] [data-liquid-glass="enabled"] .lqg-rim {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 999px;
+  pointer-events: none;
+  transition: box-shadow .3s var(--ease);
+  box-shadow:
+    0 0 6px rgba(0, 0, 0, .03),
+    0 2px 6px rgba(0, 0, 0, .08),
+    inset 3px 3px .5px -3px rgba(0, 0, 0, .9),
+    inset -3px -3px .5px -3px rgba(0, 0, 0, .85),
+    inset 1px 1px 1px -.5px rgba(0, 0, 0, .6),
+    inset -1px -1px 1px -.5px rgba(0, 0, 0, .6),
+    inset 0 0 6px 6px rgba(0, 0, 0, .12),
+    inset 0 0 2px 2px rgba(0, 0, 0, .06),
+    0 0 12px rgba(255, 255, 255, .15);
+}
+
+/* The url() filter is Firefox-only; blur() is the fallback the other engines
+   actually apply, so the pill stays glass rather than going flat. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .lqg-warp {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: 999px;
+  pointer-events: none;
+  isolation: isolate;
+  -webkit-backdrop-filter: blur(3px) saturate(170%);
+  backdrop-filter: blur(3px) saturate(170%);
+  background: rgba(255, 255, 255, .18);
+}
+@supports (-moz-appearance: none) {
+  html[data-theme="light"] [data-liquid-glass="enabled"] .lqg-warp {
+    -webkit-backdrop-filter: url("#lqg-container-glass");
+    backdrop-filter: url("#lqg-container-glass");
+  }
+}
+
+html[data-theme="light"] [data-liquid-glass="enabled"] .lqg-label {
+  position: relative;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lqg-label svg { width: 16px; height: 16px; flex-shrink: 0; }
