@@ -174,6 +174,14 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
 // Renders children into <body> so `position: fixed` overlays are positioned
 // against the viewport, not the transformed (animate-fade-up) page container —
 // which otherwise pushes modals off-center on long pages.
+function useLiquidGlass() {
+  const [enabled, setEnabled] = useState(false)
+  useEffect(() => {
+    setEnabled(Boolean(document.querySelector('[data-liquid-glass="enabled"]')))
+  }, [])
+  return enabled
+}
+
 function Portal({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
@@ -198,6 +206,7 @@ export function TrainingExamResultsContent({
   consultants,
   evaluatorOptions,
 }: Props) {
+  const liquidOwned = useLiquidGlass() ? 'true' : undefined
   const { lang, t } = useLanguage()
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -508,8 +517,8 @@ export function TrainingExamResultsContent({
 
       {deleteResult && (
         <Portal>
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+        <div className="nc-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" data-liquid-owned={liquidOwned}>
+          <div className="nc-modal-panel w-full max-w-md rounded-2xl bg-white shadow-2xl" data-liquid-owned={liquidOwned} data-liquid-glass={liquidOwned ? 'enabled' : undefined}>
             <div className="p-5">
               <div className="flex items-start gap-4">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-500">
@@ -572,11 +581,14 @@ export function TrainingExamResultsContent({
       {viewResult && (
         <Portal>
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+          className="nc-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+          data-liquid-owned={liquidOwned}
           onClick={() => setViewResult(null)}
         >
           <div
-            className="w-full max-w-3xl max-h-[90vh] overflow-hidden bg-white rounded-2xl shadow-2xl"
+            className="nc-modal-panel w-full max-w-3xl max-h-[90vh] overflow-hidden bg-white rounded-2xl shadow-2xl"
+            data-liquid-owned={liquidOwned}
+            data-liquid-glass={liquidOwned ? 'enabled' : undefined}
             onClick={e => e.stopPropagation()}
           >
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
@@ -676,8 +688,8 @@ export function TrainingExamResultsContent({
 
       {editResult && (
         <Portal>
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-hidden bg-white rounded-2xl shadow-2xl">
+        <div className="nc-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" data-liquid-owned={liquidOwned}>
+          <div className="nc-modal-panel w-full max-w-4xl max-h-[90vh] overflow-hidden bg-white rounded-2xl shadow-2xl" data-liquid-owned={liquidOwned} data-liquid-glass={liquidOwned ? 'enabled' : undefined}>
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-bold text-gray-900">
@@ -871,11 +883,13 @@ export function TrainingExamResultsContent({
 
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">
+          {/* The shell header already prints this title. Class hook only — the
+              glass sheet hides this copy; other accounts are untouched. */}
+          <h1 className="nc-page-title-dup text-xl font-bold text-gray-900">
             {t.trainingExamResults.pageTitle}
           </h1>
-          <p className="text-sm text-gray-400 mt-0.5">
-            {totalCount} {tx('kayıt', 'records', 'record')}
+          <p className="nc-record-count text-sm text-gray-400 mt-0.5">
+            <span className="nc-record-num">{totalCount}</span> {tx('kayıt', 'records', 'record')}
           </p>
         </div>
         {canCreate && (
@@ -928,7 +942,7 @@ export function TrainingExamResultsContent({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <div className="w-[130px] flex-shrink-0">
+          <div className="nc-filter-w w-[130px] flex-shrink-0">
             <SearchableSelect
               value={filterLevel}
               onChange={v => updateFilter('level', v)}
@@ -941,7 +955,7 @@ export function TrainingExamResultsContent({
             />
           </div>
 
-          <div className="w-[168px] flex-shrink-0">
+          <div className="nc-filter-w w-[168px] flex-shrink-0">
             <SearchableSelect
               value={filterResult}
               onChange={v => updateFilter('result', v)}
@@ -955,7 +969,7 @@ export function TrainingExamResultsContent({
           </div>
 
           {role === 'manager' && (
-            <div className="w-[200px] flex-shrink-0">
+            <div className="nc-filter-w w-[200px] flex-shrink-0">
               <SearchableSelect
                 value={filterEvaluator}
                 onChange={v => updateFilter('evaluator', v)}

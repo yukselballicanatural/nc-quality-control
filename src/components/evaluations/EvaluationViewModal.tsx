@@ -732,7 +732,7 @@ export function EvaluationViewModal({ evalId, evaluation, loading, canEdit, onCl
             onClick={e => e.stopPropagation()}
             style={{
               width: '100%',
-              maxWidth: '672px',
+              maxWidth: '860px',
               maxHeight: 'calc(100vh - 32px)',
               display: 'flex',
               flexDirection: 'column',

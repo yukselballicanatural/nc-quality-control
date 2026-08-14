@@ -1300,7 +1300,6 @@ html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"] {
   -webkit-backdrop-filter: blur(48px) saturate(180%);
   backdrop-filter: blur(48px) saturate(180%);
   box-shadow: 0 8px 24px rgba(0, 0, 0, .14), 0 32px 80px -16px rgba(0, 0, 0, .32), inset 0 1px 0 rgba(255, 255, 255, .16) !important;
-  max-width: 860px !important;
   max-height: 90vh !important;
 }
 html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"] :is(p, li, dd) { line-height: 1.6; }
