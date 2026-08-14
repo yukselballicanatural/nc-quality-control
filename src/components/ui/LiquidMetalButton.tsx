@@ -4,11 +4,13 @@
  * Liquid-metal primary action button.
  *
  * Three stacked layers, as in the reference: a WebGL shader surface at the
- * bottom (@paper-design/shaders), a translucent green body above it, and the
- * label/icon on top; a transparent <button> covers all three and owns the
- * pointer events, the press state and the click ripple.
+ * bottom (@paper-design/shaders), the dark body above it, and the label/icon
+ * on top; a transparent hit layer covers all three and owns the pointer
+ * events, the press state and the click ripple.
  *
- * Two deliberate departures from the reference snippet:
+ * Colours, type and shadows are the reference values verbatim.
+ *
+ * Three deliberate departures from the reference snippet:
  *
  *  - The package is imported dynamically and every failure path (no WebGL, a
  *    blocked chunk, a shader compile error) falls back to the plain gradient
@@ -17,6 +19,9 @@
  *  - Cleanup calls `dispose()`. The snippet calls `destroy()`, which this
  *    version of ShaderMount does not expose — the WebGL context would leak on
  *    every unmount.
+ *  - The width is measured from the label rather than pinned to the snippet's
+ *    142px, which would clip "Yeni Değerlendirme". `viewMode="icon"` still
+ *    renders the fixed 46px circle.
  *
  * Placed in src/components/ui/ rather than /components/ui: this project is not
  * a shadcn install, and src/components/ui is where its own primitives live
@@ -25,10 +30,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type React from 'react'
-
-/** Brand green, as vec4s for the shader's back/tint uniforms. */
-const COLOR_BACK: [number, number, number, number] = [0.023, 0.184, 0.145, 1]
-const COLOR_TINT: [number, number, number, number] = [0.051, 0.58, 0.533, 1]
 
 interface LiquidMetalButtonProps {
   label: string
@@ -110,10 +111,6 @@ export function LiquidMetalButton({
           shaderRef.current,
           liquidMetalFragmentShader,
           {
-            u_colorBack: COLOR_BACK,
-            u_colorTint: COLOR_TINT,
-            u_image: undefined,
-            u_isImage: false,
             u_repetition: 4,
             u_softness: 0.5,
             u_shiftRed: 0.3,
@@ -121,14 +118,8 @@ export function LiquidMetalButton({
             u_distortion: 0,
             u_contour: 0,
             u_angle: 45,
-            u_shape: 1,
-            u_fit: 0,
             u_scale: 8,
-            u_rotation: 0,
-            u_originX: 0.5,
-            u_originY: 0.5,
-            u_worldWidth: 0,
-            u_worldHeight: 0,
+            u_shape: 1,
             u_offsetX: 0.1,
             u_offsetY: -0.1,
           } as never,
@@ -194,11 +185,11 @@ export function LiquidMetalButton({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '8px',
+              gap: '6px',
               transform: 'translateZ(20px)',
               zIndex: 30,
               pointerEvents: 'none',
-              color: '#e6fff7',
+              color: '#666666',
             }}
           >
             {icon && (
@@ -210,8 +201,8 @@ export function LiquidMetalButton({
               <span
                 ref={labelRef}
                 style={{
-                  fontSize: '13px',
-                  fontWeight: 700,
+                  fontSize: '14px',
+                  fontWeight: 400,
                   textShadow: '0 1px 2px rgba(0,0,0,.5)',
                   whiteSpace: 'nowrap',
                 }}
@@ -221,7 +212,7 @@ export function LiquidMetalButton({
             )}
           </div>
 
-          {/* 2 — translucent green body */}
+          {/* 2 — body */}
           <div style={{ ...layerBox, transform: `translateZ(10px) ${pressTransform}`, zIndex: 20 }}>
             <div
               style={{
@@ -229,8 +220,10 @@ export function LiquidMetalButton({
                 height: `${dimensions.height - 4}px`,
                 margin: '2px',
                 borderRadius: '100px',
-                background: 'linear-gradient(180deg, rgba(13,148,136,.55) 0%, rgba(6,78,59,.85) 100%)',
-                boxShadow: isPressed ? 'inset 0 2px 4px rgba(0,0,0,.4)' : 'none',
+                background: 'linear-gradient(180deg, #202020 0%, #000000 100%)',
+                boxShadow: isPressed
+                  ? 'inset 0 2px 4px rgba(0,0,0,.4), inset 0 1px 2px rgba(0,0,0,.3)'
+                  : 'none',
                 transition: 'box-shadow .15s ease',
               }}
             />
@@ -246,10 +239,10 @@ export function LiquidMetalButton({
                 background: 'rgb(0 0 0 / 0)',
                 transition: 'box-shadow .15s ease',
                 boxShadow: isPressed
-                  ? '0 0 0 1px rgba(13,148,136,.5), 0 1px 2px rgba(0,0,0,.3)'
+                  ? '0 0 0 1px rgba(0,0,0,.5), 0 1px 2px 0 rgba(0,0,0,.3)'
                   : isHovered
-                    ? '0 0 0 1px rgba(13,148,136,.5), 0 12px 24px rgba(13,148,136,.25), 0 4px 10px rgba(0,0,0,.2)'
-                    : '0 0 0 1px rgba(13,148,136,.35), 0 8px 20px rgba(13,148,136,.15), 0 2px 6px rgba(0,0,0,.15)',
+                    ? '0 0 0 1px rgba(0,0,0,.4), 0 12px 6px 0 rgba(0,0,0,.05), 0 8px 5px 0 rgba(0,0,0,.1), 0 4px 4px 0 rgba(0,0,0,.15), 0 1px 2px 0 rgba(0,0,0,.2)'
+                    : '0 0 0 1px rgba(0,0,0,.3), 0 36px 14px 0 rgba(0,0,0,.02), 0 20px 12px 0 rgba(0,0,0,.08), 0 9px 9px 0 rgba(0,0,0,.12), 0 2px 5px 0 rgba(0,0,0,.15)',
               }}
             >
               <div
