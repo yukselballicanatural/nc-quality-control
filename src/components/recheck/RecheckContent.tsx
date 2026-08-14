@@ -86,7 +86,7 @@ function ScoreCircle({ score }: { score: number }) {
   const s = scoreStyle(score)
   const r = 20, circ = 2 * Math.PI * r
   return (
-    <div className={`relative w-14 h-14 flex-shrink-0 rounded-2xl ring-2 ${s.ring} ${s.bg} flex items-center justify-center`}>
+    <div className={`nc-rc-score relative w-14 h-14 flex-shrink-0 rounded-2xl ring-2 ${s.ring} ${s.bg} flex items-center justify-center`}>
       <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 56 56">
         <circle cx="28" cy="28" r={r} fill="none" stroke="currentColor" strokeWidth="3" className="text-gray-100" />
         <circle cx="28" cy="28" r={r} fill="none" stroke="currentColor" strokeWidth="3" className={s.text}
@@ -100,11 +100,11 @@ function ScoreCircle({ score }: { score: number }) {
 // ─── Day badge ────────────────────────────────────────────────────
 
 function DayBadge({ diff, lang }: { diff: number; lang: Language }) {
-  if (diff < 0)   return <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-red-500 text-white whitespace-nowrap">{tx(lang, `${Math.abs(diff)} gün geçti`, `${Math.abs(diff)} days ago`, `${Math.abs(diff)} giorni fa`)}</span>
-  if (diff === 0) return <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-orange-500 text-white whitespace-nowrap animate-pulse">{tx(lang, 'Bugün', 'Today', 'Oggi')}</span>
-  if (diff === 1) return <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-amber-500 text-white whitespace-nowrap">{tx(lang, 'Yarın', 'Tomorrow', 'Domani')}</span>
-  if (diff <= 7)  return <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-[#52B788] text-white whitespace-nowrap">{tx(lang, `${diff} gün sonra`, `in ${diff} days`, `tra ${diff} giorni`)}</span>
-  return <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 whitespace-nowrap">{tx(lang, `${diff} gün sonra`, `in ${diff} days`, `tra ${diff} giorni`)}</span>
+  if (diff < 0)   return <span className="nc-rc-badge text-[11px] font-black px-2.5 py-1 rounded-full bg-red-500 text-white whitespace-nowrap">{tx(lang, `${Math.abs(diff)} gün geçti`, `${Math.abs(diff)} days ago`, `${Math.abs(diff)} giorni fa`)}</span>
+  if (diff === 0) return <span className="nc-rc-badge text-[11px] font-black px-2.5 py-1 rounded-full bg-orange-500 text-white whitespace-nowrap animate-pulse">{tx(lang, 'Bugün', 'Today', 'Oggi')}</span>
+  if (diff === 1) return <span className="nc-rc-badge text-[11px] font-black px-2.5 py-1 rounded-full bg-amber-500 text-white whitespace-nowrap">{tx(lang, 'Yarın', 'Tomorrow', 'Domani')}</span>
+  if (diff <= 7)  return <span className="nc-rc-badge text-[11px] font-black px-2.5 py-1 rounded-full bg-[#52B788] text-white whitespace-nowrap">{tx(lang, `${diff} gün sonra`, `in ${diff} days`, `tra ${diff} giorni`)}</span>
+  return <span className="nc-rc-badge text-[11px] font-black px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 whitespace-nowrap">{tx(lang, `${diff} gün sonra`, `in ${diff} days`, `tra ${diff} giorni`)}</span>
 }
 
 // ─── Recheck card ─────────────────────────────────────────────────
@@ -140,15 +140,15 @@ function Card({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97, y: -4 }}
       transition={{ delay: idx * 0.04, duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-      className={`group relative bg-white rounded-2xl border shadow-sm hover:shadow-xl hover:shadow-black/[0.06] transition-all duration-300 overflow-hidden ${
+      className={`nc-rc-card group relative bg-white rounded-2xl border shadow-sm hover:shadow-xl hover:shadow-black/[0.06] transition-all duration-300 overflow-hidden ${
         isDone ? 'border-emerald-200 opacity-80' : 'border-gray-100 hover:border-gray-200'
       }`}
     >
-      <div className={`absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r ${accentCls} to-transparent`} />
+      <div className={`nc-rc-card-accent absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r ${accentCls} to-transparent`} />
 
       <div className="flex items-center gap-4 px-6 pt-5 pb-4">
         {/* Avatar */}
-        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 text-sm font-black shadow-sm transition-all ${
+        <div className={`nc-rc-avatar w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 text-sm font-black shadow-sm transition-all ${
           isDone ? 'bg-emerald-100 text-emerald-700' : avatarColor(consultantName)
         }`}>
           {isDone ? <Check className="w-5 h-5" /> : initials(consultantName)}
@@ -204,7 +204,7 @@ function Card({
             onClick={handleToggle}
             disabled={pending}
             title={isDone ? tx(lang, 'Tamamlamayı geri al', 'Undo completion', 'Annulla completamento') : tx(lang, 'Kontrol edildi olarak işaretle', 'Mark as done', 'Segna come completato')}
-            className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-200 flex-shrink-0 cursor-pointer ${
+            className={`nc-rc-act nc-rc-done w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-200 flex-shrink-0 cursor-pointer ${
               isDone
                 ? 'bg-emerald-50 border-emerald-200 hover:bg-red-50 hover:border-red-200'
                 : 'bg-gray-50 border-gray-100 hover:bg-emerald-500 hover:border-emerald-500'
@@ -218,7 +218,7 @@ function Card({
 
           <Link
             href={`/evaluations/${item.id}`}
-            className="w-9 h-9 rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-center transition-all duration-200 group-hover:bg-[#1B4332] group-hover:border-[#1B4332] flex-shrink-0"
+            className="nc-rc-act nc-rc-open w-9 h-9 rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-center transition-all duration-200 group-hover:bg-[#1B4332] group-hover:border-[#1B4332] flex-shrink-0"
           >
             <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors duration-200" />
           </Link>
@@ -382,12 +382,12 @@ function Tab({ active, onClick, label, count, urgentCls = '' }: {
   active: boolean; onClick: () => void; label: string; count: number; urgentCls?: string
 }) {
   return (
-    <button onClick={onClick} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${
+    <button onClick={onClick} data-active={active ? 'true' : 'false'} className={`nc-rc-tab flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${
       active ? 'bg-[#1B4332] text-white shadow-lg shadow-[#1B4332]/20' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
     }`}>
       {label}
       {count > 0 && (
-        <span className={`text-[11px] font-black min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center ${
+        <span className={`nc-rc-tab-count text-[11px] font-black min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center ${
           active ? 'bg-white/20 text-white' : urgentCls || 'bg-gray-200 text-gray-600'
         }`}>{count}</span>
       )}
@@ -521,8 +521,8 @@ export function RecheckContent({ items: initialItems, currentUserId, role }: Pro
 
           {/* Filter bar */}
           <motion.div initial={{ opacity:0, y:-8 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.3, ease:[0.16,1,0.3,1] }}
-            className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-            <div className="h-[3px] bg-gradient-to-r from-[#52B788] via-[#1B4332] to-[#52B788] rounded-t-2xl" />
+            className="nc-rc-filterbar bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="nc-rc-accent h-[3px] bg-gradient-to-r from-[#52B788] via-[#1B4332] to-[#52B788] rounded-t-2xl" />
             <div className="px-4 py-3 flex items-center gap-2 flex-wrap">
               {tabs.map(tab => (
                 <Tab key={tab.id} active={activeFilter === tab.id && !customDate}

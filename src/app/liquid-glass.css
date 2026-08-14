@@ -889,8 +889,8 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .lg-logout-btn:hover {
    several brand shades; the glass layer folds them into a single
    gradient treatment. Sidebar buttons keep their own tone (§6.6).
    ═══════════════════════════════════════════════════════════════════ */
-html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"]),
-html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"]) {
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"]):not(.nc-rc-act):not(.nc-rc-tab),
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"]):not(.nc-rc-act):not(.nc-rc-tab) {
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, .26) !important;
@@ -905,8 +905,8 @@ html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg
 }
 
 /* Light gathering across the upper half of the button */
-html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"])::after,
-html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"])::after {
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"]):not(.nc-rc-act):not(.nc-rc-tab)::after,
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"]):not(.nc-rc-act):not(.nc-rc-tab)::after {
   content: "";
   position: absolute;
   inset: 0 0 52% 0;
@@ -915,20 +915,20 @@ html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg
   background: linear-gradient(rgba(255, 255, 255, .26), rgba(255, 255, 255, 0));
 }
 
-html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"]):hover,
-html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"]):hover {
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"]):not(.nc-rc-act):not(.nc-rc-tab):hover,
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"]):not(.nc-rc-act):not(.nc-rc-tab):hover {
   transform: translateY(-1.5px);
   filter: saturate(115%) brightness(1.05);
   box-shadow: 0 10px 28px -6px rgba(13, 148, 136, .68),
               inset 0 1px 0 rgba(255, 255, 255, .55) !important;
 }
-html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"]):active,
-html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"]):active {
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#1B4332]"]:not(aside *):not([class*="bg-[#1B4332]/"]):not(.nc-rc-act):not(.nc-rc-tab):active,
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-[#52B788]"]:not(aside *):not([class*="bg-[#52B788]/"]):not(.nc-rc-act):not(.nc-rc-tab):active {
   transform: scale(.965);
 }
 
 /* §6.5 — ghost / neutral secondary buttons */
-html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="bg-gray-100"]:not(aside *):not(.nc-cal-day),
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="bg-gray-100"]:not(aside *):not(.nc-rc-tab):not(.nc-cal-day),
 html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"]:not([class*="bg-gray-500"]):not(aside *):not(.nc-cal-day) {
   border: 1px solid var(--edge-soft) !important;
   border-radius: 12px !important;
@@ -936,7 +936,7 @@ html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="bg-gray-50
   color: var(--ink-2) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 2px 8px rgba(23, 43, 99, .06) !important;
 }
-html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="bg-gray-100"]:not(aside *):hover,
+html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="bg-gray-100"]:not(aside *):not(.nc-rc-tab):hover,
 html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"]:not([class*="bg-gray-500"]):not(aside *):not(.nc-cal-day):hover {
   background: var(--g-hover) !important;
   color: var(--ink) !important;
@@ -1769,4 +1769,114 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .nc-record-num {
   font-size: 13px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
+}
+
+/* ── Recheck (Kontrol Edilecekler) ──────────────────────────────────────────
+   The page is built from bg-white/rounded cards, so the generic card rule
+   already glazes the shells. What is left is everything painted with a solid
+   utility colour: the accent strips, the tab pills, the two round actions,
+   the avatars, score rings, day badges and progress tracks. */
+
+/* Painted 3px gradient caps. The card keeps a status cue but as a hairline,
+   not a slab; the filter bar loses its strip entirely. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-accent { display: none !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-card-accent { height: 2px !important; opacity: .55; }
+
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-filterbar { padding-top: 2px; }
+
+/* Tabs: transparent at rest, neutral overlay on hover, accent glass when on —
+   the same three states the sidebar rows use. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-tab.nc-rc-tab {
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--ink-2) !important;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 14px !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-tab.nc-rc-tab[data-active="false"]:hover {
+  background: rgba(18, 22, 34, .06) !important;
+  color: var(--ink) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-tab.nc-rc-tab[data-active="true"] {
+  border-color: rgba(13, 148, 136, .3) !important;
+  background: rgba(13, 148, 136, .13) !important;
+  color: #0f766e !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-tab-count.nc-rc-tab-count {
+  background: rgba(18, 22, 34, .08) !important;
+  color: var(--ink-2) !important;
+  font-size: 10px;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-tab.nc-rc-tab[data-active="true"] .nc-rc-tab-count.nc-rc-tab-count {
+  background: rgba(13, 148, 136, .22) !important;
+  color: #0f766e !important;
+}
+
+/* The two round actions. The arrow button was the reported defect: its icon
+   carries `text-gray-400`, and this sheet repaints that colour with
+   !important, which outranks the `group-hover:text-white` utility — so on the
+   dark-green hover fill the glyph stayed dark. Both buttons are given their
+   own glass and an explicit icon colour for every state. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-act.nc-rc-act {
+  border: 1px solid var(--edge-soft) !important;
+  border-radius: 11px !important;
+  background: var(--g-2) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(175%);
+  backdrop-filter: blur(14px) saturate(175%);
+  transition: background .2s var(--ease), border-color .2s var(--ease), transform .25s var(--spring);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-act.nc-rc-act svg { color: var(--ink-2) !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-act.nc-rc-act:hover { transform: translateY(-1px); }
+
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-open:hover,
+html[data-theme="light"] [data-liquid-glass="enabled"] .group:hover .nc-rc-open {
+  border-color: rgba(13, 148, 136, .34) !important;
+  background: rgba(13, 148, 136, .16) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-open:hover svg,
+html[data-theme="light"] [data-liquid-glass="enabled"] .group:hover .nc-rc-open svg { color: #0f766e !important; }
+
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-done:hover {
+  border-color: rgba(16, 185, 129, .36) !important;
+  background: rgba(16, 185, 129, .18) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-done:hover svg { color: #047857 !important; }
+
+/* Avatars and score rings: tinted glass instead of a flat -100 fill. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-avatar.nc-rc-avatar {
+  border: 1px solid rgba(255, 255, 255, .6);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6) !important;
+}
+/* No background override here: the status tint is the point of the ring, and
+   flattening it to white in one theme only would have made light and dark
+   differ by more than colour. Only the sheen is added. */
+/* The ring keeps its status hue, but as a tint rather than the solid -50
+   fill — the utility colour is opaque and read as a painted chip. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-score.nc-rc-score[class*="bg-red-50"]:not([class*="bg-red-500"]) { background: rgba(239, 68, 68, .16) !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-score.nc-rc-score[class*="bg-amber-50"]:not([class*="bg-amber-500"]) { background: rgba(245, 158, 11, .18) !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-score.nc-rc-score[class*="bg-blue-50"]:not([class*="bg-blue-500"]) { background: rgba(59, 130, 246, .16) !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-score.nc-rc-score[class*="bg-emerald-50"]:not([class*="bg-emerald-500"]) { background: rgba(16, 185, 129, .15) !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-score.nc-rc-score {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7);
+}
+
+/* Day badges were solid -500 blocks. Same hue, as glass. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-badge.nc-rc-badge {
+  font-size: 10px;
+  letter-spacing: .01em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-badge.nc-rc-badge[class*="bg-red-500"] { background: rgba(239, 68, 68, .16) !important; color: #b91c1c !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-badge.nc-rc-badge[class*="bg-orange-500"] { background: rgba(249, 115, 22, .16) !important; color: #c2410c !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-badge.nc-rc-badge[class*="bg-amber-500"] { background: rgba(245, 158, 11, .18) !important; color: #b45309 !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-rc-badge.nc-rc-badge[class*="bg-[#52B788]"] { background: rgba(13, 148, 136, .15) !important; color: #0f766e !important; }
+
+/* Progress tracks: the -100 greys read as opaque bars over glass. */
+html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="bg-gray-100"][class*="rounded-full"][class*="overflow-hidden"] {
+  background: rgba(23, 43, 99, .09) !important;
 }
