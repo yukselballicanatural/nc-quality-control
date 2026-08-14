@@ -13,9 +13,13 @@
   pointer-events: none !important;
   overflow: hidden !important;
 }
-.lq-trigger { width: 100%; display: flex; align-items: center; gap: 8px; }
+.lq-trigger { width: 100%; display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; }
 .lq-trigger-label { flex: 1; min-width: 0; overflow: hidden; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
-.lq-trigger-chev { flex: 0 0 auto; }
+/* The chevron is an inline SVG now, so the span needs to behave like a box:
+   left as a plain inline span it inherited the text line-height and wrapped
+   onto its own line inside narrow filter chips. */
+.lq-trigger-chev { flex: 0 0 auto; display: inline-flex; align-items: center; line-height: 0; }
+.lq-trigger-chev svg { display: block; }
 .lq-panel { position: fixed; z-index: 10050; display: none; overflow: hidden auto; padding: 7px; }
 .lq-panel.lq-open { display: block; }
 .lq-panel-search-wrap { position: sticky; top: -7px; z-index: 2; padding: 3px 3px 7px; }
@@ -1531,3 +1535,73 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .lg-kpi :is(p, div, span)
 html[data-theme="light"] [data-liquid-glass="enabled"] :is(.font-mono, [class*="font-mono"]) {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
+
+/* ── Evaluations table, filters and modal ───────────────────────────────── */
+
+/* A table shell with no fill of its own let the fixed mesh show straight
+   through every row, so the rows drifted lavender → teal down the page and
+   read as many different colours. One translucent ground puts every row on
+   the same two tones. */
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="rounded"][class*="rounded"][class*="rounded"]:has(> table, > div > table) {
+  background: var(--g-1) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
+  backdrop-filter: blur(var(--blur)) saturate(150%);
+}
+
+/* Channel / meta chips were still opaque Tailwind fills. Same low-opacity
+   glass treatment as the status pills, whatever radius they use. */
+html[data-theme="light"] [data-liquid-glass="enabled"] tbody :is(span, div)[class*="rounded"][class*="bg-blue-50"]:not([class*="bg-blue-500"]),
+html[data-theme="light"] [data-liquid-glass="enabled"] tbody :is(span, div)[class*="rounded"][class*="bg-sky-50"]:not([class*="bg-sky-500"]) {
+  border: 1px solid rgba(37, 99, 235, .3);
+  background: rgba(37, 99, 235, .15) !important;
+  color: #1d4ed8 !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] tbody :is(span, div)[class*="rounded"][class*="bg-emerald-50"]:not([class*="bg-emerald-500"]),
+html[data-theme="light"] [data-liquid-glass="enabled"] tbody :is(span, div)[class*="rounded"][class*="bg-green-50"]:not([class*="bg-green-500"]) {
+  border: 1px solid rgba(13, 148, 136, .3);
+  background: rgba(16, 185, 129, .15) !important;
+  color: #047857 !important;
+}
+
+/* Numeric columns line up and never reflow as digits change. */
+html[data-theme="light"] [data-liquid-glass="enabled"] tbody td:has(> :is(span, div)[class*="font-bold"]) { font-variant-numeric: tabular-nums; }
+
+/* Row actions are neutral at rest and only take their meaning colour on
+   hover — three permanently coloured buttons per row read as noise. */
+html[data-theme="light"] [data-liquid-glass="enabled"] tbody :is(a, button)[class*="rounded-lg"][class*="text-xs"] {
+  border: 1px solid transparent;
+  background: transparent !important;
+  color: var(--ink-2) !important;
+  transition: background .18s var(--ease), color .18s var(--ease), border-color .18s var(--ease);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] tbody :is(a, button)[class*="rounded-lg"][class*="text-blue-600"]:hover {
+  border-color: rgba(37, 99, 235, .3);
+  background: rgba(37, 99, 235, .14) !important;
+  color: #1d4ed8 !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] tbody :is(a, button)[class*="rounded-lg"][class*="text-red-500"]:hover {
+  border-color: rgba(239, 68, 68, .34);
+  background: rgba(239, 68, 68, .14) !important;
+  color: #b91c1c !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] tbody :is(a, button)[class*="rounded-lg"][class*="text-[#1B4332]"]:hover {
+  border-color: rgba(13, 148, 136, .32);
+  background: rgba(13, 148, 136, .14) !important;
+  color: #0f766e !important;
+}
+
+/* Modal: the dropdown panels sit at 10050 on purpose, above this, so an open
+   menu is never hidden behind the card. */
+html[data-theme="light"] .nc-modal-backdrop[data-liquid-owned="true"] {
+  background: rgba(0, 0, 0, .75) !important;
+  z-index: 9990 !important;
+}
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"] {
+  border: 1px solid rgba(255, 255, 255, .42) !important;
+  border-radius: 16px !important;
+  background: rgba(252, 253, 255, .94) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: 0 8px 24px rgba(23, 43, 99, .14), 0 32px 80px -16px rgba(23, 43, 99, .32), inset 0 1px 0 rgba(255, 255, 255, .85) !important;
+}
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"] :is(p, li, dd) { line-height: 1.6; }

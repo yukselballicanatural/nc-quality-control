@@ -47,7 +47,9 @@
     this.chevron = document.createElement('span');
     this.chevron.className = 'lq-trigger-chev';
     this.chevron.setAttribute('aria-hidden', 'true');
-    this.chevron.textContent = '⌄';
+    // A stroked SVG, not the '⌄' character: the glyph renders at a different
+    // weight and baseline in every font and read as a stray lowercase v.
+    this.chevron.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 9l-7 7-7-7"/></svg>';
     this.trigger.append(this.label, this.chevron);
 
     this.panel = document.createElement('div');

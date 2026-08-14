@@ -1220,3 +1220,62 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-summary-card {
   -webkit-backdrop-filter: blur(10px) saturate(150%);
   backdrop-filter: blur(10px) saturate(150%);
 }
+
+/* ── Evaluations table, filters and modal — see the light sheet ─────────── */
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="rounded"][class*="rounded"][class*="rounded"]:has(> table, > div > table) {
+  background: var(--d-1) !important;
+  -webkit-backdrop-filter: blur(var(--d-blur)) saturate(var(--d-sat));
+  backdrop-filter: blur(var(--d-blur)) saturate(var(--d-sat));
+}
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody :is(span, div)[class*="rounded"][class*="bg-blue-50"]:not([class*="bg-blue-500"]),
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody :is(span, div)[class*="rounded"][class*="bg-sky-50"]:not([class*="bg-sky-500"]) {
+  border: 1px solid var(--tm-info-edge);
+  background: var(--tm-info-bg) !important;
+  color: var(--tm-info) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody :is(span, div)[class*="rounded"][class*="bg-emerald-50"]:not([class*="bg-emerald-500"]),
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody :is(span, div)[class*="rounded"][class*="bg-green-50"]:not([class*="bg-green-500"]) {
+  border: 1px solid var(--tm-ok-edge);
+  background: var(--tm-ok-bg) !important;
+  color: var(--tm-ok) !important;
+}
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody td:has(> :is(span, div)[class*="font-bold"]) { font-variant-numeric: tabular-nums; }
+
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody :is(a, button)[class*="rounded-lg"][class*="text-xs"] {
+  border: 1px solid transparent;
+  background: transparent !important;
+  color: var(--d-ink-2) !important;
+  transition: background .18s var(--d-ease), color .18s var(--d-ease), border-color .18s var(--d-ease);
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody :is(a, button)[class*="rounded-lg"][class*="text-blue-600"]:hover {
+  border-color: var(--tm-info-edge);
+  background: var(--tm-info-bg) !important;
+  color: var(--tm-info) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody :is(a, button)[class*="rounded-lg"][class*="text-red-500"]:hover {
+  border-color: var(--tm-danger-edge);
+  background: var(--tm-danger-bg) !important;
+  color: var(--tm-danger) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody :is(a, button)[class*="rounded-lg"][class*="text-[#1B4332]"]:hover {
+  border-color: var(--tm-accent-edge);
+  background: var(--tm-accent-bg) !important;
+  color: var(--tm-accent) !important;
+}
+
+html[data-theme="dark"] .nc-modal-backdrop[data-liquid-owned="true"] {
+  background: rgba(0, 0, 0, .75) !important;
+  z-index: 9990 !important;
+}
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"] {
+  border: 1px solid var(--d-edge) !important;
+  border-radius: 16px !important;
+  background: rgba(20, 27, 44, .94) !important;
+  color: var(--d-ink) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: var(--d-sh-3), var(--d-sheen) !important;
+}
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"] :is(p, li, dd) { line-height: 1.6; }

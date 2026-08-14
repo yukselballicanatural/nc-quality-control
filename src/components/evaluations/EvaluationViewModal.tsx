@@ -645,7 +645,23 @@ interface Props {
   onClose: () => void
 }
 
+/**
+ * The overlay is portalled to <body>, so it sits outside the
+ * [data-liquid-glass="enabled"] wrapper and a scoped selector cannot reach it.
+ * It carries its own marker instead — the same approach liquid-ui.js uses for
+ * its portalled dropdown panel — so the glass styling stays limited to the
+ * accounts the theme is enabled for.
+ */
+function useLiquidGlass() {
+  const [enabled, setEnabled] = useState(false)
+  useEffect(() => {
+    setEnabled(Boolean(document.querySelector('[data-liquid-glass="enabled"]')))
+  }, [])
+  return enabled
+}
+
 export function EvaluationViewModal({ evalId, evaluation, loading, canEdit, onClose }: Props) {
+  const liquidOwned = useLiquidGlass() ? 'true' : undefined
   const { lang } = useLanguage()
   const [mounted, setMounted] = useState(false)
 
@@ -671,6 +687,8 @@ export function EvaluationViewModal({ evalId, evaluation, loading, canEdit, onCl
         /* Single overlay element: backdrop + centering in one fixed box */
         <motion.div
           key="overlay"
+          className="nc-modal-backdrop"
+          data-liquid-owned={liquidOwned}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -696,6 +714,8 @@ export function EvaluationViewModal({ evalId, evaluation, loading, canEdit, onCl
           {/* Modal card — stopPropagation prevents overlay click from closing */}
           <motion.div
             key="card"
+            className="nc-modal-panel"
+            data-liquid-owned={liquidOwned}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.97 }}

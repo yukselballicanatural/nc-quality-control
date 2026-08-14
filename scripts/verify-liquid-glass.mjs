@@ -39,6 +39,8 @@ const SCOPE = '[data-liquid-glass="enabled"]'
     /^html\[data-theme="(light|dark)"\]:has\(\[data-liquid-glass="enabled"\]\)/,
     /^html\[data-theme="(light|dark)"\]\s+body:has\(\[data-liquid-glass="enabled"\]\)/,
     /^html\[data-theme="(light|dark)"\]\s+\.lq-panel\[data-liquid-owned="true"\]/,
+    // Portalled to <body>, so it carries the marker on itself instead.
+    /^html\[data-theme="(light|dark)"\]\s+\.nc-modal-(backdrop|panel)\[data-liquid-owned="true"\]/,
     /^html\[data-theme="dark"\]\s+\.lg-theme-toggle/, // icon swap, display only
     /^\.lg-theme-toggle/, // icon swap, display only
     /^\.seg-container/,
