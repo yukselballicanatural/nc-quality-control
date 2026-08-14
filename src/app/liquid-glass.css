@@ -185,36 +185,47 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a {
   padding-bottom: 6px !important;
   border: 1px solid transparent;
   border-radius: 11px !important;
-  color: #1e2740 !important;
+  /* A resting row has no fill of its own — it exists as ink on the sidebar
+     glass, and only hover/active add a layer. */
+  background: transparent;
+  color: var(--ink-2) !important;
   /* Kept in sync with the dark sheet's aside nav a rule on purpose — that rule
      used to omit font-size and fall back to Tailwind's text-sm (14px) while
-     this one forced 13px, so the same sidebar read at two different sizes
-     depending on theme. */
-  font-size: 13.5px;
+     this one forced its own size, so the same sidebar read at two different
+     sizes depending on theme. */
+  font-size: 11px;
   font-weight: 700;
   transition: background .22s var(--ease), color .22s var(--ease), transform .3s var(--spring), box-shadow .25s var(--ease);
 }
 
-/* Neutral gray on hover — never the near-black used for the active pill. */
+/* Hover is a neutral darkening glass layer with a top sheen — never a colour,
+   and never the near-black reserved for the active indicator. */
 html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a:hover {
-  color: #0b1020 !important;
-  background: rgba(15, 23, 42, 0.055) !important;
-  box-shadow: none !important;
+  color: var(--ink) !important;
+  background: rgba(18, 22, 34, 0.09) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5) !important;
 }
+html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a:active { transform: scale(.975); }
 
 html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a > span { color: inherit !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a svg {
-  color: #5a688a !important;
+  width: 16px;
+  height: 16px;
+  color: var(--ink-2) !important;
   opacity: 1;
 }
-html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a:hover svg { color: #1e2740 !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] aside nav a:hover svg { color: var(--ink) !important; }
 
 /* Active row is a solid dark slate pill — the one high-contrast anchor in an
    otherwise pale sidebar. */
+/* Fallback for the moment before liquid-ui.js mounts the sliding indicator:
+   same translucent glass the indicator paints, so nothing flashes solid. */
 html[data-theme="light"] [data-liquid-glass="enabled"] aside nav:not(.seg-ready) a[data-active="true"] {
   color: #fff !important;
-  background: var(--slate) !important;
-  box-shadow: 0 6px 18px -6px rgba(24, 32, 52, 0.5) !important;
+  background: rgba(18, 22, 34, 0.62) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: 0 6px 18px -8px rgba(18, 22, 34, .45), inset 0 1px 0 rgba(255, 255, 255, .22) !important;
 }
 
 /* With the sliding indicator mounted, the row itself goes transparent and the
@@ -249,7 +260,15 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .seg-indicator {
   will-change: transform, width;
 }
 
-html[data-theme="light"] [data-liquid-glass="enabled"] aside .seg-indicator { border-radius: 12px; }
+/* Sidebar indicator: translucent dark glass, not a solid slab, so the mesh
+   behind the sidebar still reads through the active row. */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside .seg-indicator {
+  border-radius: 12px;
+  background: rgba(18, 22, 34, 0.62);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: 0 6px 18px -8px rgba(18, 22, 34, .45), inset 0 1px 0 rgba(255, 255, 255, .22);
+}
 html[data-theme="light"] [data-liquid-glass="enabled"] .seg-container [aria-checked="true"],
 html[data-theme="light"] [data-liquid-glass="enabled"] .seg-container [aria-selected="true"] {
   color: #fff !important;
@@ -555,7 +574,7 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="tru
 
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a {
   width: 34px;
-  height: 36px;
+  height: 34px;
   padding: 0 !important;
   gap: 0 !important;
   justify-content: center;
@@ -588,7 +607,7 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="tru
 }
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) {
   width: 34px;
-  height: 36px;
+  height: 34px;
   padding: 0 !important;
   gap: 0 !important;
   justify-content: center;
@@ -927,12 +946,15 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .lg-user-role {
   color: #0d9488 !important;
 }
 
+/* Group heading: deliberately a step smaller and wider-tracked than the 11px
+   rows beneath it, so the two never read as the same level. */
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-section-label {
   padding: 15px 18px 7px;
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: .11em;
-  color: #8b95b2 !important;
+  text-transform: uppercase;
+  color: #64748b !important;
 }
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-section-label--tight { padding: 0 5px 7px; }
 
@@ -1089,29 +1111,46 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .lg-appearance-label {
   color: #2a3350 !important;
 }
 
+/* ── Shared glass for every non-nav sidebar button ────────────────────
+   Apps, logout, the language trigger and the collapse toggle all sit on one
+   recipe: translucent fill, soft edge, top sheen, 1px lift on hover. Anything
+   with its own opaque fill read as a foreign object in the column. */
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(.lg-apps-btn, .lg-logout-btn, .lang-trigger, .lg-rail-toggle) {
+  -webkit-backdrop-filter: blur(14px) saturate(175%);
+  backdrop-filter: blur(14px) saturate(175%);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(.lg-apps-btn, .lg-logout-btn, .lang-trigger):hover {
+  transform: translateY(-1px);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(.lg-apps-btn, .lg-logout-btn, .lang-trigger):active {
+  transform: scale(.965);
+}
+
 /* Bottom actions */
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-apps-btn {
-  border: 1px solid rgba(255, 255, 255, .88) !important;
-  background: rgba(255, 255, 255, .5) !important;
-  color: #1e2740 !important;
+  border: 1px solid var(--edge-soft) !important;
+  background: var(--g-2) !important;
+  color: var(--ink) !important;
   font-size: 13px !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55) !important;
+  transition: background .22s var(--ease), border-color .22s var(--ease),
+              color .22s var(--ease), transform .3s var(--spring) !important;
 }
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-apps-btn svg { color: #5a688a; }
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-apps-btn:hover { background: rgba(255, 255, 255, .82) !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-apps-btn svg { color: var(--ink-2); }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-apps-btn:hover { background: var(--g-hover) !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-apps-btn:hover svg { color: #1e2740; }
 
 /* Logout sits on the same glass slab as "Uygulamalarımız" — a solid dark block
    was the only opaque thing in the column and read as a hole in the sidebar.
    The rose arrow and the rose hover carry the danger cue instead. */
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-logout-btn {
-  border: 1px solid rgba(255, 255, 255, .88) !important;
-  background: rgba(255, 255, 255, .5) !important;
-  color: #1e2740 !important;
+  border: 1px solid var(--edge-soft) !important;
+  background: var(--g-2) !important;
+  color: var(--ink) !important;
   font-size: 13px !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55) !important;
   transition: background .22s var(--ease), border-color .22s var(--ease),
-              color .22s var(--ease), transform .18s var(--ease) !important;
+              color .22s var(--ease), transform .3s var(--spring) !important;
 }
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-logout-btn svg { color: #e11d48 !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-logout-btn:hover {
@@ -1172,6 +1211,11 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="tru
   padding-left: 10px !important;
   padding-right: 10px !important;
 }
+/* As full-width rows a 6px gap reads fine, but once both are 34px squares the
+   two icons sit almost edge to edge — give them room in the rail. */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-bottom > * + * {
+  margin-top: 9px !important;
+}
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-menu-controls,
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-summary {
   padding-left: 10px !important;
@@ -1212,7 +1256,7 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="tru
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-nav { padding: 10px !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-apps-btn, .lg-logout-btn) {
   width: 34px;
-  height: 36px;
+  height: 34px;
   padding: 0 !important;
   gap: 0 !important;
   justify-content: center;

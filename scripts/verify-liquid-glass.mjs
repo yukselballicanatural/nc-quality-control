@@ -264,6 +264,48 @@ for (const [name, css] of [['light', light], ['dark', dark]]) {
   }
 }
 
+// ─── Nav rows must render identically in both themes ───────────────────────
+//
+// The two sheets each declare `aside nav a` in full, with no shared variable.
+// They have already drifted once (one sheet forced a size, the other fell back
+// to Tailwind's text-sm), so the same sidebar rendered at two different sizes
+// depending on the theme. Pin the properties that must agree.
+{
+  const navRule = css => {
+    const m = css.match(/\[data-liquid-glass="enabled"\] aside nav a \{([^}]*)\}/)
+    assert.ok(m, 'both sheets must declare an `aside nav a` block')
+    return m[1]
+  }
+  const prop = (block, name) => {
+    const m = block.match(new RegExp(`(?:^|;|\\n)\\s*${name}\\s*:\\s*([^;]+)`))
+    return m ? m[1].trim() : null
+  }
+
+  const light = navRule(lightCode)
+  const dark = navRule(darkCode)
+  for (const name of ['font-size', 'font-weight']) {
+    const l = prop(light, name)
+    const d = prop(dark, name)
+    assert.ok(l, `light: aside nav a must declare ${name} rather than inherit Tailwind's`)
+    assert.ok(d, `dark: aside nav a must declare ${name} rather than inherit Tailwind's`)
+    assert.equal(d, l, `aside nav a ${name} must match across themes (light ${l}, dark ${d})`)
+  }
+
+  // A resting row carries no fill of its own; hover and the sliding indicator
+  // are the only layers that paint.
+  for (const [name, block] of [['light', light], ['dark', dark]]) {
+    assert.equal(prop(block, 'background'), 'transparent', `${name}: a resting nav row must have no fill`)
+  }
+
+  // Nothing in the sidebar may paint a fully opaque fill — that was the
+  // "solid indigo pill" look this design language replaces.
+  for (const [name, css] of [['light', lightCode], ['dark', darkCode]]) {
+    for (const rule of css.match(/aside[^{}]*\.seg-indicator[^{]*\{[^}]*\}/g) ?? []) {
+      assert.match(rule, /background:\s*rgba\([^)]*,\s*0?\.\d+\s*\)/, `${name}: the sidebar indicator must be translucent → "${rule.slice(0, 90)}"`)
+    }
+  }
+}
+
 // ─── Popovers must escape their host panel's stacking context ──────────────
 //
 // backdrop-filter creates a stacking context, so a popover inside a glass panel
