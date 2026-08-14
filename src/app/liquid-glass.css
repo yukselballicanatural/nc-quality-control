@@ -2019,3 +2019,38 @@ html[data-theme="light"] [data-liquid-glass="enabled"] input[class*="pl-10"]:not
 html[data-theme="light"] [data-liquid-glass="enabled"] input[class*="pl-9"]:not([type="checkbox"]) {
   padding-left: 34px !important;
 }
+
+/* ── Charts (Reports) ───────────────────────────────────────────────────────
+   Recharts writes axis and grid colours as inline SVG attributes chosen for a
+   white card — near-black ticks on a light glass card read fine, but the greys sit
+   below the type scale here. They are overridden here rather than in the
+   component so accounts without the glass theme keep the original palette.
+   The tooltip is a portal-less div with inline styles, so it needs the same
+   treatment the panels get. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .recharts-cartesian-axis-tick text,
+html[data-theme="light"] [data-liquid-glass="enabled"] .recharts-label,
+html[data-theme="light"] [data-liquid-glass="enabled"] .recharts-legend-item-text {
+  fill: #4b5364 !important;
+  color: #4b5364 !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .recharts-cartesian-grid line,
+html[data-theme="light"] [data-liquid-glass="enabled"] .recharts-cartesian-axis line {
+  stroke: rgba(23, 43, 99, .09) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .recharts-tooltip-cursor {
+  fill: rgba(23, 43, 99, .05) !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .recharts-default-tooltip {
+  border: 1px solid rgba(255, 255, 255, .6) !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, .82) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  box-shadow: 0 8px 24px -8px rgba(23, 43, 99, .25) !important;
+  color: #12141a !important;
+  padding: 8px 11px !important;
+  font-size: 12px !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .recharts-default-tooltip :is(.recharts-tooltip-label, .recharts-tooltip-item) {
+  color: #12141a !important;
+}

@@ -1650,3 +1650,38 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] input[class*="pl-10"]:not(
 html[data-theme="dark"] [data-liquid-glass="enabled"] input[class*="pl-9"]:not([type="checkbox"]) {
   padding-left: 34px !important;
 }
+
+/* ── Charts (Reports) ───────────────────────────────────────────────────────
+   Recharts writes axis and grid colours as inline SVG attributes chosen for a
+   white card — on the dark sheet those greys land close to the ground and the axis
+   labels all but disappear. They are overridden here rather than in the
+   component so accounts without the glass theme keep the original palette.
+   The tooltip is a portal-less div with inline styles, so it needs the same
+   treatment the panels get. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .recharts-cartesian-axis-tick text,
+html[data-theme="dark"] [data-liquid-glass="enabled"] .recharts-label,
+html[data-theme="dark"] [data-liquid-glass="enabled"] .recharts-legend-item-text {
+  fill: #a9b4c8 !important;
+  color: #a9b4c8 !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .recharts-cartesian-grid line,
+html[data-theme="dark"] [data-liquid-glass="enabled"] .recharts-cartesian-axis line {
+  stroke: rgba(255, 255, 255, .1) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .recharts-tooltip-cursor {
+  fill: rgba(255, 255, 255, .06) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .recharts-default-tooltip {
+  border: 1px solid rgba(255, 255, 255, .14) !important;
+  border-radius: 12px !important;
+  background: rgba(22, 29, 46, .9) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, .6) !important;
+  color: #f2f5fa !important;
+  padding: 8px 11px !important;
+  font-size: 12px !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .recharts-default-tooltip :is(.recharts-tooltip-label, .recharts-tooltip-item) {
+  color: #f2f5fa !important;
+}

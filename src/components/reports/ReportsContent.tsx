@@ -298,9 +298,11 @@ export function ReportsContent({
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">{t.reports.pageTitle}</h1>
-          <p className="text-sm text-gray-400 mt-0.5">
-            {totalEvaluations} {tx(lang, 'değerlendirme', 'evaluations', 'valutazioni')}
+          {/* The shell header already prints this title. Class hook only — the
+              glass sheet hides this copy; other accounts are untouched. */}
+          <h1 className="nc-page-title-dup text-xl font-bold text-gray-900">{t.reports.pageTitle}</h1>
+          <p className="nc-record-count text-sm text-gray-400 mt-0.5">
+            <span className="nc-record-num">{totalEvaluations}</span> {tx(lang, 'değerlendirme', 'evaluations', 'valutazioni')}
           </p>
         </div>
         <button
@@ -364,7 +366,7 @@ export function ReportsContent({
           </div>
 
           {/* Consultant */}
-          <div className="w-[190px] flex-shrink-0">
+          <div className="nc-filter-w w-[190px] flex-shrink-0">
             <SearchableSelect
               value={filterConsultantId}
               onChange={v => pushParams({ consultantId: v })}
@@ -376,7 +378,7 @@ export function ReportsContent({
 
           {/* Team (quality_team + manager only) */}
           {(role === 'quality_team' || role === 'manager') && (
-            <div className="w-[170px] flex-shrink-0">
+            <div className="nc-filter-w w-[170px] flex-shrink-0">
               <SearchableSelect
                 value={filterTeamId}
                 onChange={v => pushParams({ teamId: v })}
@@ -388,7 +390,7 @@ export function ReportsContent({
           )}
 
           {/* Channel */}
-          <div className="w-[160px] flex-shrink-0">
+          <div className="nc-filter-w w-[160px] flex-shrink-0">
             <SearchableSelect
               value={filterChannel}
               onChange={v => pushParams({ channel: v })}
@@ -402,7 +404,7 @@ export function ReportsContent({
           </div>
 
           {/* Result */}
-          <div className="w-[170px] flex-shrink-0">
+          <div className="nc-filter-w w-[170px] flex-shrink-0">
             <SearchableSelect
               value={filterResult}
               onChange={v => pushParams({ result: v })}
