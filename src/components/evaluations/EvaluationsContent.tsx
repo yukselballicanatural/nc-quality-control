@@ -17,7 +17,6 @@ import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import type { UserRole, ChannelType, ConversationResult, EvaluationStatus } from '@/types/supabase'
 import type { EvaluationListItem, EvaluationWithRelations } from '@/types'
 import { EvaluationViewModal } from './EvaluationViewModal'
-import { LiquidGlassButton } from '@/components/ui/LiquidGlassButton'
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -142,13 +141,6 @@ export function EvaluationsContent({
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [localSearch, setLocalSearch] = useState(searchQuery)
-
-  // Read after mount, never during render: the attribute is set by the shell,
-  // and assuming it on the server would mismatch the first paint.
-  const [glass, setGlass] = useState(false)
-  useEffect(() => {
-    setGlass(Boolean(document.querySelector('[data-liquid-glass="enabled"]')))
-  }, [])
 
   // ── Sort state ─────────────────────────────────────────────────
   // date / customer / score → server-side via URL params
@@ -592,14 +584,7 @@ export function EvaluationsContent({
             {totalCount} {tx('kayıt', 'records', 'record')}
           </p>
         </div>
-        {canCreate && (glass ? (
-          /* Glass accounts get the liquid-glass pill; every other account
-             keeps the flat brand button below, byte for byte. */
-          <LiquidGlassButton href="/evaluations/new">
-            <Plus />
-            <span>{t.evaluations.newEvaluation}</span>
-          </LiquidGlassButton>
-        ) : (
+        {canCreate && (
           <Link
             href="/evaluations/new"
             className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-[#1B4332] hover:bg-[#163728] active:bg-[#122e20] rounded-xl transition-colors flex-shrink-0"
@@ -607,7 +592,7 @@ export function EvaluationsContent({
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">{t.evaluations.newEvaluation}</span>
           </Link>
-        ))}
+        )}
       </div>
 
       {/* ── Bulk actions ───────────────────────────────────── */}
