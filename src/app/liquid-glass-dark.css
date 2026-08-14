@@ -65,7 +65,10 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] aside {
   background: linear-gradient(160deg, rgba(34, 46, 78, 0.56), rgba(14, 19, 34, 0.36)) !important;
   -webkit-backdrop-filter: blur(36px) saturate(165%);
   backdrop-filter: blur(36px) saturate(165%);
-  box-shadow: var(--d-sh-2), var(--d-sheen) !important;
+  /* Tightened for the same reason as the light sheet: --d-sh-2's 56px blur
+     reaches well past the 12px gutter beside the menu. Same geometry as the
+     light rule, dark colours. */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .34), 0 10px 24px -12px rgba(0, 0, 0, .5), var(--d-sheen) !important;
 }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] .md\:ml-64 { margin-left: 282px; }

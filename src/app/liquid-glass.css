@@ -110,7 +110,11 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside {
   background: linear-gradient(165deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.32)) !important;
   -webkit-backdrop-filter: blur(36px) saturate(172%);
   backdrop-filter: blur(36px) saturate(172%);
-  box-shadow: var(--sh-2), var(--sheen) !important;
+  /* Not --sh-2: its third layer is a 64px blur at only -14px spread, which
+     reaches far past the 12px gutter beside the sidebar and lays a desaturated
+     haze over the mesh — the pale vertical band that ran down the right edge of
+     the menu. The token stays as it is for the cards that want that depth. */
+  box-shadow: 0 2px 8px rgba(38, 52, 110, .08), 0 10px 24px -12px rgba(38, 52, 110, .22), var(--sheen) !important;
 }
 
 html[data-theme="light"] [data-liquid-glass="enabled"] .md\:ml-64 { margin-left: 282px; }
