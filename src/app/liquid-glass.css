@@ -554,7 +554,7 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="tru
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav { padding: 12px 10px !important; }
 
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a {
-  width: 36px;
+  width: 34px;
   height: 36px;
   padding: 0 !important;
   gap: 0 !important;
@@ -576,13 +576,18 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="tru
 }
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a { position: relative; }
 
-html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] > div:last-child { padding: 8px 10px 12px !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] > div:last-child {
+  /* No side gutter here: each inner section supplies its own 10px, and a second
+     gutter left only 14px of content box for 36px icon buttons, which then
+     overflowed to the right and broke the rail's centre line. */
+  padding: 8px 0 12px !important;
+}
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card {
   justify-content: center;
   padding: 6px !important;
 }
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) {
-  width: 36px;
+  width: 34px;
   height: 36px;
   padding: 0 !important;
   gap: 0 !important;
@@ -1096,24 +1101,23 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .lg-apps-btn svg { color:
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-apps-btn:hover { background: rgba(255, 255, 255, .82) !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-apps-btn:hover svg { color: #1e2740; }
 
-/* Logout: neutral dark slab at rest, the danger reading only arrives on hover.
-   The arrow keeps its rose tint in both states so the action stays legible. */
+/* Logout sits on the same glass slab as "Uygulamalarımız" — a solid dark block
+   was the only opaque thing in the column and read as a hole in the sidebar.
+   The rose arrow and the rose hover carry the danger cue instead. */
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-logout-btn {
-  border: 1px solid #334155 !important;
-  border-radius: 12px !important;
-  background: #1e293b !important;
-  color: #e2e8f0 !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06) !important;
+  border: 1px solid rgba(255, 255, 255, .88) !important;
+  background: rgba(255, 255, 255, .5) !important;
+  color: #1e2740 !important;
+  font-size: 13px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8) !important;
   transition: background .22s var(--ease), border-color .22s var(--ease),
               color .22s var(--ease), transform .18s var(--ease) !important;
 }
-html[data-theme="light"] [data-liquid-glass="enabled"] .lg-logout-btn svg { color: #fb7185 !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-logout-btn svg { color: #e11d48 !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-logout-btn:hover {
-  border-color: #be123c !important;
-  background: rgba(136, 19, 55, .4) !important;
-  color: #fda4af !important;
+  border-color: rgba(246, 186, 186, .85) !important;
+  background: rgba(254, 226, 226, .8) !important;
+  color: #a3243f !important;
 }
 html[data-theme="light"] [data-liquid-glass="enabled"] .lg-logout-btn:active { transform: scale(.975); }
 
@@ -1142,6 +1146,38 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="tru
   white-space: nowrap;
 }
 
+/* Sidebar scroll: a hairline glass thumb instead of the platform bar, which
+   sat as an opaque grey stripe over the panel. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-side-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120, 134, 178, .32) transparent;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-side-scroll::-webkit-scrollbar { width: 6px; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-side-scroll::-webkit-scrollbar-track { background: transparent; }
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-side-scroll::-webkit-scrollbar-thumb {
+  border: 1px solid rgba(255, 255, 255, .5);
+  border-radius: 999px;
+  background: rgba(120, 134, 178, .3);
+  transition: background .22s var(--ease);
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] .lg-side-scroll::-webkit-scrollbar-thumb:hover { background: rgba(90, 104, 148, .55); }
+/* A 6px bar inside a 56px rail costs real width — hide it there. */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-side-scroll { scrollbar-width: none; }
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-side-scroll::-webkit-scrollbar { width: 0; }
+
+/* Rail: the bottom actions live in a px-3 (12px) box, so a 36px button had
+   only 32px of room and drifted off the centre line the nav icons sit on.
+   Match the nav's 10px gutter so every icon shares one axis. */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-bottom {
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-menu-controls,
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-summary {
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
 /* The active-row dot is the one nav child that isn't a span; left in place it
    shifted the active icon ~3px off the rail's centre line. */
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > div {
@@ -1155,12 +1191,27 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .lg-rail-chev {
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-rail-chev {
   transform: rotate(180deg);
 }
-html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-brand { padding: 14px 0 10px; }
-html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-brand > div { justify-content: center; }
-html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card { justify-content: center; margin: 0 8px; }
+/* Brand row: the wordmark column is empty in the rail, so it is removed
+   outright and the toggle centres instead of being pushed right by
+   justify-between. */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-brand {
+  justify-content: center !important;
+  padding: 14px 10px 10px !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-brand > div { display: none !important; }
+
+/* Identity row: the folded name block is zero-width but still a flex item, so
+   its gap alone knocked the avatar 16px off the icon axis. */
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card {
+  justify-content: center;
+  gap: 0 !important;
+  margin: 0 10px;
+  padding: 6px !important;
+}
+html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div { display: none !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-nav { padding: 10px !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-apps-btn, .lg-logout-btn) {
-  width: 36px;
+  width: 34px;
   height: 36px;
   padding: 0 !important;
   gap: 0 !important;
@@ -1188,6 +1239,7 @@ html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="tru
   html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] { width: 260px !important; }
   html[data-theme="light"] [data-liquid-glass="enabled"]:has(aside[data-collapsed="true"]) .md\:ml-64 { margin-left: 0; }
   html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(img, .lg-brand-sub, .lg-section-label, .lang-dd, .lg-appearance-row),
+  html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-brand, .lg-user-card) > div,
   html[data-theme="light"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > div {
     display: revert !important;
   }

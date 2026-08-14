@@ -328,7 +328,7 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav { padding: 12px 10px !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a {
   position: relative;
-  width: 36px;
+  width: 34px;
   height: 36px;
   padding: 0 !important;
   gap: 0 !important;
@@ -346,10 +346,15 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true
   font-size: 0;
   line-height: 0;
 }
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] > div:last-child { padding: 8px 10px 12px !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] > div:last-child {
+  /* No side gutter here: each inner section supplies its own 10px, and a second
+     gutter left only 14px of content box for 36px icon buttons, which then
+     overflowed to the right and broke the rail's centre line. */
+  padding: 8px 0 12px !important;
+}
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card { justify-content: center; padding: 6px !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-logout-btn, .lg-apps-btn) {
-  width: 36px;
+  width: 34px;
   height: 36px;
   padding: 0 !important;
   gap: 0 !important;
@@ -817,23 +822,21 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-apps-btn {
 html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-apps-btn svg { color: var(--d-ink-2); }
 html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-apps-btn:hover { background: var(--d-hover) !important; }
 
-/* Logout: neutral dark slab at rest, danger only on hover (see light sheet). */
+/* Same glass slab as the apps button — see the light sheet. */
 html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-logout-btn {
-  border: 1px solid #334155 !important;
-  border-radius: 12px !important;
-  background: #1e293b !important;
-  color: #e2e8f0 !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06) !important;
+  border: 1px solid var(--d-edge) !important;
+  background: var(--d-2) !important;
+  color: var(--d-ink) !important;
+  font-size: 13px !important;
+  box-shadow: var(--d-sheen) !important;
   transition: background .22s var(--d-ease), border-color .22s var(--d-ease),
               color .22s var(--d-ease), transform .18s var(--d-ease) !important;
 }
 html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-logout-btn svg { color: #fb7185 !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-logout-btn:hover {
-  border-color: #be123c !important;
-  background: rgba(136, 19, 55, .4) !important;
-  color: #fda4af !important;
+  border-color: rgba(251, 113, 133, .42) !important;
+  background: rgba(239, 68, 68, .2) !important;
+  color: #fecaca !important;
 }
 html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-logout-btn:active { transform: scale(.975); }
 
@@ -861,6 +864,31 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true
   white-space: nowrap;
 }
 
+/* Glass scrollbar — see the light sheet. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-side-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, .2) transparent;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-side-scroll::-webkit-scrollbar { width: 6px; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-side-scroll::-webkit-scrollbar-track { background: transparent; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-side-scroll::-webkit-scrollbar-thumb {
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .18);
+  transition: background .22s var(--d-ease);
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-side-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, .34); }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-side-scroll { scrollbar-width: none; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-side-scroll::-webkit-scrollbar { width: 0; }
+
+/* Rail gutters: match the nav's 10px so every icon shares one centre line. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-bottom,
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-menu-controls,
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-summary {
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
 /* See the light sheet: the active-row dot would nudge that icon off centre. */
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > div {
   display: none !important;
@@ -872,12 +900,23 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-rail-chev {
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-rail-chev {
   transform: rotate(180deg);
 }
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-brand { padding: 14px 0 10px; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-brand > div { justify-content: center; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card { justify-content: center; margin: 0 8px; }
+/* See the light sheet for both: the empty wordmark column and the zero-width
+   name block would otherwise knock the toggle and avatar off the icon axis. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-brand {
+  justify-content: center !important;
+  padding: 14px 10px 10px !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-brand > div { display: none !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card {
+  justify-content: center;
+  gap: 0 !important;
+  margin: 0 10px;
+  padding: 6px !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-user-card > div { display: none !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] .lg-nav { padding: 10px !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-apps-btn, .lg-logout-btn) {
-  width: 36px;
+  width: 34px;
   height: 36px;
   padding: 0 !important;
   gap: 0 !important;
@@ -904,6 +943,7 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true
   html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] { width: 260px !important; }
   html[data-theme="dark"] [data-liquid-glass="enabled"]:has(aside[data-collapsed="true"]) .md\:ml-64 { margin-left: 0; }
   html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(img, .lg-brand-sub, .lg-section-label, .lang-dd, .lg-appearance-row),
+  html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] :is(.lg-brand, .lg-user-card) > div,
   html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true"] nav a > div {
     display: revert !important;
   }
