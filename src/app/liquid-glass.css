@@ -130,6 +130,9 @@ html[data-theme="light"] [data-liquid-glass="enabled"] header {
 
 html[data-theme="light"] [data-liquid-glass="enabled"] header h1 {
   font-size: 1.72rem;
+  /* Turkish descenders (ğ, ş, ç) need room: Tailwind's text-base line box is
+     24px, which is shorter than the enlarged glyphs and clipped their tails. */
+  line-height: 1.35;
   font-weight: 800;
   letter-spacing: -.025em;
   color: #151b2b !important;
@@ -357,12 +360,32 @@ html[data-theme="light"] .lq-panel[data-liquid-owned="true"] {
 html[data-theme="light"] .lq-panel[data-liquid-owned="true"].lq-flip { transform-origin: bottom center; }
 html[data-theme="light"] .lq-panel[data-liquid-owned="true"].lq-open { animation: lqPanelIn .42s cubic-bezier(.34, 1.4, .56, 1); }
 html[data-theme="light"] .lq-panel[data-liquid-owned="true"] .lq-panel-search-wrap { background: rgba(255, 255, 255, 0.88); }
-html[data-theme="light"] .lq-panel[data-liquid-owned="true"] .lq-panel-search { padding: 8px 10px; border: 1px solid var(--edge-soft); border-radius: 10px; background: rgba(255, 255, 255, 0.76); color: var(--ink); }
+/* outline:none is the point of this rule: liquid-ui focuses the search box on
+   open, and the browser's default focus ring is a near-black 1px outline that
+   read as a hard black frame around it. The ring is redrawn as a soft teal
+   halo instead. */
+html[data-theme="light"] .lq-panel[data-liquid-owned="true"] .lq-panel-search {
+  padding: 7px 10px;
+  border: 1px solid rgba(23, 43, 99, .12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .7);
+  color: var(--ink);
+  font-size: 12px;
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+html[data-theme="light"] .lq-panel[data-liquid-owned="true"] .lq-panel-search:focus,
+html[data-theme="light"] .lq-panel[data-liquid-owned="true"] .lq-panel-search:focus-visible {
+  border-color: rgba(13, 148, 136, .6);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, .13);
+  outline: none;
+}
+html[data-theme="light"] .lq-panel[data-liquid-owned="true"] .lq-panel-search::placeholder { color: var(--ink-3); }
 html[data-theme="light"] .lq-panel[data-liquid-owned="true"] .lq-opt {
   min-height: 34px;
   padding: 8px 11px;
   border-radius: 11px;
-  color: var(--ink-2);
+  color: var(--ink);
   font-size: 12px;
   font-weight: 500;
   overflow: hidden;
@@ -378,7 +401,10 @@ html[data-theme="light"] .lq-panel[data-liquid-owned="true"] .lq-opt[aria-select
   color: #fff;
 }
 html[data-theme="light"] .lq-panel[data-liquid-owned="true"] .lq-opt:active { transform: scale(.975); }
-html[data-theme="light"] .lq-panel[data-liquid-owned="true"] .lq-opt:disabled { opacity: .45; cursor: not-allowed; }
+/* The dim applies to genuinely unavailable rows only — the placeholder option
+   is both disabled and selected, and dimming it made the selected row look
+   broken. */
+html[data-theme="light"] .lq-panel[data-liquid-owned="true"] .lq-opt:disabled:not([aria-selected="true"]) { opacity: .45; cursor: not-allowed; }
 
 /* Popover escape hatch.
    Every glass panel carries a backdrop-filter, and backdrop-filter creates a
@@ -656,6 +682,8 @@ html[data-theme="light"] {
 /* §13 — Outfit for headings, Inter stays the body face. */
 html[data-theme="light"] [data-liquid-glass="enabled"] :is(h1, h2, h3, h4) {
   font-family: var(--font-outfit), Inter, sans-serif;
+  line-height: 1.35;
+  padding-bottom: 1px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -995,9 +1023,11 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .lg-kpi {
    flattened above (no blur, near-flat fill) to stop double-blur and
    sticky-header artefacts. Re-glassing them here would undo that. */
 html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(:has(> table)):not(.nc-cal-popup) {
-  background:
-    linear-gradient(90deg, transparent, rgba(255, 255, 255, .55), transparent) top center / calc(100% - 24px) 1px no-repeat,
-    var(--g-1) !important;
+  /* The top highlight is an inset sheen, never a painted 1px stroke: as a
+     background layer it rendered as a hard bright line sitting on the card's
+     top edge. */
+  background: var(--g-1) !important;
+  box-shadow: var(--sh-1), inset 0 1px 0 rgba(255, 255, 255, .85) !important;
 }
 
 /* §11 — panel header icon chip picks up the accent */
@@ -1008,7 +1038,12 @@ html[data-theme="light"] [data-liquid-glass="enabled"] span[class*="bg-[#1B4332]
 }
 
 /* §11 — progress bars follow the accent instead of flat brand green */
-html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="bg-gray-100"][class*="rounded-full"][class*="overflow-hidden"] {
+/* Progress tracks. The stepper's own track is `h-1.5 bg-gray-100` with no
+   rounded-full/overflow-hidden, so the original selector missed it and it kept
+   Tailwind's near-white fill — which on the dark ground rendered as a bright
+   white rule across the top of the card. */
+html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="bg-gray-100"][class*="rounded-full"][class*="overflow-hidden"],
+html[data-theme="light"] [data-liquid-glass="enabled"] div[class*="bg-gray-100"]:is([class*="h-1"], [class*="h-2"], [class*="h-\[3px\]"]) {
   background: rgba(23, 43, 99, .07) !important;
 }
 

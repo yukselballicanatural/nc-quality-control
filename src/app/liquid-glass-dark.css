@@ -88,6 +88,9 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] header {
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] header h1 {
   font-size: 1.6rem;
+  /* Turkish descenders (ğ, ş, ç) need room: Tailwind's text-base line box is
+     24px, which is shorter than the enlarged glyphs and clipped their tails. */
+  line-height: 1.35;
   font-weight: 800;
   letter-spacing: -.02em;
   color: var(--d-ink) !important;
@@ -236,7 +239,7 @@ html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] {
   max-height: min(320px, calc(100vh - 20px));
   border: 1px solid var(--d-edge);
   border-radius: 18px;
-  background: var(--d-strong);
+  background: rgba(20, 27, 44, .88);
   color: var(--d-ink);
   -webkit-backdrop-filter: blur(44px) saturate(175%);
   backdrop-filter: blur(44px) saturate(175%);
@@ -246,12 +249,29 @@ html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] {
 html[data-theme="dark"] .lq-panel[data-liquid-owned="true"].lq-flip { transform-origin: bottom center; }
 html[data-theme="dark"] .lq-panel[data-liquid-owned="true"].lq-open { animation: lqPanelInDark .42s cubic-bezier(.34, 1.4, .56, 1); }
 html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-panel-search-wrap { background: rgba(20, 26, 42, .92); }
-html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-panel-search { padding: 8px 10px; border: 1px solid var(--d-edge); border-radius: 10px; background: var(--d-3); color: var(--d-ink); }
+/* See the light sheet: outline:none kills the browser's near-black focus ring. */
+html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-panel-search {
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, .09);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .08);
+  color: var(--d-ink);
+  font-size: 12px;
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-panel-search:focus,
+html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-panel-search:focus-visible {
+  border-color: rgba(45, 212, 191, .6);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, .2);
+  outline: none;
+}
+html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-panel-search::placeholder { color: var(--d-ink-3); }
 html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt {
   min-height: 34px;
   padding: 8px 11px;
   border-radius: 11px;
-  color: var(--d-ink-2);
+  color: var(--d-ink);
   font-size: 12px;
   font-weight: 500;
   overflow: hidden;
@@ -261,11 +281,11 @@ html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt {
 }
 html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt:hover { background: rgba(255, 255, 255, 0.10); color: var(--d-ink); }
 html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt[aria-selected="true"] {
-  background: rgba(255, 255, 255, 0.20);
+  background: var(--d-sel);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
   color: #fff;
 }
-html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt:disabled { opacity: .45; cursor: not-allowed; }
+html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt:disabled:not([aria-selected="true"]) { opacity: .45; cursor: not-allowed; }
 
 /* ── Date filter chip — same geometry as the light sheet, dark colours. ── */
 html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-date-compact { width: 135px; }
@@ -416,16 +436,21 @@ html[data-theme="dark"] {
   --tm-ink-3:     var(--d-ink-3, #78849c);
   --tm-tip-bg:    var(--d-strong, rgba(20, 26, 42, .92));
 
-  --tm-danger: #fca5a5;  --tm-danger-bg: rgba(239, 68, 68, .11);  --tm-danger-edge: rgba(248, 113, 113, .28);
-  --tm-warn:   #fcd34d;  --tm-warn-bg:   rgba(245, 158, 11, .11); --tm-warn-edge:   rgba(251, 191, 36, .26);
-  --tm-info:   #c7d2fe;  --tm-info-bg:   rgba(99, 102, 241, .13); --tm-info-edge:   rgba(165, 180, 252, .28);
-  --tm-ok:     #6ee7b7;  --tm-ok-bg:     rgba(16, 185, 129, .13); --tm-ok-edge:     rgba(52, 211, 153, .28);
+  --tm-danger: #f87171;  --tm-danger-bg: rgba(239, 68, 68, .22);  --tm-danger-edge: rgba(248, 113, 113, .42);
+  --tm-danger-bg-hover: rgba(239, 68, 68, .34);
+  --tm-warn:   #fbbf24;  --tm-warn-bg:   rgba(245, 158, 11, .20); --tm-warn-edge:   rgba(251, 191, 36, .42);
+  --tm-warn-bg-hover:   rgba(245, 158, 11, .32);
+  --tm-info:   #a5b4fc;  --tm-info-bg:   rgba(99, 102, 241, .20); --tm-info-edge:   rgba(165, 180, 252, .42);
+  --tm-ok:     #4ade80;  --tm-ok-bg:     rgba(34, 197, 94, .22);  --tm-ok-edge:     rgba(74, 222, 128, .42);
+  --tm-ok-bg-hover:     rgba(34, 197, 94, .34);
   --tm-accent: #5eead4;  --tm-accent-bg: rgba(13, 148, 136, .17); --tm-accent-edge: rgba(45, 212, 191, .32);
 }
 
 /* §13 */
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(h1, h2, h3, h4) {
   font-family: var(--font-outfit), Inter, sans-serif;
+  line-height: 1.35;
+  padding-bottom: 1px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -710,8 +735,9 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-kpi:hover {
    stay excluded (see the light sheet for why). */
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(:has(> table)):not(.nc-cal-popup) {
   background:
-    linear-gradient(90deg, transparent, rgba(255, 255, 255, .25), transparent) top center / calc(100% - 24px) 1px no-repeat,
     var(--d-1) !important;
+  /* Inset sheen only — see the light sheet. */
+  box-shadow: var(--d-sh-1), inset 0 1px 0 rgba(255, 255, 255, .14) !important;
 }
 
 /* §11 — panel header icon chip */
@@ -721,7 +747,9 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] span[class*="bg-[#1B4332]/
   box-shadow: var(--d-sheen);
 }
 
-html[data-theme="dark"] [data-liquid-glass="enabled"] div[class*="bg-gray-100"][class*="rounded-full"][class*="overflow-hidden"] {
+/* See the light sheet — this is the white line above the stepper card. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] div[class*="bg-gray-100"][class*="rounded-full"][class*="overflow-hidden"],
+html[data-theme="dark"] [data-liquid-glass="enabled"] div[class*="bg-gray-100"]:is([class*="h-1"], [class*="h-2"], [class*="h-\[3px\]"]) {
   background: rgba(255, 255, 255, .07) !important;
 }
 
@@ -1178,4 +1206,17 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-kpi :is(p, div, span)[
 /* Raw identifiers read as codes, not prose. */
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.font-mono, [class*="font-mono"]) {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Status pills and the sidebar tone cards blur like every other glass surface,
+   so a coloured chip does not read as a flat sticker on top of the panel. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded"]:is(
+  [class*="bg-green-100"], [class*="bg-emerald-100"],
+  [class*="bg-red-100"], [class*="bg-rose-100"],
+  [class*="bg-amber-100"], [class*="bg-yellow-100"], [class*="bg-orange-100"],
+  [class*="bg-blue-100"], [class*="bg-violet-100"], [class*="bg-indigo-100"]
+),
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-summary-card {
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  backdrop-filter: blur(10px) saturate(150%);
 }
