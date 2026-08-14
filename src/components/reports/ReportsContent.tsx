@@ -15,7 +15,7 @@ import {
 } from 'recharts'
 import {
   Download, X, MessageSquare, Phone, Users, BarChart2, AlertCircle, Award,
-  ClipboardList, Gauge, ShieldAlert, Trophy, User, Building2, Radio, Target,
+  ClipboardList, Gauge, ShieldAlert, Trophy, User, Building2, MapPin, Radio, Target,
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import { textFor } from '@/lib/localization'
@@ -120,6 +120,7 @@ function labelsFor<T extends string>(
 interface Props {
   consultants: { id: string; full_name: string }[]
   teams: { id: string; name: string }[]
+  regions: string[]
   consultantPerf: ConsultantPerfRow[]
   channelComp: ChannelCompRow[]
   criticalErrors: CriticalErrorRow[]
@@ -129,6 +130,7 @@ interface Props {
   filterEndDate: string
   filterConsultantId: string
   filterTeamId: string
+  filterRegion: string
   filterChannel: string
   filterResult: string
   activeTab: string
@@ -143,6 +145,7 @@ interface Props {
 export function ReportsContent({
   consultants,
   teams,
+  regions,
   consultantPerf,
   channelComp,
   criticalErrors,
@@ -152,6 +155,7 @@ export function ReportsContent({
   filterEndDate,
   filterConsultantId,
   filterTeamId,
+  filterRegion,
   filterChannel,
   filterResult,
   activeTab,
@@ -186,6 +190,7 @@ export function ReportsContent({
       endDate: filterEndDate,
       consultantId: filterConsultantId,
       teamId: filterTeamId,
+      region: filterRegion,
       channel: filterChannel,
       result: filterResult,
     }
@@ -280,6 +285,7 @@ export function ReportsContent({
     filterEndDate ||
     filterConsultantId ||
     filterTeamId ||
+    filterRegion ||
     filterChannel ||
     filterResult
 
@@ -385,6 +391,19 @@ export function ReportsContent({
                 options={teams.map(tm => ({ value: tm.id, label: tm.name }))}
                 placeholder={t.reports.team}
                 icon={Building2}
+              />
+            </div>
+          )}
+
+          {/* Region */}
+          {regions.length > 0 && (
+            <div className="nc-filter-w w-[170px] flex-shrink-0">
+              <SearchableSelect
+                value={filterRegion}
+                onChange={v => pushParams({ region: v })}
+                options={regions.map(r => ({ value: r, label: r }))}
+                placeholder={tx(lang, 'Bölge: Tümü', 'Region: All', 'Regione: Tutte')}
+                icon={MapPin}
               />
             </div>
           )}

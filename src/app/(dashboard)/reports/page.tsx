@@ -35,6 +35,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   const endDate = typeof sp.endDate === 'string' ? sp.endDate : ''
   const consultantId = typeof sp.consultantId === 'string' ? sp.consultantId : ''
   const teamId = typeof sp.teamId === 'string' ? sp.teamId : ''
+  const region = typeof sp.region === 'string' ? sp.region : ''
   const channel = typeof sp.channel === 'string' ? sp.channel : ''
   const result = typeof sp.result === 'string' ? sp.result : ''
   const activeTab =
@@ -45,7 +46,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   const [{ data: agents }, { data: teams }] = await Promise.all([
     supabase
       .from('agents')
-      .select('id, first_name, last_name, role')
+      .select('id, first_name, last_name, role, region')
       .order('first_name'),
     supabase.from('teams').select('id, name').order('name'),
   ])
@@ -53,6 +54,13 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   const consultants = (agents ?? [])
     .filter(a => !isTeamLeaderRole(a.role))
     .map(a => ({ id: a.id, full_name: [a.first_name, a.last_name].filter(Boolean).join(' ').trim() || a.id }))
+
+  // Region is a free-text column on both agents and evaluations, so the option
+  // list is the distinct set the agents actually carry rather than a hardcoded
+  // pair — a new region added in settings shows up here on its own.
+  const regions = Array.from(
+    new Set((agents ?? []).map(a => (a.region ?? '').trim()).filter(Boolean))
+  ).sort((a, b) => a.localeCompare(b, 'tr'))
 
   // ── Build evaluations query (submitted + approved only) ───────────
 
@@ -100,6 +108,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   if (endDate) evQuery = evQuery.lte('evaluation_date', endDate)
   if (consultantId) evQuery = evQuery.eq('agent_id', consultantId)
   if (teamId) evQuery = evQuery.eq('team_id', teamId)
+  if (region) evQuery = evQuery.eq('region', region)
   if (channel) evQuery = evQuery.eq('channel', channel as ChannelType)
   if (result) evQuery = evQuery.eq('conversation_result', result as ConversationResult)
 
@@ -260,6 +269,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
     <ReportsContent
       consultants={consultants}
       teams={(teams ?? []) as { id: string; name: string }[]}
+      regions={regions}
       consultantPerf={consultantPerf}
       channelComp={channelComp}
       criticalErrors={criticalErrors}
@@ -272,6 +282,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
       filterEndDate={endDate}
       filterConsultantId={consultantId}
       filterTeamId={teamId}
+      filterRegion={region}
       filterChannel={channel}
       filterResult={result}
       activeTab={activeTab}
