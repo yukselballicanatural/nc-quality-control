@@ -19,6 +19,33 @@ interface SearchableSelectProps {
   required?: boolean
 }
 
+/**
+ * Under the Liquid Glass theme this renders a native <select> and lets
+ * public/api/liquid-ui.js enhance it, instead of drawing its own panel.
+ *
+ * Two reasons. First, the panel below is `position:absolute` inside the form
+ * card, and every glass card carries a backdrop-filter — which creates a
+ * stacking context, so the panel is trapped inside that card and later cards
+ * paint over it. liquid-ui.js portals its panel to <body> as position:fixed at
+ * z-index 10050, repositioned from the trigger's getBoundingClientRect() on
+ * scroll and resize, flipping above the trigger near the viewport edge.
+ *
+ * Second, "identical to the app's other dropdowns" then isn't a lookalike:
+ * it is the same widget, the same CSS and the same open animation, because it
+ * is literally the same code path. That widget already adds a search box past
+ * 8 options and staggers the rows at index * 18ms.
+ *
+ * Outside the glass theme liquid-ui.js does not run, so the original panel
+ * below is kept verbatim and every other account renders exactly as today.
+ */
+function useLiquidGlass() {
+  const [enabled, setEnabled] = useState(false)
+  useEffect(() => {
+    setEnabled(Boolean(document.querySelector('[data-liquid-glass="enabled"]')))
+  }, [])
+  return enabled
+}
+
 export function SearchableSelect({
   value,
   onChange,
@@ -28,6 +55,7 @@ export function SearchableSelect({
   required,
 }: SearchableSelectProps) {
   const { lang } = useLanguage()
+  const glass = useLiquidGlass()
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const containerRef = useRef<HTMLDivElement>(null)
@@ -78,6 +106,30 @@ export function SearchableSelect({
 
   const searchPlaceholder = textFor(lang, 'Ara...', 'Search...', 'Cerca...')
   const noResults = textFor(lang, 'Sonuç bulunamadı', 'No results', 'Nessun risultato')
+  const emptyLabel = placeholder ?? textFor(lang, 'Seçiniz', 'Select', 'Seleziona')
+
+  if (glass) {
+    // liquid-ui.js hides this select, inserts its own trigger right after it,
+    // and writes back through select.value + a change event — so the value
+    // flows through exactly the same handler as before.
+    return (
+      <div className="ss-glass">
+        <select
+          className="ss-native"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          aria-label={emptyLabel}
+        >
+          {/* Kept selectable only when the field is optional — matches the
+              "Temizle" row the panel below shows in the same case. */}
+          <option value="" disabled={Boolean(required)}>{emptyLabel}</option>
+          {options.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+    )
+  }
 
   return (
     <div ref={containerRef} className="relative">

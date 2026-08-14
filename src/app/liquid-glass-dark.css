@@ -141,7 +141,7 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)
 }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.rounded-2xl, .rounded-3xl):not(.nc-cal-popup) { border-radius: var(--d-r-md) !important; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.rounded-xl, .rounded-lg):not(.nc-cal-day):not(.nc-date-trigger) { border-radius: var(--d-r-sm) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.rounded-xl, .rounded-lg):not(.nc-cal-day):not(.nc-date-trigger):not(input):not(select):not(.lq-trigger) { border-radius: var(--d-r-sm) !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.border-gray-50, .border-gray-100, .border-gray-200, [class*="border-gray"]):not(.nc-date-trigger) { border-color: var(--d-edge-soft) !important; }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a {
@@ -247,9 +247,24 @@ html[data-theme="dark"] .lq-panel[data-liquid-owned="true"].lq-flip { transform-
 html[data-theme="dark"] .lq-panel[data-liquid-owned="true"].lq-open { animation: lqPanelInDark .42s cubic-bezier(.34, 1.4, .56, 1); }
 html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-panel-search-wrap { background: rgba(20, 26, 42, .92); }
 html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-panel-search { padding: 8px 10px; border: 1px solid var(--d-edge); border-radius: 10px; background: var(--d-3); color: var(--d-ink); }
-html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt { min-height: 36px; padding: 8px 10px; border-radius: 11px; color: var(--d-ink-2); animation: lqOptInDark .34s cubic-bezier(.22, 1, .36, 1) backwards; }
-html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt:hover,
-html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt[aria-selected="true"] { background: var(--d-hover); color: var(--d-ink); }
+html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt {
+  min-height: 34px;
+  padding: 8px 11px;
+  border-radius: 11px;
+  color: var(--d-ink-2);
+  font-size: 12px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  animation: lqOptInDark .34s cubic-bezier(.22, 1, .36, 1) backwards;
+}
+html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt:hover { background: rgba(255, 255, 255, 0.10); color: var(--d-ink); }
+html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt[aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.20);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
 html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt:disabled { opacity: .45; cursor: not-allowed; }
 
 /* ── Date filter chip — same geometry as the light sheet, dark colours. ── */
@@ -1111,4 +1126,56 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] aside[data-collapsed="true
     transition-duration: .001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ── One control standard ────────────────────────────────────────────────
+   Every field on a form or filter row — text input, select, the enhanced
+   .lq-trigger, and the date button — resolves to the same outer box, so a
+   row lines up regardless of which control type each cell happens to be.
+   box-sizing is explicit: without it the padding lands outside the declared
+   height and the boxes drift apart by a few pixels each. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  .lq-trigger,
+  .nc-date-trigger
+) {
+  height: 34px;
+  min-height: 34px;
+  box-sizing: border-box;
+  padding: 6px 11px !important;
+  border-radius: 11px !important;
+  font-size: 12px !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] textarea { height: auto; min-height: 68px; font-size: 12px !important; }
+
+/* The filter-bar chip keeps its own tighter geometry (see the date filter). */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-date-compact .nc-date-trigger {
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+}
+
+/* Rows of controls centre on one axis rather than stretching. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.grid, [class*="flex"]) > div > :is(.lq-trigger, .nc-date, .ss-glass) { display: block; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .ss-glass { position: relative; }
+
+/* Numbers must not reflow as they change. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(td, .lg-summary-card-value, .lg-kpi, [class*="tabular"]) { font-variant-numeric: tabular-nums; }
+
+/* KPI figures: Outfit, heaviest weight, and a size that flexes with the
+   viewport instead of a fixed step, so a wide screen doesn't leave them
+   looking undersized against the cards. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-kpi :is(p, div, span)[class*="text-2xl"],
+html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-kpi :is(p, div, span)[class*="text-3xl"] {
+  font-family: var(--font-outfit), Inter, sans-serif;
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem) !important;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+
+/* Raw identifiers read as codes, not prose. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.font-mono, [class*="font-mono"]) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
