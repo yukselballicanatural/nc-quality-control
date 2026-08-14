@@ -22,6 +22,7 @@ const stripComments = css => css.replace(/\/\*[\s\S]*?\*\//g, '')
 const lightCode = stripComments(light)
 const darkCode = stripComments(dark)
 const sidebar = read('src/components/dashboard/Sidebar.tsx')
+const datePicker = read('src/components/ui/DatePicker.tsx')
 const dashboard = read('src/components/dashboard/DashboardContent.tsx')
 const layout = read('src/app/layout.tsx')
 
@@ -322,6 +323,56 @@ for (const [name, css] of [['light', light], ['dark', dark]]) {
       stray.length, 0,
       `${name}: [class*="bg-<c>-50"] also matches bg-<c>-500 — add :not([class*="bg-<c>-500"]) → ${stray.join(', ')}`
     )
+  }
+}
+
+// ─── The table's glass ratio ───────────────────────────────────────────────
+//
+// The header has to stay denser and more blurred than the body. That gap is
+// what makes a table read as glass instead of as a flat card, and it is also
+// what stops rows scrolling under the sticky header from bleeding through it.
+// Body cells must carry no fill of their own — the glass reading comes from
+// the mesh showing through, with only zebra/hover/status adding a layer.
+{
+  // Read the alpha off the `background` declaration specifically — the block
+  // also carries an rgba border, and a looser match picks that up instead.
+  const bgAlpha = str => Number(((str.match(/(?:^|;|\s)background:\s*([^;]+)/) ?? [])[1] ?? '').match(/rgba\([^)]*?,\s*([\d.]+)\s*\)/)?.[1])
+  const blur = str => Number((str.match(/blur\((\d+)px\)/) ?? [])[1])
+
+  for (const [name, css] of [['light', lightCode], ['dark', darkCode]]) {
+    const th = (css.match(/thead th \{[^}]*background:[^;]*;[^}]*\}/) ?? css.match(/thead th \{[^}]*\}/))?.[0] ?? ''
+    assert.ok(th, `${name}: no thead th block found`)
+    const thAlpha = bgAlpha(th)
+    const thBlur = blur(th)
+    assert.ok(thAlpha >= 0.6, `${name}: header fill must stay dense (got ${thAlpha})`)
+    assert.ok(thBlur >= 18, `${name}: header blur must be at least 18px (got ${thBlur})`)
+
+    const td = css.match(/tbody td \{[^}]*\}/)?.[0] ?? ''
+    assert.match(td, /background:\s*transparent/, `${name}: body cells must have no fill of their own`)
+  }
+}
+
+// ─── The mesh ground must not scroll ───────────────────────────────────────
+//
+// With a scrolling ground the colour each glass surface refracts keeps
+// changing underneath it, so panels drift out of agreement as the page moves.
+for (const [name, css] of [['light', lightCode], ['dark', darkCode]]) {
+  const body = css.match(/body:has\(\[data-liquid-glass="enabled"\]\) \{[^}]*\}/)?.[0] ?? ''
+  assert.match(body, /background-attachment:\s*fixed/, `${name}: the mesh ground must be background-attachment: fixed`)
+}
+
+// ─── The calendar must be targeted by hooks, not class substrings ──────────
+//
+// Every unselected day carries `hover:bg-[#1B4332]/8`, so a selector keyed on
+// the utility name matched them all and painted the whole grid as selected.
+// State now comes from data-selected / data-muted / data-disabled.
+{
+  assert.match(datePicker, /data-selected=\{selected \? 'true' : undefined\}/, 'DatePicker: day cells must carry data-selected')
+  assert.match(datePicker, /className=\{`nc-cal-day/, 'DatePicker: day cells must carry the nc-cal-day hook')
+
+  for (const [name, css] of [['light', lightCode], ['dark', darkCode]]) {
+    assert.doesNotMatch(css, /button\[class\*="from-\[#1B4332\]"\]/, `${name}: day selection must key off data-selected, not a class substring`)
+    assert.match(css, /\.nc-cal-day\[data-selected="true"\]/, `${name}: the selected day must be styled via data-selected`)
   }
 }
 

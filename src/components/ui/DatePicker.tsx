@@ -20,13 +20,20 @@ interface DatePickerProps {
   placeholder?: string
   minDate?: string // 'yyyy-MM-dd' — bu tarihten öncesi seçilemez
   maxDate?: string // 'yyyy-MM-dd' — bu tarihten sonrası seçilemez
+  /**
+   * Marks a filter-bar usage as opposed to a form field. This only adds a
+   * class name — no Tailwind utilities change — so every account outside the
+   * Liquid Glass theme renders exactly as before. The compact chip sizing
+   * lives in liquid-glass{,-dark}.css against `.nc-date-compact`.
+   */
+  compact?: boolean
 }
 
 type ViewMode = 'days' | 'months' | 'years'
 
 const YEAR_PAGE = 12
 
-export function DatePicker({ value, onChange, placeholder, minDate, maxDate }: DatePickerProps) {
+export function DatePicker({ value, onChange, placeholder, minDate, maxDate, compact }: DatePickerProps) {
   const { lang } = useLanguage()
   const locale = lang === 'tr' ? tr : lang === 'it' ? it : enUS
   const [open, setOpen] = useState(false)
@@ -118,16 +125,25 @@ export function DatePicker({ value, onChange, placeholder, minDate, maxDate }: D
     : (placeholder ?? textFor(lang, 'Tarih seçin', 'Select date', 'Seleziona data'))
 
   return (
-    <div ref={containerRef} className="relative">
+    /* The `nc-…` class names are styling hooks only — no utility classes were
+       removed, so this renders identically outside the glass theme. They exist
+       because the glass sheets used to target this calendar through
+       [class*="z-[200]"] / [class*="bg-[#1B4332]"] substrings, and a Tailwind
+       variant name that merely *contains* the base utility (every unselected
+       day carries `hover:bg-[#1B4332]/8`) matched just as well — which painted
+       every day cell as selected. Stable class names remove that whole trap. */
+    <div ref={containerRef} className={`nc-date relative${compact ? ' nc-date-compact' : ''}`}>
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className={`w-full flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm transition-all hover:border-gray-300 bg-white ${
+        data-open={open ? 'true' : undefined}
+        data-filled={selectedDate ? 'true' : undefined}
+        className={`nc-date-trigger w-full flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm transition-all hover:border-gray-300 bg-white ${
           open ? 'border-[#1B4332] ring-2 ring-[#1B4332]/15' : 'border-gray-200'
         }`}
       >
-        <CalendarIcon className={`w-4 h-4 flex-shrink-0 transition-colors ${selectedDate ? 'text-[#1B4332]' : 'text-gray-400'}`} />
-        <span className={`flex-1 text-left truncate ${selectedDate ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
+        <CalendarIcon className={`nc-date-icon w-4 h-4 flex-shrink-0 transition-colors ${selectedDate ? 'text-[#1B4332]' : 'text-gray-400'}`} />
+        <span className={`nc-date-label flex-1 text-left truncate ${selectedDate ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
           {displayValue}
         </span>
       </button>
@@ -139,7 +155,7 @@ export function DatePicker({ value, onChange, placeholder, minDate, maxDate }: D
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute z-[200] top-full left-0 mt-2 w-[300px] bg-white/98 backdrop-blur-xl rounded-2xl border border-gray-100 shadow-2xl shadow-black/[0.12] overflow-hidden origin-top-left"
+            className="nc-cal-popup absolute z-[200] top-full left-0 mt-2 w-[300px] bg-white/98 backdrop-blur-xl rounded-2xl border border-gray-100 shadow-2xl shadow-black/[0.12] overflow-hidden origin-top-left"
           >
             {/* Üst aksan çizgisi */}
             <div className="h-[3px] bg-gradient-to-r from-[#52B788] via-[#1B4332] to-[#52B788]" />
@@ -154,7 +170,7 @@ export function DatePicker({ value, onChange, placeholder, minDate, maxDate }: D
                     else if (viewMode === 'years') setYearPageStart(y => y - YEAR_PAGE)
                     else setViewMonth(m => setYear(m, m.getFullYear() - 1))
                   }}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-[#1B4332] hover:bg-[#1B4332]/8 transition-colors"
+                  className="nc-cal-nav p-1.5 rounded-lg text-gray-400 hover:text-[#1B4332] hover:bg-[#1B4332]/8 transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -191,7 +207,7 @@ export function DatePicker({ value, onChange, placeholder, minDate, maxDate }: D
                     else if (viewMode === 'years') setYearPageStart(y => y + YEAR_PAGE)
                     else setViewMonth(m => setYear(m, m.getFullYear() + 1))
                   }}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-[#1B4332] hover:bg-[#1B4332]/8 transition-colors"
+                  className="nc-cal-nav p-1.5 rounded-lg text-gray-400 hover:text-[#1B4332] hover:bg-[#1B4332]/8 transition-colors"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -207,7 +223,7 @@ export function DatePicker({ value, onChange, placeholder, minDate, maxDate }: D
                     transition={{ duration: 0.14 }}
                   >
                     {/* Gün başlıkları */}
-                    <div className="grid grid-cols-7 mb-0.5">
+                    <div className="nc-cal-weekdays grid grid-cols-7 mb-0.5">
                       {weekDayLabels.map(w => (
                         <div key={w} className="text-center text-[10px] font-black text-gray-300 uppercase py-1.5 tracking-wide">
                           {w}
@@ -216,7 +232,7 @@ export function DatePicker({ value, onChange, placeholder, minDate, maxDate }: D
                     </div>
 
                     {/* Gün ızgarası */}
-                    <div className="grid grid-cols-7 gap-y-1">
+                    <div className="nc-cal-grid grid grid-cols-7 gap-y-1">
                       {days.map((day, i) => {
                         const inMonth = isSameMonth(day, viewMonth)
                         const selected = !!selectedDate && isSameDay(day, selectedDate)
@@ -229,7 +245,10 @@ export function DatePicker({ value, onChange, placeholder, minDate, maxDate }: D
                               type="button"
                               onClick={() => !disabled && selectDay(day)}
                               disabled={disabled}
-                              className={`relative w-9 h-9 flex items-center justify-center text-xs font-bold rounded-xl transition-all duration-150 ${
+                              data-selected={selected ? 'true' : undefined}
+                              data-muted={!inMonth && !selected ? 'true' : undefined}
+                              data-disabled={disabled ? 'true' : undefined}
+                              className={`nc-cal-day relative w-9 h-9 flex items-center justify-center text-xs font-bold rounded-xl transition-all duration-150 ${
                                 disabled
                                   ? 'text-gray-200 cursor-not-allowed'
                                   : selected
@@ -241,7 +260,7 @@ export function DatePicker({ value, onChange, placeholder, minDate, maxDate }: D
                             >
                               {format(day, 'd')}
                               {today && !selected && !disabled && (
-                                <span className="absolute bottom-[3px] w-1 h-1 rounded-full bg-[#52B788]" />
+                                <span className="nc-cal-today-dot absolute bottom-[3px] w-1 h-1 rounded-full bg-[#52B788]" />
                               )}
                             </button>
                           </div>
@@ -312,7 +331,7 @@ export function DatePicker({ value, onChange, placeholder, minDate, maxDate }: D
 
               {/* Alt aksiyonlar */}
               {viewMode === 'days' && (
-                <div className="flex items-center justify-between mt-3.5 pt-3 border-t border-gray-100">
+                <div className="nc-cal-actions flex items-center justify-between mt-3.5 pt-3 border-t border-gray-100">
                   <button
                     type="button"
                     onClick={clearDate}

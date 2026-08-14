@@ -532,7 +532,7 @@ export function RecheckContent({ items: initialItems, currentUserId, role }: Pro
               <div className="w-px h-6 bg-gray-200 mx-1" />
               <div className="flex items-center gap-2">
                 <div className="w-44">
-                  <DatePicker value={customDate}
+                  <DatePicker compact value={customDate}
                     onChange={v => { setCustomDate(v); if (v) setActiveFilter('all') }}
                     placeholder={tx(lang, 'Tarih seç...', 'Pick a date...', 'Scegli una data...')} />
                 </div>

@@ -23,18 +23,22 @@ html[data-theme="dark"] {
   --d-spring: cubic-bezier(.34, 1.4, .56, 1);
 }
 
-html[data-theme="dark"]:has([data-liquid-glass="enabled"]) { background: #070b14; }
+html[data-theme="dark"]:has([data-liquid-glass="enabled"]) { background: #0b1220; }
 
 html[data-theme="dark"] body:has([data-liquid-glass="enabled"]) {
   background:
-    radial-gradient(1250px 900px at 6% 0%, rgba(37, 99, 235, 0.30), transparent 60%),
-    radial-gradient(1050px 820px at 97% 4%, rgba(139, 92, 246, 0.26), transparent 58%),
-    radial-gradient(1150px 900px at 92% 70%, rgba(13, 148, 136, 0.24), transparent 60%),
-    radial-gradient(980px 820px at 2% 72%, rgba(79, 70, 229, 0.22), transparent 58%),
-    radial-gradient(900px 760px at 44% 36%, rgba(56, 189, 248, 0.14), transparent 62%),
-    linear-gradient(158deg, #0a1020 0%, #080d1a 46%, #0a0f1e 100%) !important;
+    radial-gradient(1250px 900px at 6% 0%, rgba(37, 99, 235, .25), transparent 62%),
+    radial-gradient(1050px 820px at 97% 4%, rgba(139, 92, 246, .23), transparent 60%),
+    radial-gradient(1150px 900px at 92% 70%, rgba(13, 148, 136, .21), transparent 62%),
+    radial-gradient(980px 820px at 2% 72%, rgba(79, 70, 229, .19), transparent 60%),
+    radial-gradient(900px 760px at 44% 36%, rgba(56, 189, 248, .16), transparent 64%),
+    radial-gradient(760px 640px at 62% 98%, rgba(236, 72, 153, .15), transparent 62%),
+    linear-gradient(158deg, #0e1526 0%, #0b1220 46%, #0c1622 100%) !important;
   background-repeat: no-repeat !important;
   background-size: 100% 100% !important;
+  /* Fixed on purpose: a ground that scrolled would keep changing the colour
+     every glass surface refracts, so panels would read inconsistently. */
+  background-attachment: fixed !important;
   color: var(--d-ink);
 }
 
@@ -105,29 +109,29 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)
 /* Compact controls: 34px strip, same as the light sheet. */
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]),
 html[data-theme="dark"] [data-liquid-glass="enabled"] .lq-trigger,
-html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*="bg-white"] {
+html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*="bg-white"]:not(.nc-date-trigger) {
   padding: 6px 11px !important;
   font-size: 12.5px !important;
   border-radius: 11px !important;
 }
-html[data-theme="dark"] [data-liquid-glass="enabled"] :is(input, .lq-trigger, .relative > button[class*="bg-white"]):not(textarea) {
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(input, .lq-trigger, .relative > button[class*="bg-white"]:not(.nc-date-trigger)):not(textarea) {
   height: 34px;
   min-height: 34px;
   box-sizing: border-box;
 }
 html[data-theme="dark"] [data-liquid-glass="enabled"] textarea { height: auto; min-height: 68px; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*="rounded-xl"][class*="border"] {
+html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*="rounded-xl"][class*="border"]:not(.nc-date-trigger) {
   height: 34px;
   min-height: 34px;
   padding: 6px 11px !important;
   font-size: 12.5px !important;
   box-sizing: border-box;
 }
-html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*="rounded-xl"] svg { width: 14px; height: 14px; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*="rounded-xl"]:not(.nc-date-trigger) svg { width: 14px; height: 14px; }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] main > div { animation: lgViewInDark .62s var(--d-spring); }
 
-html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"],
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(.nc-cal-popup),
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-gray-50"]:not([class*="bg-gray-500"])[class*="rounded"] {
   border-color: var(--d-edge-soft) !important;
   background: var(--d-1) !important;
@@ -136,9 +140,9 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)
   box-shadow: var(--d-sh-1), var(--d-sheen) !important;
 }
 
-html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.rounded-2xl, .rounded-3xl) { border-radius: var(--d-r-md) !important; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.rounded-xl, .rounded-lg) { border-radius: var(--d-r-sm) !important; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.border-gray-50, .border-gray-100, .border-gray-200, [class*="border-gray"]) { border-color: var(--d-edge-soft) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.rounded-2xl, .rounded-3xl):not(.nc-cal-popup) { border-radius: var(--d-r-md) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.rounded-xl, .rounded-lg):not(.nc-cal-day):not(.nc-date-trigger) { border-radius: var(--d-r-sm) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.border-gray-50, .border-gray-100, .border-gray-200, [class*="border-gray"]):not(.nc-date-trigger) { border-color: var(--d-edge-soft) !important; }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a {
   min-height: 34px;
@@ -202,7 +206,7 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .seg-container [aria-selec
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(input, select, textarea),
 html[data-theme="dark"] [data-liquid-glass="enabled"] .lq-trigger,
-html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*="bg-white"] {
+html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*="bg-white"]:not(.nc-date-trigger) {
   border: 1px solid var(--d-edge) !important;
   border-radius: 12px !important;
   background: var(--d-3) !important;
@@ -248,24 +252,88 @@ html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt:hover,
 html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt[aria-selected="true"] { background: var(--d-hover); color: var(--d-ink); }
 html[data-theme="dark"] .lq-panel[data-liquid-owned="true"] .lq-opt:disabled { opacity: .45; cursor: not-allowed; }
 
-/* Only the selected day fills — unselected cells carry hover:bg-[#1B4332]/8,
-   whose class NAME would match a [class*="bg-[#1B4332]"] selector. */
-html[data-theme="dark"] [data-liquid-glass="enabled"] div[class*="z-[200]"] button[class*="from-[#1B4332]"] {
-  color: #fff !important;
-  background: linear-gradient(150deg, #14b8a6, #0d9488) !important;
+/* ── Date filter chip — same geometry as the light sheet, dark colours. ── */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-date-compact { width: 135px; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-date-compact .nc-date-trigger {
+  gap: 6px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-date-trigger {
+  border: 1px solid var(--d-edge-soft) !important;
+  background: var(--d-3) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(175%);
+  backdrop-filter: blur(14px) saturate(175%);
+  box-shadow: var(--d-sheen) !important;
+  transition: border-color .18s ease, box-shadow .18s ease, background .2s ease !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-date-trigger:hover { border-color: var(--d-edge) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-date-trigger[data-open="true"] {
+  border-color: #2dd4bf !important;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, .2), var(--d-sheen) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-date-icon { color: var(--d-ink-3) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-date-trigger[data-filled="true"] .nc-date-icon { color: #2dd4bf !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-date-label { color: var(--d-ink-3) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-date-trigger[data-filled="true"] .nc-date-label { color: var(--d-ink) !important; }
+
+/* ── Calendar popup — denser and more blurred than any other surface here,
+   because it opens over table rows. ── */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-cal-popup {
+  top: calc(100% + 8px) !important;
+  width: 264px !important;
+  margin-top: 0 !important;
+  border: 1px solid var(--d-edge) !important;
+  border-radius: 14px !important;
+  background: rgba(16, 22, 38, 0.86) !important;
+  color: var(--d-ink) !important;
+  -webkit-backdrop-filter: blur(46px) saturate(200%);
+  backdrop-filter: blur(46px) saturate(200%);
+  box-shadow: var(--d-sh-3), var(--d-sheen) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-cal-popup > div:last-child { padding: 14px !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-cal-popup div[class*="bg-gradient-to-r"] {
+  background: linear-gradient(90deg, #5eead4, #0d9488, #5eead4) !important;
 }
 
-html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > div[class*="top-full"][class*="bg-white"],
-html[data-theme="dark"] [data-liquid-glass="enabled"] div[class*="z-[200]"][class*="bg-white"] {
-  border: 1px solid var(--d-edge) !important;
-  border-radius: 18px !important;
-  background: var(--d-strong) !important;
-  color: var(--d-ink) !important;
-  -webkit-backdrop-filter: blur(46px) saturate(175%);
-  backdrop-filter: blur(46px) saturate(175%);
-  box-shadow: var(--d-sh-3), var(--d-sheen) !important;
-  animation: calInDark .34s var(--d-spring);
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-cal-grid { gap: 1px !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-cal-day {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1;
+  border-radius: 8px !important;
+  color: var(--d-ink-2) !important;
+  font-size: 11.5px !important;
 }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-cal-day:hover:not([data-disabled="true"]):not([data-selected="true"]) {
+  background: rgba(13, 148, 136, .28) !important;
+  color: #5eead4 !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-cal-day[data-muted="true"] { color: rgba(169, 180, 200, .38) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-cal-day[data-disabled="true"] {
+  color: rgba(169, 180, 200, .22) !important;
+  cursor: not-allowed;
+}
+/* Keyed off data-selected, not a class substring — see the light sheet. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-cal-day[data-selected="true"] {
+  color: #fff !important;
+  background: linear-gradient(150deg, #14b8a6, #0d9488) !important;
+  box-shadow: 0 2px 10px rgba(13, 148, 136, .5) !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-cal-today-dot {
+  width: 3px !important;
+  height: 3px !important;
+  background: #2dd4bf !important;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.nc-cal-nav, .nc-cal-actions button):hover {
+  color: #fff !important;
+  background: linear-gradient(150deg, #14b8a6, #0d9488) !important;
+  transition: background .14s ease, color .14s ease;
+}
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-cal-actions button { border-radius: 8px; padding: 3px 8px; }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] button { transition: background .22s var(--d-ease), color .22s var(--d-ease), transform .3s var(--d-spring), box-shadow .25s var(--d-ease); }
 html[data-theme="dark"] [data-liquid-glass="enabled"] button:active { transform: scale(.955); }
@@ -285,13 +353,28 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .fixed.inset-0[class*="bg-
 html[data-theme="dark"] [data-liquid-glass="enabled"] .fixed.inset-0 > div[class*="bg-white"] { border: 1px solid var(--d-edge) !important; border-radius: 28px !important; background: rgba(20, 26, 42, 0.78) !important; -webkit-backdrop-filter: blur(44px) saturate(175%); backdrop-filter: blur(44px) saturate(175%); box-shadow: var(--d-sh-3), var(--d-sheen) !important; animation: lgModalInDark .46s var(--d-spring); }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] table { border-collapse: separate !important; border-spacing: 0 !important; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] thead th { position: sticky; top: 0; z-index: 2; border-bottom: 1px solid var(--d-edge) !important; background: rgba(15, 23, 42, 0.97) !important; color: var(--d-ink-2) !important; font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; -webkit-backdrop-filter: blur(18px) saturate(170%); backdrop-filter: blur(18px) saturate(170%); }
+html[data-theme="dark"] [data-liquid-glass="enabled"] thead th { position: sticky; top: 0; z-index: 2; border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important; background: rgba(24, 33, 56, 0.72) !important; color: var(--d-ink-2) !important; font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; -webkit-backdrop-filter: blur(18px) saturate(180%); backdrop-filter: blur(18px) saturate(180%); }
 html[data-theme="dark"] [data-liquid-glass="enabled"] thead th { padding-top: 9px !important; padding-bottom: 9px !important; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] tbody td { padding-top: 9px !important; padding-bottom: 9px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.045) !important; font-variant-numeric: tabular-nums; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] tbody tr:nth-child(odd) td { background: rgba(255, 255, 255, 0.012) !important; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.042) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody td { padding-top: 9px !important; padding-bottom: 9px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important; background: transparent !important; color: var(--d-ink) !important; font-variant-numeric: tabular-nums; transition: background .2s ease; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.04) !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] tbody td :is(.font-mono, [class*="font-mono"]) { color: #5eead4 !important; letter-spacing: .01em; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] tbody tr:hover td { background: rgba(45, 212, 191, 0.105) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody tr:hover td { background: rgba(255, 255, 255, 0.09) !important; }
+
+/* Status rows: coloured haze over the glass, never a solid fill. Guarded
+   against the -500 shades, since "bg-red-500" contains "bg-red-50". */
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody tr[class*="bg-red-50"]:not([class*="bg-red-500"]) td,
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody tr[class*="bg-rose-50"]:not([class*="bg-rose-500"]) td,
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody tr[data-tone="red"] td { background: rgba(239, 68, 68, .12) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody tr[class*="bg-amber-50"]:not([class*="bg-amber-500"]) td,
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody tr[class*="bg-yellow-50"]:not([class*="bg-yellow-500"]) td,
+html[data-theme="dark"] [data-liquid-glass="enabled"] tbody tr[data-tone="amber"] td { background: rgba(245, 158, 11, .13) !important; }
+
+/* Table shell: rounded, hairline edge, layered soft shadow. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="rounded"][class*="rounded"][class*="rounded"]:has(> table, > div > table) {
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .3), 0 8px 28px rgba(0, 0, 0, .38) !important;
+}
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.text-gray-950, .text-gray-900, .text-gray-800, .text-gray-700) { color: var(--d-ink) !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.text-gray-600, .text-gray-500, .text-gray-400) { color: var(--d-ink-2) !important; }
@@ -511,8 +594,8 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-
 }
 
 /* §6.5 */
-html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-100"]:not(aside *),
-html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"]:not([class*="bg-gray-500"]):not(aside *) {
+html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-100"]:not(aside *):not(.nc-cal-day),
+html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"]:not([class*="bg-gray-500"]):not(aside *):not(.nc-cal-day) {
   border: 1px solid var(--d-edge) !important;
   border-radius: 12px !important;
   background: var(--d-3) !important;
@@ -520,7 +603,7 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"
   box-shadow: var(--d-sheen) !important;
 }
 html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-100"]:not(aside *):hover,
-html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"]:not([class*="bg-gray-500"]):not(aside *):hover {
+html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"]:not([class*="bg-gray-500"]):not(aside *):not(.nc-cal-day):hover {
   background: var(--d-hover) !important;
   color: var(--d-ink) !important;
 }
@@ -609,7 +692,7 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-kpi:hover {
 
 /* §11 — top hairline composited into the panel background. Table wrappers
    stay excluded (see the light sheet for why). */
-html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(:has(> table)) {
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(:has(> table)):not(.nc-cal-popup) {
   background:
     linear-gradient(90deg, transparent, rgba(255, 255, 255, .25), transparent) top center / calc(100% - 24px) 1px no-repeat,
     var(--d-1) !important;
