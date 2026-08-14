@@ -306,6 +306,25 @@ for (const [name, css] of [['light', light], ['dark', dark]]) {
   }
 }
 
+// ─── `bg-<c>-50` substring rules must exclude their `-500` sibling ─────────
+//
+// "bg-red-500" contains "bg-red-50", so [class*="bg-red-50"] matches saturated
+// badges too. That silently repainted the sidebar's recheck count — a
+// `rounded-full bg-red-500 text-white` pill — as a pale 8%-alpha chip.
+// An exact [class~=] match would fix it but would also drop the opacity
+// variants the app uses (bg-red-50/40, bg-gray-50/80), so the contract is a
+// :not() guard on every such selector.
+{
+  for (const [name, css] of [['light', lightCode], ['dark', darkCode]]) {
+    const re = /\[class\*="bg-([a-z]+)-50"\](?!:not\(\[class\*="bg-\1-500"\]\))/g
+    const stray = [...css.matchAll(re)].map(m => m[0])
+    assert.equal(
+      stray.length, 0,
+      `${name}: [class*="bg-<c>-50"] also matches bg-<c>-500 — add :not([class*="bg-<c>-500"]) → ${stray.join(', ')}`
+    )
+  }
+}
+
 // ─── Popovers must escape their host panel's stacking context ──────────────
 //
 // backdrop-filter creates a stacking context, so a popover inside a glass panel

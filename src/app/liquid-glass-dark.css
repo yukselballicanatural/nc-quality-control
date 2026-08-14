@@ -128,7 +128,7 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*=
 html[data-theme="dark"] [data-liquid-glass="enabled"] main > div { animation: lgViewInDark .62s var(--d-spring); }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"],
-html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-gray-50"][class*="rounded"] {
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-gray-50"]:not([class*="bg-gray-500"])[class*="rounded"] {
   border-color: var(--d-edge-soft) !important;
   background: var(--d-1) !important;
   -webkit-backdrop-filter: blur(var(--d-blur)) saturate(var(--d-sat));
@@ -174,6 +174,8 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a[data-active="t
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a[data-active="true"] span { color: #fff !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a[data-active="true"] svg { color: #fff !important; opacity: 1; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a > span { color: inherit !important; }
+/* …except the count badge — see the light sheet. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a > span[class*="rounded-full"] { color: #fff !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside div[class*="bg-white/5"] { border: 1px solid var(--d-edge); background: rgba(255, 255, 255, 0.08) !important; box-shadow: var(--d-sheen); }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside div[class*="bg-white/5"] p:first-child { color: #f5f7fb !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside div[class*="bg-white/5"] p:last-child { color: #aebbd0 !important; }
@@ -510,7 +512,7 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] :is(button, a)[class*="bg-
 
 /* §6.5 */
 html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-100"]:not(aside *),
-html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"]:not(aside *) {
+html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"]:not([class*="bg-gray-500"]):not(aside *) {
   border: 1px solid var(--d-edge) !important;
   border-radius: 12px !important;
   background: var(--d-3) !important;
@@ -518,7 +520,7 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"
   box-shadow: var(--d-sheen) !important;
 }
 html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-100"]:not(aside *):hover,
-html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"]:not(aside *):hover {
+html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="bg-gray-50"]:not([class*="bg-gray-500"]):not(aside *):hover {
   background: var(--d-hover) !important;
   color: var(--d-ink) !important;
 }
@@ -543,22 +545,22 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] div[class*="flex-wrap"][cl
    a light pill floating on a dark table. Every pale tint utility is remapped to
    its semantic dark pair instead, and the paired dark ink is lifted to the light
    tone so the text keeps its meaning. */
-html[data-theme="dark"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded"]:is([class*="bg-green-100"], [class*="bg-green-50"], [class*="bg-emerald-100"], [class*="bg-emerald-50"]) {
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded"]:is([class*="bg-green-100"], [class*="bg-green-50"]:not([class*="bg-green-500"]), [class*="bg-emerald-100"], [class*="bg-emerald-50"]:not([class*="bg-emerald-500"])) {
   border: 1px solid var(--tm-ok-edge);
   background: var(--tm-ok-bg) !important;
   color: var(--tm-ok) !important;
 }
-html[data-theme="dark"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded"]:is([class*="bg-red-100"], [class*="bg-red-50"], [class*="bg-rose-100"], [class*="bg-rose-50"]) {
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded"]:is([class*="bg-red-100"], [class*="bg-red-50"]:not([class*="bg-red-500"]), [class*="bg-rose-100"], [class*="bg-rose-50"]:not([class*="bg-rose-500"])) {
   border: 1px solid var(--tm-danger-edge);
   background: var(--tm-danger-bg) !important;
   color: var(--tm-danger) !important;
 }
-html[data-theme="dark"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded"]:is([class*="bg-amber-100"], [class*="bg-amber-50"], [class*="bg-yellow-100"], [class*="bg-yellow-50"], [class*="bg-orange-100"], [class*="bg-orange-50"]) {
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded"]:is([class*="bg-amber-100"], [class*="bg-amber-50"]:not([class*="bg-amber-500"]), [class*="bg-yellow-100"], [class*="bg-yellow-50"]:not([class*="bg-yellow-500"]), [class*="bg-orange-100"], [class*="bg-orange-50"]:not([class*="bg-orange-500"])) {
   border: 1px solid var(--tm-warn-edge);
   background: var(--tm-warn-bg) !important;
   color: var(--tm-warn) !important;
 }
-html[data-theme="dark"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded"]:is([class*="bg-blue-100"], [class*="bg-blue-50"], [class*="bg-violet-100"], [class*="bg-violet-50"], [class*="bg-indigo-100"], [class*="bg-indigo-50"]) {
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(span, div)[class*="rounded"]:is([class*="bg-blue-100"], [class*="bg-blue-50"]:not([class*="bg-blue-500"]), [class*="bg-violet-100"], [class*="bg-violet-50"]:not([class*="bg-violet-500"]), [class*="bg-indigo-100"], [class*="bg-indigo-50"]:not([class*="bg-indigo-500"])) {
   border: 1px solid var(--tm-info-edge);
   background: var(--tm-info-bg) !important;
   color: var(--tm-info) !important;
