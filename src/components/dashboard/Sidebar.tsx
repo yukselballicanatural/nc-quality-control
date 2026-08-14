@@ -36,6 +36,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n'
 import { canSeeAdminLogs, isRestrictedQualityUser } from '@/lib/access-control'
 import { GlassLanguageToggle } from '@/components/ui/GlassLanguageToggle'
+import { CinematicThemeSwitcher } from '@/components/ui/CinematicThemeSwitcher'
+import { AnimatedLogOutIcon } from '@/components/ui/AnimatedLogOutIcon'
 import type { Profile, Language } from '@/types'
 import type { UserRole } from '@/types/supabase'
 
@@ -315,6 +317,52 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
     document.documentElement.setAttribute('data-theme', next)
   }
 
+  // Rendered identically by both layouts below, so the glass restructure can
+  // reorder sections without forking the navigation itself.
+  function renderNavLinks() {
+    return navItems.map(item => {
+      const active = isActive(item.href)
+      return (
+        <Link
+          key={`${item.href}-${item.label}`}
+          href={item.href}
+          onClick={() => setIsMobileOpen(false)}
+          title={isRailMode ? item.label : undefined}
+          // Explicit state marker. Theming must not key off Tailwind class
+          // names here: the inactive rows carry `hover:bg-white/8` and
+          // `hover:text-white`, so a [class*="bg-white"] selector matches
+          // every row and would paint them all as active.
+          data-active={active ? 'true' : undefined}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+            active
+              ? 'bg-white/15 text-white'
+              : 'text-white/65 hover:bg-white/8 hover:text-white'
+          }`}
+        >
+          <item.icon className={`w-[18px] h-[18px] flex-shrink-0 ${active ? 'text-[#52B788]' : ''}`} />
+          <span className="flex-1">{item.label}</span>
+          {item.href === '/recheck' && recheckUrgentCount > 0 && (
+            <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+              {recheckUrgentCount > 99 ? '99+' : recheckUrgentCount}
+            </span>
+          )}
+          {active && item.href !== '/recheck' && (
+            <div className="w-1.5 h-1.5 rounded-full bg-[#52B788]" />
+          )}
+          {active && item.href === '/recheck' && recheckUrgentCount === 0 && (
+            <div className="w-1.5 h-1.5 rounded-full bg-[#52B788]" />
+          )}
+        </Link>
+      )
+    })
+  }
+
+  const collapseLabel = isRailMode
+    ? tx('Menüyü genişlet', 'Expand menu', 'Espandi menu')
+    : tx('Menüyü daralt', 'Collapse menu', 'Comprimi menu')
+
+  const appsLabel = tx('Uygulamalarımız', 'Our Apps', 'Le Nostre App')
+
   return (
     <div className="min-h-screen bg-gray-50 flex" data-liquid-glass={isLiquidGlassUser ? 'enabled' : undefined}>
       {/* Mobile overlay */}
@@ -341,188 +389,176 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
           <X className="w-5 h-5" />
         </button>
 
-        {/* Logo */}
-        <div
-          className={`px-5 py-4 border-b border-white/10 ${
-            canCollapse ? 'flex items-end justify-between gap-2' : ''
-          }`}
-        >
-          <Image
-            src="/nc-logo-white.png"
-            alt="Natural Clinic"
-            width={110}
-            height={34}
-            className="object-contain object-left opacity-90"
-          />
-          {canCollapse && (
-            <button
-              type="button"
-              onClick={() => setIsCollapsed(c => !c)}
-              className="lg-rail-toggle hidden md:flex w-[26px] h-[26px] flex-shrink-0 items-center justify-center rounded-lg text-white/60 transition-colors"
-              aria-expanded={!isRailMode}
-              aria-label={isRailMode
-                ? tx('Menüyü genişlet', 'Expand menu', 'Espandi menu')
-                : tx('Menüyü daralt', 'Collapse menu', 'Comprimi menu')}
-              title={isRailMode
-                ? tx('Menüyü genişlet', 'Expand menu', 'Espandi menu')
-                : tx('Menüyü daralt', 'Collapse menu', 'Comprimi menu')}
-            >
-              {isRailMode ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
-            </button>
-          )}
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {navItems.map(item => {
-            const active = isActive(item.href)
-            return (
-              <Link
-                key={`${item.href}-${item.label}`}
-                href={item.href}
-                onClick={() => setIsMobileOpen(false)}
-                title={isRailMode ? item.label : undefined}
-                // Explicit state marker. Theming must not key off Tailwind class
-                // names here: the inactive rows carry `hover:bg-white/8` and
-                // `hover:text-white`, so a [class*="bg-white"] selector matches
-                // every row and would paint them all as active.
-                data-active={active ? 'true' : undefined}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
-                  active
-                    ? 'bg-white/15 text-white'
-                    : 'text-white/65 hover:bg-white/8 hover:text-white'
-                }`}
+        {canCollapse ? (
+          /* ── Glass layout ──────────────────────────────────────────
+             Brand → identity → navigation → recheck → language →
+             appearance → apps/logout, stacked in one scroll column. */
+          <div className="lg-side-scroll flex-1 min-h-0 overflow-y-auto flex flex-col">
+            <div className="lg-brand flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <Image
+                  src="/nc-logo-white.png"
+                  alt="Natural Clinic"
+                  width={92}
+                  height={28}
+                  className="lg-brand-logo object-contain object-left"
+                />
+                <p className="lg-brand-sub">
+                  {tx(
+                    'Natural Clinic Kalite Kontrol Sistemi',
+                    'Natural Clinic Quality Control System',
+                    'Sistema di Controllo Qualità Natural Clinic'
+                  )}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCollapsed(c => !c)}
+                className="lg-rail-toggle hidden md:flex w-[26px] h-[26px] flex-shrink-0 items-center justify-center rounded-lg transition-colors"
+                aria-expanded={!isRailMode}
+                aria-label={collapseLabel}
+                title={collapseLabel}
               >
-                <item.icon className={`w-[18px] h-[18px] flex-shrink-0 ${active ? 'text-[#52B788]' : ''}`} />
-                <span className="flex-1">{item.label}</span>
-                {item.href === '/recheck' && recheckUrgentCount > 0 && (
-                  <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">
-                    {recheckUrgentCount > 99 ? '99+' : recheckUrgentCount}
-                  </span>
-                )}
-                {active && item.href !== '/recheck' && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#52B788]" />
-                )}
-                {active && item.href === '/recheck' && recheckUrgentCount === 0 && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#52B788]" />
-                )}
-              </Link>
-            )
-          })}
-        </nav>
-
-        {/* Recheck summary — derived from the notification rows already
-            fetched above, so this adds no query. Glass test user only. */}
-        {canCollapse && canSeeNotifications && (
-          <div className="lg-summary px-3 pb-2">
-            <p className="lg-summary-label px-1 pb-1.5">
-              {tx('TEKRAR KONTROL', 'RECHECK SUMMARY', 'RIEPILOGO CONTROLLI')}
-            </p>
-            <div className="space-y-1.5">
-              {recheckSummary.map(card => (
-                <div
-                  key={card.key}
-                  data-tone={card.tone}
-                  className="lg-summary-card flex items-center justify-between gap-2 rounded-xl px-3 py-2.5"
-                  title={isRailMode ? `${card.label}: ${card.count}` : undefined}
-                >
-                  <span className="min-w-0">
-                    <span className="lg-summary-card-label block truncate">{card.label}</span>
-                    <span className="lg-summary-card-value block">{card.count}</span>
-                  </span>
-                  <span className="lg-summary-card-icon flex-shrink-0 flex items-center justify-center rounded-full">
-                    <card.icon className="w-[15px] h-[15px]" />
-                  </span>
-                </div>
-              ))}
+                {isRailMode ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+              </button>
             </div>
-          </div>
-        )}
 
-        {/* Language + appearance live in the menu for the glass user, matching
-            the reference layout. They stay in the header for everyone else.
-            The language control is a plain native <select> here — liquid-ui.js
-            auto-enhances every <select> on the page into the same trigger +
-            dropdown-list widget used everywhere else in the app (see
-            SelectEnhancement in public/api/liquid-ui.js), so its open animation
-            and layout are literally the same code path as our other dropdowns,
-            not a lookalike. */}
-        {canCollapse && (
-          <div className="lg-menu-controls px-3 pb-2 flex items-center gap-2">
-            <div className="lg-lang-field flex-1 min-w-0">
-              <select
-                value={lang}
-                onChange={e => setLang(e.target.value as Language)}
-                aria-label={t.settings.language}
-              >
-                <option value="tr">Türkçe</option>
-                <option value="en">English</option>
-                <option value="it">Italiano</option>
-              </select>
-            </div>
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="lg-theme-toggle flex items-center justify-center flex-shrink-0"
-              aria-label={tx('Görünüm', 'Appearance', 'Aspetto')}
-              title={tx('Görünüm', 'Appearance', 'Aspetto')}
-            >
-              <Moon className="lg-icon-moon w-4 h-4" />
-              <Sun className="lg-icon-sun w-4 h-4" />
-            </button>
-          </div>
-        )}
-
-        {/* User + Logout */}
-        <div className="px-3 pb-4 pt-2 border-t border-white/10 space-y-1">
-          <div
-            className={`px-3 py-2.5 rounded-xl bg-white/5 ${
-              canCollapse ? 'lg-user-card flex items-center gap-2.5' : ''
-            }`}
-          >
-            {canCollapse && (
+            <div className="lg-user-card flex items-center gap-2.5">
               <span
                 className="lg-user-avatar flex-shrink-0 flex items-center justify-center rounded-full text-white font-extrabold"
                 aria-hidden="true"
               >
                 {initials}
               </span>
+              <div className="min-w-0 flex-1">
+                <p className="lg-user-name truncate">{profile.full_name || profile.email}</p>
+                <p className="lg-user-role truncate">{t.roles[profile.role]}</p>
+              </div>
+            </div>
+
+            <p className="lg-section-label">
+              {tx('NAVİGASYON', 'NAVIGATION', 'NAVIGAZIONE')}
+            </p>
+            <nav className="lg-nav px-3 space-y-0.5">{renderNavLinks()}</nav>
+
+            {canSeeNotifications && (
+              <div className="lg-summary px-3 pt-3">
+                <p className="lg-section-label lg-section-label--tight">
+                  {tx('TEKRAR KONTROL', 'RECHECK SUMMARY', 'RIEPILOGO CONTROLLI')}
+                </p>
+                <div className="space-y-1.5">
+                  {recheckSummary.map(card => (
+                    <div
+                      key={card.key}
+                      data-tone={card.tone}
+                      className="lg-summary-card flex items-center justify-between gap-2 rounded-xl px-3 py-2.5"
+                      title={isRailMode ? `${card.label}: ${card.count}` : undefined}
+                    >
+                      <span className="min-w-0">
+                        <span className="lg-summary-card-label block truncate">{card.label}</span>
+                        <span className="lg-summary-card-value block">{card.count}</span>
+                      </span>
+                      <span className="lg-summary-card-icon flex-shrink-0 flex items-center justify-center rounded-full">
+                        <card.icon className="w-[15px] h-[15px]" />
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
-            <div className="min-w-0 flex-1">
-              <p className="text-white text-sm font-medium truncate leading-snug">
-                {profile.full_name || profile.email}
-              </p>
-              <p className="text-white/45 text-xs truncate mt-0.5">
-                {t.roles[profile.role]}
-              </p>
+
+            {/* Language. A plain native <select>: liquid-ui.js auto-enhances
+                every select on the page into the same trigger + dropdown-list
+                widget used everywhere else (SelectEnhancement in
+                public/api/liquid-ui.js), so the open animation and row layout
+                are the same code path as our other dropdowns, not a lookalike. */}
+            <div className="lg-menu-controls px-3 pt-3">
+              <div className="lg-lang-field">
+                <span className="lg-lang-chip" aria-hidden="true">{lang.toUpperCase()}</span>
+                <select
+                  value={lang}
+                  onChange={e => setLang(e.target.value as Language)}
+                  aria-label={t.settings.language}
+                >
+                  <option value="tr">Türkçe</option>
+                  <option value="en">English</option>
+                  <option value="it">Italiano</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="lg-appearance-row px-3 pt-2">
+              <div className="lg-appearance-inner flex items-center justify-between gap-2">
+                <span className="lg-appearance-label">
+                  {tx('Görünüm', 'Appearance', 'Aspetto')}
+                </span>
+                <CinematicThemeSwitcher
+                  width={58}
+                  ariaLabel={tx('Görünüm', 'Appearance', 'Aspetto')}
+                />
+              </div>
+            </div>
+
+            <div className="lg-bottom mt-auto px-3 pt-3 pb-3 space-y-1.5">
+              <button
+                type="button"
+                onClick={() => { window.location.href = 'https://nc-pastdata-crm.vercel.app/apps' }}
+                title={isRailMode ? appsLabel : undefined}
+                className="lg-apps-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
+              >
+                <LayoutGrid className="w-[18px] h-[18px] flex-shrink-0" />
+                <span>{appsLabel}</span>
+              </button>
+
+              {/* whileHover drives the icon's arrow variant (see AnimatedLogOutIcon). */}
+              <motion.button
+                onClick={handleLogout}
+                title={isRailMode ? t.auth.logout : undefined}
+                initial="initial"
+                whileHover="animate"
+                className="lg-logout-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors duration-200"
+              >
+                <AnimatedLogOutIcon size={18} className="flex-shrink-0" />
+                <span>{t.auth.logout}</span>
+              </motion.button>
             </div>
           </div>
-          {/* Glass user only, matching the reference's app-switcher row above
-              logout. Same-tab redirect, per the destination the user gave. */}
-          {canCollapse && (
-            <button
-              type="button"
-              onClick={() => { window.location.href = 'https://nc-pastdata-crm.vercel.app/apps' }}
-              title={isRailMode ? tx('Uygulamalarımız', 'Our Apps', 'Le Nostre App') : undefined}
-              className="lg-apps-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
-            >
-              <LayoutGrid className="w-[18px] h-[18px] flex-shrink-0" />
-              <span>{tx('Uygulamalarımız', 'Our Apps', 'Le Nostre App')}</span>
-            </button>
-          )}
+        ) : (
+          /* ── Original layout — unchanged for every other account ──── */
+          <>
+            <div className="px-5 py-4 border-b border-white/10">
+              <Image
+                src="/nc-logo-white.png"
+                alt="Natural Clinic"
+                width={110}
+                height={34}
+                className="object-contain object-left opacity-90"
+              />
+            </div>
 
-          <button
-            onClick={handleLogout}
-            title={isRailMode ? t.auth.logout : undefined}
-            // The Tailwind colours here are the real, load-bearing style for
-            // every non-glass account. `.lg-logout-btn` is only a hook the
-            // glass stylesheets override — it must never replace these classes.
-            className="lg-logout-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white transition-all duration-200"
-          >
-            <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
-            <span>{t.auth.logout}</span>
-          </button>
-        </div>
+            <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+              {renderNavLinks()}
+            </nav>
+
+            <div className="px-3 pb-4 pt-2 border-t border-white/10 space-y-1">
+              <div className="px-3 py-2.5 rounded-xl bg-white/5">
+                <p className="text-white text-sm font-medium truncate leading-snug">
+                  {profile.full_name || profile.email}
+                </p>
+                <p className="text-white/45 text-xs truncate mt-0.5">
+                  {t.roles[profile.role]}
+                </p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white transition-all duration-200"
+              >
+                <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
+                <span>{t.auth.logout}</span>
+              </button>
+            </div>
+          </>
+        )}
       </aside>
 
       {/* Welcome toast */}

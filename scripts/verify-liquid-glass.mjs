@@ -156,7 +156,10 @@ for (const [name, css] of [['light', light], ['dark', dark]]) {
 // ─── §5 — collapsible sidebar, gated to the test user ──────────────────────
 assert.match(sidebar, /const canCollapse = isLiquidGlassUser/, 'sidebar: collapse must be gated to the glass test user')
 assert.match(sidebar, /data-collapsed=\{isRailMode \? 'true' : undefined\}/, 'sidebar: rail state must ride on data-collapsed')
-assert.match(sidebar, /canCollapse && \(/, 'sidebar: rail toggle must render only for the gated user')
+// The whole glass sidebar body is one branch of this ternary; the other branch
+// is the untouched original layout every non-gated account keeps rendering.
+assert.match(sidebar, /\{canCollapse \? \(/, 'sidebar: the glass layout must sit behind the canCollapse gate')
+assert.match(sidebar, /Original layout — unchanged for every other account/, 'sidebar: the non-glass layout branch must still exist')
 assert.match(sidebar, /window\.innerWidth <= 900/, 'sidebar: narrow widths must start collapsed (§5.1)')
 for (const css of [light, dark]) {
   assert.match(css, /aside\[data-collapsed="true"\] \{ width: 56px !important; \}/, 'rail width must be 56px (§5.1)')
@@ -168,11 +171,34 @@ for (const css of [light, dark]) {
 // would be a behaviour change for the shared component.
 assert.match(sidebar, /title=\{isRailMode \? item\.label : undefined\}/, 'sidebar: rail nav needs title tooltips, full mode must not')
 
-// ─── §5.4 — theme toggle: both icons mounted, CSS decides ──────────────────
-assert.match(sidebar, /lg-icon-moon/, 'sidebar: moon icon missing')
-assert.match(sidebar, /lg-icon-sun/, 'sidebar: sun icon missing')
-assert.match(light, /html\[data-theme="dark"\] \.lg-theme-toggle \.lg-icon-sun \{ display: block; \}/, 'theme toggle icon swap must be CSS-driven (§5.4)')
-assert.match(light, /\.lg-theme-toggle[\s\S]{0,400}border-radius: 999px/, 'theme toggle must be a pill in light glass (§5.4)')
+// ─── Theme switch owns no second theme system ──────────────────────────────
+//
+// The app boots its theme from the `app_theme` key plus the `data-theme`
+// attribute (see the inline script in app/layout.tsx). The switcher must drive
+// exactly that, not introduce a second owner such as next-themes, which would
+// fight the boot script on a live system.
+{
+  const switcher = read('src/components/ui/CinematicThemeSwitcher.tsx')
+  assert.match(sidebar, /CinematicThemeSwitcher/, 'sidebar: appearance row must use the cinematic switcher')
+  assert.match(switcher, /localStorage\.setItem\('app_theme'/, 'switcher must persist to the existing app_theme key')
+  assert.match(switcher, /setAttribute\('data-theme'/, 'switcher must drive the existing data-theme attribute')
+  // Inspect imports only — prose naming a banned package is not a violation.
+  const importsOf = src => src.match(/^\s*import[\s\S]*?from\s+'[^']+'/gm) ?? []
+
+  assert.ok(
+    !importsOf(switcher).some(line => line.includes('next-themes')),
+    'switcher must not introduce a second theme owner'
+  )
+
+  // Both animation-library entry points resolve to the same installed package;
+  // importing `motion` as well would ship a duplicate engine.
+  for (const file of ['src/components/ui/CinematicThemeSwitcher.tsx', 'src/components/ui/AnimatedLogOutIcon.tsx']) {
+    assert.ok(
+      !importsOf(read(file)).some(line => /'motion(\/react)?'/.test(line)),
+      `${file}: use the installed framer-motion, not a duplicate engine`
+    )
+  }
+}
 
 // ─── §6.4 — exactly one primary-button look ────────────────────────────────
 for (const [name, css] of [['light', light], ['dark', dark]]) {
