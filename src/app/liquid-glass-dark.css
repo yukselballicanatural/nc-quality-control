@@ -137,8 +137,8 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .relative > button[class*=
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] main > div { animation: lgViewInDark .62s var(--d-spring); }
 
-html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(.nc-cal-popup),
-html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-gray-50"]:not([class*="bg-gray-500"])[class*="rounded"] {
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(.nc-cal-popup):not(.nc-readonly-field),
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-gray-50"]:not([class*="bg-gray-500"]):not(.nc-readonly-field)[class*="rounded"] {
   border-color: var(--d-edge-soft) !important;
   background: var(--d-1) !important;
   -webkit-backdrop-filter: blur(var(--d-blur)) saturate(var(--d-sat));
@@ -147,7 +147,7 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)
 }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.rounded-2xl, .rounded-3xl):not(.nc-cal-popup) { border-radius: var(--d-r-md) !important; }
-html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.rounded-xl, .rounded-lg):not(.nc-rc-tab):not(.nc-cal-day):not(.nc-date-trigger):not(input):not(select):not(.lq-trigger) { border-radius: var(--d-r-sm) !important; }
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.rounded-xl, .rounded-lg):not(.nc-readonly-field):not(.nc-rc-tab):not(.nc-cal-day):not(.nc-date-trigger):not(input):not(select):not(.lq-trigger) { border-radius: var(--d-r-sm) !important; }
 html[data-theme="dark"] [data-liquid-glass="enabled"] :is(.border-gray-50, .border-gray-100, .border-gray-200, [class*="border-gray"]):not(.nc-date-trigger):not(input) { border-color: var(--d-edge-soft) !important; }
 
 html[data-theme="dark"] [data-liquid-glass="enabled"] aside nav a {
@@ -751,7 +751,7 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] .lg-kpi:hover {
 
 /* §11 — top hairline composited into the panel background. Table wrappers
    stay excluded (see the light sheet for why). */
-html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(:has(> table)):not(.nc-cal-popup) {
+html[data-theme="dark"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(:has(> table)):not(.nc-cal-popup):not(.nc-readonly-field) {
   background:
     var(--d-1) !important;
   /* Inset sheen only — see the light sheet. */
@@ -1308,7 +1308,7 @@ html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"] :is(p, li, dd)
 html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"]::before { content: none !important; }
 
 html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"][data-liquid-owned] div[class*="bg-white"][class*="rounded"]:not(:has(> table)),
-html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"][data-liquid-owned] div[class*="bg-gray-50"]:not([class*="bg-gray-500"])[class*="rounded"]:not(:has(> table)) {
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"][data-liquid-owned] div[class*="bg-gray-50"]:not([class*="bg-gray-500"]):not(.nc-readonly-field)[class*="rounded"]:not(:has(> table)) {
   border: 1px solid rgba(255, 255, 255, .1) !important;
   background: rgba(255, 255, 255, .06) !important;
   -webkit-backdrop-filter: none !important;
@@ -1622,3 +1622,32 @@ html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="border-2"][
   box-shadow: none !important;
 }
 html[data-theme="dark"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-emerald-500"] div[class*="bg-white/30"] svg { color: #fff !important; }
+
+/* See the light sheet. Same geometry, dark colours. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] .nc-readonly-field.nc-readonly-field {
+  height: 34px !important;
+  min-height: 34px !important;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  padding: 6px 11px 6px 34px !important;
+  border: 1px solid var(--d-edge) !important;
+  border-radius: 11px !important;
+  background: rgba(255, 255, 255, .04) !important;
+  color: var(--d-ink-3) !important;
+  font-size: 12px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Inputs with a leading icon: the shared control padding is 11px, but the icon
+   sits at 14px and is 16px wide, so the value was being typed underneath it.
+   Only the left side is reopened; height and type stay on the standard. */
+html[data-theme="dark"] [data-liquid-glass="enabled"] input[class*="pl-10"]:not([type="checkbox"]),
+html[data-theme="dark"] [data-liquid-glass="enabled"] input[class*="pl-9"]:not([type="checkbox"]) {
+  padding-left: 34px !important;
+}

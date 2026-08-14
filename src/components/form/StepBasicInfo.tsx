@@ -106,7 +106,7 @@ export function StepBasicInfo({ role, evaluatorId, evaluatorName, agents, teamLe
             <label className={labelCls}>{tx('Region', 'Region', 'Regione')}</label>
             <div className="relative">
               <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
-              <div className={`${inputCls} pl-10 bg-gray-50 text-gray-500 cursor-default`}>
+              <div className={`nc-readonly-field ${inputCls} pl-10 bg-gray-50 text-gray-500 cursor-default`}>
                 {step1.region || tx('Danışman seçilince görünür', 'Appears after selecting consultant', 'Visibile dopo la selezione del consulente')}
               </div>
             </div>
@@ -116,7 +116,7 @@ export function StepBasicInfo({ role, evaluatorId, evaluatorName, agents, teamLe
             <label className={labelCls}>{t.form.step1.teamLeader}</label>
             <div className="relative">
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
-              <div className={`${inputCls} pl-10 bg-gray-50 text-gray-500 cursor-default`}>
+              <div className={`nc-readonly-field ${inputCls} pl-10 bg-gray-50 text-gray-500 cursor-default`}>
                 {step1.agentTeamLeaderName || tx('Danışman seçilince görünür', 'Appears after selecting consultant', 'Visibile dopo la selezione del consulente')}
               </div>
             </div>
@@ -139,7 +139,7 @@ export function StepBasicInfo({ role, evaluatorId, evaluatorName, agents, teamLe
             ) : (
               <div className="relative">
                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
-                <div className={`${inputCls} pl-10 bg-gray-50 text-gray-400 cursor-default`}>
+                <div className={`nc-readonly-field ${inputCls} pl-10 bg-gray-50 text-gray-400 cursor-default`}>
                   {displayEvaluatorName}
                 </div>
               </div>

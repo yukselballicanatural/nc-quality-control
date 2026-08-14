@@ -159,8 +159,8 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .md\:ml-64,
 html[data-theme="light"] [data-liquid-glass="enabled"] main { min-width: 0 !important; }
 html[data-theme="light"] [data-liquid-glass="enabled"] main > div { animation: lgViewIn .62s var(--spring); }
 
-html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(.nc-cal-popup),
-html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-gray-50"]:not([class*="bg-gray-500"])[class*="rounded"] {
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(.nc-cal-popup):not(.nc-readonly-field),
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-gray-50"]:not([class*="bg-gray-500"]):not(.nc-readonly-field)[class*="rounded"] {
   border-color: rgba(255, 255, 255, 0.86) !important;
   background: var(--g-1) !important;
   -webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
@@ -168,12 +168,12 @@ html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div
   box-shadow: var(--sh-1), var(--sheen) !important;
 }
 
-html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(.nc-cal-popup):hover {
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(.nc-cal-popup):not(.nc-readonly-field):hover {
   border-color: var(--edge) !important;
 }
 
 html[data-theme="light"] [data-liquid-glass="enabled"] :is(.rounded-2xl, .rounded-3xl):not(.nc-cal-popup) { border-radius: var(--r-md) !important; }
-html[data-theme="light"] [data-liquid-glass="enabled"] :is(.rounded-xl, .rounded-lg):not(.nc-rc-tab):not(.nc-cal-day):not(.nc-date-trigger):not(input):not(select):not(.lq-trigger) { border-radius: var(--r-sm) !important; }
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(.rounded-xl, .rounded-lg):not(.nc-readonly-field):not(.nc-rc-tab):not(.nc-cal-day):not(.nc-date-trigger):not(input):not(select):not(.lq-trigger) { border-radius: var(--r-sm) !important; }
 
 html[data-theme="light"] [data-liquid-glass="enabled"] :is(.border-gray-50, .border-gray-100, .border-gray-200, [class*="border-gray"]):not(.nc-date-trigger):not(input) {
   border-color: var(--edge-soft) !important;
@@ -590,7 +590,7 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .fixed.inset-0 > div[clas
    deliberate table-wrapper flattening intact.
 
    The attribute selector is repeated purely for specificity: the generic panel
-   rule is [class*="bg-white"][class*="rounded"]:not(.nc-cal-popup) and the
+   rule is [class*="bg-white"][class*="rounded"]:not(.nc-cal-popup):not(.nc-readonly-field) and the
    blanket radius rule is :is(.rounded-2xl, .rounded-3xl):not(…), both of which
    would otherwise outrank this and keep the shell on the default shadow. */
 html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="rounded"][class*="rounded"][class*="rounded"]:has(> table, > div > table) {
@@ -1048,7 +1048,7 @@ html[data-theme="light"] [data-liquid-glass="enabled"] .lg-kpi {
    very element that scrolls the table, and those were deliberately
    flattened above (no blur, near-flat fill) to stop double-blur and
    sticky-header artefacts. Re-glassing them here would undo that. */
-html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(:has(> table)):not(.nc-cal-popup) {
+html[data-theme="light"] [data-liquid-glass="enabled"] :is(section, article, div)[class*="bg-white"][class*="rounded"]:not(:has(> table)):not(.nc-cal-popup):not(.nc-readonly-field) {
   /* The top highlight is an inset sheen, never a painted 1px stroke: as a
      background layer it rendered as a hard bright line sitting on the card's
      top edge. */
@@ -1650,7 +1650,7 @@ html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"]::before { con
    the darkened ground behind the panel, which is what turned these grey. They
    are plain translucent white over the panel, lifted by an edge and a sheen. */
 html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"][data-liquid-owned] div[class*="bg-white"][class*="rounded"]:not(:has(> table)),
-html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"][data-liquid-owned] div[class*="bg-gray-50"]:not([class*="bg-gray-500"])[class*="rounded"]:not(:has(> table)) {
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"][data-liquid-owned] div[class*="bg-gray-50"]:not([class*="bg-gray-500"]):not(.nc-readonly-field)[class*="rounded"]:not(:has(> table)) {
   border: 1px solid rgba(255, 255, 255, .8) !important;
   background: rgba(255, 255, 255, .4) !important;
   -webkit-backdrop-filter: none !important;
@@ -1986,3 +1986,37 @@ html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"]
   box-shadow: none !important;
 }
 html[data-theme="light"] [data-liquid-glass="enabled"] button[class*="border-2"][class*="bg-emerald-500"] div[class*="bg-white/30"] svg { color: #fff !important; }
+
+/* ── Read-only form fields ──────────────────────────────────────────────────
+   "Değerlendiren Kişi", "Bölge" and friends are divs carrying the shared
+   inputCls, so the control-height rule (which lists input/.lq-trigger/button)
+   skipped them and the card rule claimed them instead — 46px tall at 14px
+   beside a 34px, 12px input in the very same grid row. They are controls, not
+   cards: same box as the input they sit next to, only muted. */
+html[data-theme="light"] [data-liquid-glass="enabled"] .nc-readonly-field.nc-readonly-field {
+  height: 34px !important;
+  min-height: 34px !important;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  padding: 6px 11px 6px 34px !important;
+  border: 1px solid var(--edge-soft) !important;
+  border-radius: 11px !important;
+  background: rgba(255, 255, 255, .5) !important;
+  color: var(--ink-3) !important;
+  font-size: 12px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Inputs with a leading icon: the shared control padding is 11px, but the icon
+   sits at 14px and is 16px wide, so the value was being typed underneath it.
+   Only the left side is reopened; height and type stay on the standard. */
+html[data-theme="light"] [data-liquid-glass="enabled"] input[class*="pl-10"]:not([type="checkbox"]),
+html[data-theme="light"] [data-liquid-glass="enabled"] input[class*="pl-9"]:not([type="checkbox"]) {
+  padding-left: 34px !important;
+}

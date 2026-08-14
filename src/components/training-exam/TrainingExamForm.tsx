@@ -484,7 +484,7 @@ export function TrainingExamForm({ consultants, evaluatorId, evaluatorName }: Pr
                     </label>
                     <div className="relative">
                       <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
-                      <div className={`${inputCls} pl-10 bg-gray-50 text-gray-400 cursor-default`}>
+                      <div className={`nc-readonly-field ${inputCls} pl-10 bg-gray-50 text-gray-400 cursor-default`}>
                         {evaluatorName}
                       </div>
                     </div>
