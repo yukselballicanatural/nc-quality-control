@@ -765,12 +765,12 @@ export function TrainingExamResultsContent({
             data-liquid-glass={liquidOwned ? 'enabled' : undefined}
             onClick={e => e.stopPropagation()}
           >
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">
+            <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-gray-100 flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1 mr-3">
+                <h2 className="text-sm sm:text-base font-bold text-gray-900 truncate">
                   {tx('Sınav Sonucu', 'Exam Result', 'Risultato Esame')}
                 </h2>
-                <p className="text-sm text-gray-400 mt-0.5">
+                <p className="text-xs text-gray-400 mt-0.5 truncate">
                   {getConsultantName(viewResult)} · {formatDate(viewResult.created_at)}
                   {viewResult.training_type && (
                     <> · {viewResult.training_type === 'pre' ? 'Pre-Training' : 'Post-Training'}</>
@@ -780,9 +780,9 @@ export function TrainingExamResultsContent({
               <button
                 type="button"
                 onClick={() => setViewResult(null)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+                className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
