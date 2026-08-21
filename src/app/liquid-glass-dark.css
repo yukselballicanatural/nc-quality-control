@@ -1425,11 +1425,19 @@ html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dial
   color: #fb7185 !important;
   font-size: 12.5px !important;
   font-weight: 800 !important;
+  line-height: 1.35 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
 }
 
 html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-meta-card div:last-child {
   color: #97a2b8 !important;
   font-size: 11px !important;
+  line-height: 1.35 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
 }
 
 html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-error {

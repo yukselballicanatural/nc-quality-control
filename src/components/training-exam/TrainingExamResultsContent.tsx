@@ -710,7 +710,7 @@ export function TrainingExamResultsContent({
                     )}
                   </p>
                   <div className="nc-delete-meta-card mt-4 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
-                    <div className="truncate text-sm font-semibold text-gray-900">
+                    <div className="text-sm font-semibold text-gray-900">
                       {getConsultantName(deleteResult)}
                     </div>
                     <div className="mt-0.5 text-xs text-gray-400">

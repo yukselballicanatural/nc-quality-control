@@ -1765,11 +1765,19 @@ html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dia
   color: #ef4444 !important;
   font-size: 12.5px !important;
   font-weight: 800 !important;
+  line-height: 1.35 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
 }
 
 html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-meta-card div:last-child {
   color: #6f788a !important;
   font-size: 11px !important;
+  line-height: 1.35 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
 }
 
 html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-error {
