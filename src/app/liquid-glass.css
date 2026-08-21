@@ -1720,6 +1720,68 @@ html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-view-dialo
   background: rgba(255, 255, 255, .30) !important;
 }
 
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-exam-view-dialog {
+  max-width: 860px !important;
+}
+
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-exam-view-dialog .nc-exam-view-body {
+  padding: 18px 24px 28px !important;
+  gap: 18px !important;
+}
+
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-exam-view-dialog .nc-exam-kpi-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-exam-view-dialog .nc-exam-kpi-grid > div {
+  border-radius: 18px !important;
+  padding: 15px 16px !important;
+  min-height: 92px;
+}
+
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-exam-view-dialog .nc-exam-kpi-grid > div:nth-child(2) {
+  order: -2;
+  grid-column: span 2;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: linear-gradient(145deg, rgba(209, 250, 229, .58), rgba(187, 247, 208, .34)) !important;
+  color: #047857 !important;
+}
+
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-exam-view-dialog .nc-exam-kpi-grid > div:nth-child(4) {
+  order: -1;
+  grid-column: span 2;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-exam-view-dialog .nc-exam-kpi-grid > div:nth-child(2) p:last-child,
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-exam-view-dialog .nc-exam-kpi-grid > div:nth-child(4) p:last-child {
+  font-size: 34px !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-exam-view-dialog .nc-exam-note-card,
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-exam-view-dialog .nc-exam-criteria-card {
+  border-radius: 18px !important;
+}
+
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-exam-view-dialog .nc-exam-criteria-card > div:last-child > div {
+  padding: 14px 16px !important;
+}
+
+@media (max-width: 720px) {
+  html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-exam-view-dialog .nc-exam-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
 html[data-theme="light"] .nc-modal-backdrop[data-liquid-owned="true"].nc-delete-backdrop {
   background:
     radial-gradient(900px 520px at 54% 48%, rgba(13, 148, 136, .19), transparent 70%),

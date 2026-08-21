@@ -760,7 +760,7 @@ export function TrainingExamResultsContent({
           onClick={() => setViewResult(null)}
         >
           <div
-            className="nc-modal-panel nc-view-dialog w-full max-w-3xl max-h-[90vh] overflow-hidden bg-white rounded-2xl shadow-2xl"
+            className="nc-modal-panel nc-view-dialog nc-exam-view-dialog w-full max-w-3xl max-h-[90vh] overflow-hidden bg-white rounded-2xl shadow-2xl"
             data-liquid-owned={liquidOwned}
             data-liquid-glass={liquidOwned ? 'enabled' : undefined}
             onClick={e => e.stopPropagation()}
@@ -786,8 +786,8 @@ export function TrainingExamResultsContent({
               </button>
             </div>
 
-            <div className="p-5 overflow-y-auto max-h-[calc(90vh-76px)] space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="nc-exam-view-body p-5 overflow-y-auto max-h-[calc(90vh-76px)] space-y-4">
+              <div className="nc-exam-kpi-grid grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400">
                     {tx('Seviye', 'Level', 'Livello')}
@@ -818,7 +818,7 @@ export function TrainingExamResultsContent({
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <div className="nc-exam-note-card rounded-2xl border border-gray-100 bg-gray-50 p-4">
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400">
                   {tx('Sınav Notu', 'Exam Note', 'Nota Esame')}
                 </p>
@@ -829,7 +829,7 @@ export function TrainingExamResultsContent({
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-gray-100 overflow-hidden">
+              <div className="nc-exam-criteria-card rounded-2xl border border-gray-100 overflow-hidden">
                 <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
                   <p className="text-xs font-black text-gray-500 uppercase tracking-[0.14em]">
                     {tx('Kriter Detayları', 'Criteria Breakdown', 'Dettaglio Criteri')}
