@@ -755,12 +755,12 @@ export function TrainingExamResultsContent({
       {viewResult && (
         <Portal>
         <div
-          className="nc-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+          className="nc-modal-backdrop nc-view-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
           data-liquid-owned={liquidOwned}
           onClick={() => setViewResult(null)}
         >
           <div
-            className="nc-modal-panel w-full max-w-3xl max-h-[90vh] overflow-hidden bg-white rounded-2xl shadow-2xl"
+            className="nc-modal-panel nc-view-dialog w-full max-w-3xl max-h-[90vh] overflow-hidden bg-white rounded-2xl shadow-2xl"
             data-liquid-owned={liquidOwned}
             data-liquid-glass={liquidOwned ? 'enabled' : undefined}
             onClick={e => e.stopPropagation()}

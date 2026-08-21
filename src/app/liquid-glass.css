@@ -1686,6 +1686,40 @@ html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"][data-liquid-o
 
 /* Body cells sit at the 12px body step; the sizing rules above only cover
    form controls. */
+html[data-theme="light"] .nc-modal-backdrop[data-liquid-owned="true"].nc-view-backdrop {
+  background:
+    radial-gradient(980px 620px at 50% 34%, rgba(191, 219, 254, .24), transparent 68%),
+    rgba(35, 48, 86, .22) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(132%) !important;
+  backdrop-filter: blur(24px) saturate(132%) !important;
+}
+
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-view-dialog {
+  border: 1px solid rgba(255, 255, 255, .78) !important;
+  background:
+    linear-gradient(155deg, rgba(222, 231, 255, .72) 0%, rgba(198, 225, 247, .68) 44%, rgba(184, 229, 239, .62) 100%) !important;
+  color: #182033 !important;
+  -webkit-backdrop-filter: blur(50px) saturate(175%) !important;
+  backdrop-filter: blur(50px) saturate(175%) !important;
+  box-shadow: 0 26px 76px rgba(31, 45, 82, .28), 0 52px 140px -46px rgba(14, 165, 233, .42), inset 0 1px 0 rgba(255, 255, 255, .88) !important;
+}
+
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-view-dialog [class*="border-b"],
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-view-dialog [class*="border-t"] {
+  border-color: rgba(255, 255, 255, .46) !important;
+}
+
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-view-dialog div[class*="bg-white"][class*="rounded"]:not(:has(> table)),
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-view-dialog div[class*="bg-gray-50"]:not([class*="bg-gray-500"])[class*="rounded"]:not(:has(> table)) {
+  border-color: rgba(255, 255, 255, .72) !important;
+  background: rgba(255, 255, 255, .38) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .76), 0 8px 22px -18px rgba(23, 43, 99, .36) !important;
+}
+
+html[data-theme="light"] .nc-modal-panel[data-liquid-owned="true"].nc-view-dialog [class*="bg-gray-50"]:not([class*="bg-gray-500"])[class*="border-b"] {
+  background: rgba(255, 255, 255, .30) !important;
+}
+
 html[data-theme="light"] .nc-modal-backdrop[data-liquid-owned="true"].nc-delete-backdrop {
   background:
     radial-gradient(900px 520px at 54% 48%, rgba(13, 148, 136, .19), transparent 70%),

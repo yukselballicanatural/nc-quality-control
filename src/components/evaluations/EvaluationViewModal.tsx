@@ -687,7 +687,7 @@ export function EvaluationViewModal({ evalId, evaluation, loading, canEdit, onCl
         /* Single overlay element: backdrop + centering in one fixed box */
         <motion.div
           key="overlay"
-          className="nc-modal-backdrop"
+          className="nc-modal-backdrop nc-view-backdrop"
           data-liquid-owned={liquidOwned}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -714,7 +714,7 @@ export function EvaluationViewModal({ evalId, evaluation, loading, canEdit, onCl
           {/* Modal card — stopPropagation prevents overlay click from closing */}
           <motion.div
             key="card"
-            className="nc-modal-panel"
+            className="nc-modal-panel nc-view-dialog"
             data-liquid-owned={liquidOwned}
             /* The portal drops this card outside the app shell, so the glass
                sheet's scope selector no longer reaches it and every card in
