@@ -44,6 +44,7 @@ function emptyResultProps(params: {
   level: string
   result: string
   evaluator: string
+  consultant: string
   startDate: string
   endDate: string
   sortBy: ValidSortCol
@@ -58,6 +59,7 @@ function emptyResultProps(params: {
     filterLevel: params.level,
     filterResult: params.result,
     filterEvaluator: params.evaluator,
+    filterConsultant: params.consultant,
     filterStartDate: params.startDate,
     filterEndDate: params.endDate,
     sortBy: params.sortBy,
@@ -79,6 +81,7 @@ export default async function TrainingExamResultsPage({ searchParams }: PageProp
   const level = typeof sp.level === 'string' ? sp.level : ''
   const result = typeof sp.result === 'string' ? sp.result : ''
   const evaluatorId = typeof sp.evaluator === 'string' ? sp.evaluator : ''
+  const consultantId = typeof sp.consultant === 'string' ? sp.consultant : ''
   const startDate = typeof sp.startDate === 'string' ? sp.startDate : ''
   const endDate = typeof sp.endDate === 'string' ? sp.endDate : ''
   const page = typeof sp.page === 'string' ? Math.max(1, parseInt(sp.page) || 1) : 1
@@ -125,6 +128,7 @@ export default async function TrainingExamResultsPage({ searchParams }: PageProp
     level,
     result,
     evaluator: evaluatorId,
+    consultant: consultantId,
     startDate,
     endDate,
     sortBy,
@@ -151,6 +155,10 @@ export default async function TrainingExamResultsPage({ searchParams }: PageProp
         .order('full_name')
     : { data: [] }
 
+  if (consultantId && consultantScopeIds) {
+    consultantScopeIds = consultantScopeIds.includes(consultantId) ? [consultantId] : []
+  }
+
   if (consultantScopeIds && consultantScopeIds.length === 0) {
     return (
       <TrainingExamResultsContent
@@ -169,6 +177,8 @@ export default async function TrainingExamResultsPage({ searchParams }: PageProp
   if (consultantScopeIds) {
     // Team-leader search already narrowed consultantScopeIds above.
     query = query.in('consultant_id', consultantScopeIds)
+  } else if (consultantId) {
+    query = query.eq('consultant_id', consultantId)
   } else if (q) {
     // Unscoped roles (manager/quality team) can also match the free-text
     // consultant_name used for agent-sourced exams that have no profile row.
@@ -226,6 +236,7 @@ export default async function TrainingExamResultsPage({ searchParams }: PageProp
       filterLevel={level}
       filterResult={result}
       filterEvaluator={evaluatorId}
+      filterConsultant={consultantId}
       filterStartDate={startDate}
       filterEndDate={endDate}
       sortBy={sortBy}

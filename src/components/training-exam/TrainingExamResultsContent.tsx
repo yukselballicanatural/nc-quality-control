@@ -14,8 +14,6 @@ import {
   ChevronUp,
   ChevronDown,
   CheckCircle2,
-  XCircle,
-  GraduationCap,
   Eye,
   Pencil,
   Trash2,
@@ -56,6 +54,7 @@ interface Props {
   filterLevel: string
   filterResult: string
   filterEvaluator: string
+  filterConsultant: string
   filterStartDate: string
   filterEndDate: string
   sortBy: string
@@ -198,6 +197,7 @@ export function TrainingExamResultsContent({
   filterLevel,
   filterResult,
   filterEvaluator,
+  filterConsultant,
   filterStartDate,
   filterEndDate,
   sortBy: serverSortBy,
@@ -206,7 +206,8 @@ export function TrainingExamResultsContent({
   consultants,
   evaluatorOptions,
 }: Props) {
-  const liquidOwned = useLiquidGlass() ? 'true' : undefined
+  const isLiquidGlassUser = useLiquidGlass()
+  const liquidOwned = isLiquidGlassUser ? 'true' : undefined
   const { lang, t } = useLanguage()
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -225,20 +226,29 @@ export function TrainingExamResultsContent({
   const [deleteSuccess, setDeleteSuccess] = useState('')
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deletedIds, setDeletedIds] = useState<Set<string>>(() => new Set())
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false)
+  const [bulkDeleteError, setBulkDeleteError] = useState('')
   const tx = (tr: string, en: string, it: string) => lang === 'tr' ? tr : lang === 'it' ? it : en
   const locale = lang === 'tr' ? 'tr-TR' : lang === 'it' ? 'it-IT' : 'en-US'
   const criteria = lang === 'tr' ? CRITERIA_TR : lang === 'it' ? CRITERIA_IT : CRITERIA_EN
   const canCreate = role === 'quality_team' || role === 'team_leader' || role === 'manager'
   const canEdit = role === 'quality_team' || role === 'team_leader' || role === 'manager'
   const canDelete = role === 'quality_team' || role === 'manager'
+  const canSelectRows = isLiquidGlassUser
 
   useEffect(() => {
     setLocalSearch(searchQuery)
   }, [searchQuery])
 
+  useEffect(() => {
+    setSelectedIds(new Set())
+  }, [results])
+
   // Lock background scrolling while any modal (view / edit / delete) is open,
   // so scrolling inside the popup never moves the page behind it.
-  const anyModalOpen = Boolean(viewResult || editResult || deletingId)
+  const anyModalOpen = Boolean(viewResult || editResult || deletingId || bulkDeleteOpen)
   useEffect(() => {
     if (!anyModalOpen) return
     const prev = document.body.style.overflow
@@ -272,6 +282,7 @@ export function TrainingExamResultsContent({
       level: filterLevel,
       result: filterResult,
       evaluator: filterEvaluator,
+      consultant: filterConsultant,
       startDate: filterStartDate,
       endDate: filterEndDate,
       sortBy: serverSortBy,
@@ -382,6 +393,83 @@ export function TrainingExamResultsContent({
       )
     } finally {
       setDeleteLoading(false)
+    }
+  }
+
+  function toggleSelected(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds(prev =>
+      prev.size === visibleResults.length
+        ? new Set()
+        : new Set(visibleResults.map(result => result.id))
+    )
+  }
+
+  async function handleBulkDelete() {
+    setBulkDeleteLoading(true)
+    setBulkDeleteError('')
+    const ids = Array.from(selectedIds)
+    try {
+      const results = await Promise.all(
+        ids.map(async id => {
+          const response = await fetch(`/api/training-exams/${encodeURIComponent(id)}`, {
+            method: 'DELETE',
+          })
+          return { id, ok: response.ok }
+        })
+      )
+      const succeeded = results.filter(result => result.ok).map(result => result.id)
+      const failedCount = results.length - succeeded.length
+
+      if (succeeded.length > 0) {
+        setDeletedIds(prev => {
+          const next = new Set(prev)
+          succeeded.forEach(id => next.add(id))
+          return next
+        })
+        setDeleteSuccess(
+          failedCount > 0
+            ? tx(`${succeeded.length} sınav sonucu silindi, ${failedCount} tanesi silinemedi.`, `${succeeded.length} exam results deleted, ${failedCount} failed.`, `${succeeded.length} risultati esame eliminati, ${failedCount} non riusciti.`)
+            : tx(`${succeeded.length} sınav sonucu silindi.`, `${succeeded.length} exam results deleted.`, `${succeeded.length} risultati esame eliminati.`)
+        )
+        setTimeout(() => setDeleteSuccess(''), 2500)
+      }
+
+      if (failedCount > 0 && succeeded.length === 0) {
+        setBulkDeleteError(
+          tx(
+            'Seçilen sınav sonuçları silinemedi. Yetki veya bağlantı problemi olabilir.',
+            'Selected exam results could not be deleted. There may be a permission or connection issue.',
+            'Impossibile eliminare i risultati esame selezionati. Potrebbe esserci un problema di autorizzazione o connessione.'
+          )
+        )
+        return
+      }
+
+      setSelectedIds(new Set())
+      setBulkDeleteOpen(false)
+      startTransition(() => {
+        router.refresh()
+      })
+    } catch (error) {
+      console.error('Training exam bulk delete error:', error)
+      setBulkDeleteError(
+        tx(
+          'Seçilen sınav sonuçları silinemedi. Yetki veya bağlantı problemi olabilir.',
+          'Selected exam results could not be deleted. There may be a permission or connection issue.',
+          'Impossibile eliminare i risultati esame selezionati. Potrebbe esserci un problema di autorizzazione o connessione.'
+        )
+      )
+    } finally {
+      setBulkDeleteLoading(false)
     }
   }
 
@@ -499,7 +587,7 @@ export function TrainingExamResultsContent({
   }
 
   const hasFilters =
-    localSearch || filterLevel || filterResult || filterEvaluator || filterStartDate || filterEndDate
+    localSearch || filterLevel || filterResult || filterEvaluator || (canSelectRows && filterConsultant) || filterStartDate || filterEndDate
   const totalPages = Math.ceil(totalCount / pageSize)
   const visibleResults = results.filter(result => !deletedIds.has(result.id))
   const deleteResult = deletingId
@@ -513,6 +601,61 @@ export function TrainingExamResultsContent({
           <CheckCircle2 className="h-5 w-5 text-[#52B788]" />
           {deleteSuccess}
         </div>
+      )}
+
+      {bulkDeleteOpen && (
+        <Portal>
+        <div className="nc-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" data-liquid-owned={liquidOwned}>
+          <div className="nc-modal-panel w-full max-w-md rounded-2xl bg-white shadow-2xl" data-liquid-owned={liquidOwned} data-liquid-glass={liquidOwned ? 'enabled' : undefined}>
+            <div className="p-5">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-500">
+                  <Trash2 className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-base font-bold text-gray-950">
+                    {tx('Seçilen sınav sonuçları silinsin mi?', 'Delete selected exam results?', 'Eliminare i risultati esame selezionati?')}
+                  </h2>
+                  <p className="mt-1 text-sm leading-6 text-gray-500">
+                    {tx(
+                      `${selectedIds.size} kayıt sistemden kalıcı olarak silinecek. Bu işlem geri alınamaz.`,
+                      `${selectedIds.size} records will be permanently removed. This cannot be undone.`,
+                      `${selectedIds.size} record saranno eliminati definitivamente. Questa azione non può essere annullata.`
+                    )}
+                  </p>
+                  {bulkDeleteError && (
+                    <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
+                      {bulkDeleteError}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setBulkDeleteOpen(false)
+                  setBulkDeleteError('')
+                }}
+                disabled={bulkDeleteLoading}
+                className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50"
+              >
+                {tx('Vazgeç', 'Cancel', 'Annulla')}
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleteLoading}
+                className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+              >
+                <Trash2 className="h-4 w-4" />
+                {bulkDeleteLoading ? tx('Siliniyor...', 'Deleting...', 'Eliminazione...') : tx('Evet, sil', 'Yes, delete', 'Sì, elimina')}
+              </button>
+            </div>
+          </div>
+        </div>
+        </Portal>
       )}
 
       {deleteResult && (
@@ -903,6 +1046,36 @@ export function TrainingExamResultsContent({
         )}
       </div>
 
+      {canSelectRows && selectedIds.size > 0 && (
+        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#1B4332]/5 border border-[#1B4332]/15 rounded-2xl">
+          <span className="text-sm font-medium text-[#1B4332]">
+            {tx(`${selectedIds.size} kayıt seçildi`, `${selectedIds.size} selected`, `${selectedIds.size} selezionati`)}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedIds(new Set())}
+              className="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              {tx('Seçimi temizle', 'Clear selection', 'Pulisci selezione')}
+            </button>
+            {canDelete && (
+              <button
+                type="button"
+                onClick={() => {
+                  setBulkDeleteError('')
+                  setBulkDeleteOpen(true)
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                {tx('Seçilenleri Sil', 'Delete Selected', 'Elimina Selezionati')}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3.5">
         <div className="flex items-center gap-2.5">
           <div className="flex items-center gap-2 text-gray-400 flex-shrink-0">
@@ -942,7 +1115,7 @@ export function TrainingExamResultsContent({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <div className="nc-filter-w w-[130px] flex-shrink-0">
+          <div className="nc-filter-w w-[168px] flex-shrink-0">
             <SearchableSelect
               value={filterLevel}
               onChange={v => updateFilter('level', v)}
@@ -955,7 +1128,7 @@ export function TrainingExamResultsContent({
             />
           </div>
 
-          <div className="nc-filter-w w-[168px] flex-shrink-0">
+          <div className="nc-filter-w w-[176px] flex-shrink-0">
             <SearchableSelect
               value={filterResult}
               onChange={v => updateFilter('result', v)}
@@ -967,6 +1140,21 @@ export function TrainingExamResultsContent({
               icon={Target}
             />
           </div>
+
+          {canSelectRows && consultants.length > 0 && (
+            <div className="nc-filter-w w-[200px] flex-shrink-0">
+              <SearchableSelect
+                value={filterConsultant}
+                onChange={v => updateFilter('consultant', v)}
+                options={consultants.map(consultant => ({
+                  value: consultant.id,
+                  label: consultant.full_name || consultant.email || 'Natural Clinic',
+                }))}
+                placeholder={tx('Danışman: Tümü', 'Consultant: All', 'Consulente: Tutti')}
+                icon={User}
+              />
+            </div>
+          )}
 
           {role === 'manager' && (
             <div className="nc-filter-w w-[200px] flex-shrink-0">
@@ -1011,16 +1199,23 @@ export function TrainingExamResultsContent({
       >
         {visibleResults.length === 0 ? (
           <div className="py-20 text-center">
-            <GraduationCap className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-            <p className="text-sm text-gray-400">
-              {tx('Henüz sınav sonucu bulunmuyor.', 'No exam results found.', 'Nessun risultato esame trovato.')}
-            </p>
+            <p className="text-sm text-gray-400">{tx('Henüz sınav sonucu bulunmuyor.', 'No exam results found.', 'Nessun risultato esame trovato.')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/60">
+                  {canSelectRows && (
+                    <th className="px-4 py-3 w-8">
+                      <input
+                        type="checkbox"
+                        checked={visibleResults.length > 0 && selectedIds.size === visibleResults.length}
+                        onChange={toggleSelectAll}
+                        className="w-4 h-4 rounded border-gray-300 text-[#1B4332] focus:ring-[#1B4332]/30 cursor-pointer"
+                      />
+                    </th>
+                  )}
                   <th className="text-left px-4 py-3 whitespace-nowrap">
                     <button
                       type="button"
@@ -1057,6 +1252,11 @@ export function TrainingExamResultsContent({
                   <th className="text-left px-4 py-3 font-medium text-gray-500 whitespace-nowrap">
                     {t.evaluations.result}
                   </th>
+                  {canSelectRows && (
+                    <th className="text-left px-4 py-3 font-medium text-gray-500 whitespace-nowrap hidden sm:table-cell">
+                      {tx('Durum', 'Status', 'Stato')}
+                    </th>
+                  )}
                   <th className="text-left px-4 py-3 font-medium text-gray-500 whitespace-nowrap hidden md:table-cell">
                     {t.evaluations.evaluator}
                   </th>
@@ -1072,8 +1272,20 @@ export function TrainingExamResultsContent({
                   return (
                     <tr
                       key={result.id}
-                      className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors"
+                      className={`border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors ${
+                        selectedIds.has(result.id) ? 'bg-[#1B4332]/[0.03]' : ''
+                      }`}
                     >
+                      {canSelectRows && (
+                        <td className="px-4 py-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(result.id)}
+                            onChange={() => toggleSelected(result.id)}
+                            className="w-4 h-4 rounded border-gray-300 text-[#1B4332] focus:ring-[#1B4332]/30 cursor-pointer"
+                          />
+                        </td>
+                      )}
                       <td className="px-4 py-3 whitespace-nowrap text-gray-700">
                         {formatDate(result.created_at)}
                       </td>
@@ -1083,43 +1295,41 @@ export function TrainingExamResultsContent({
                         </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-full font-semibold bg-[#1B4332]/8 text-[#1B4332] capitalize">
-                          <GraduationCap className="w-3.5 h-3.5" />
+                        <span className="inline-block text-xs px-2 py-0.5 rounded-full font-medium bg-[#1B4332]/8 text-[#1B4332] capitalize">
                           {result.level}
                         </span>
-                        {result.training_type && (
-                          <p className="text-[11px] text-gray-400 mt-1">
-                            {result.training_type === 'pre'
-                              ? 'Pre-Training'
-                              : 'Post-Training'}
-                          </p>
-                        )}
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <span className="text-base font-bold text-gray-900">
                           {result.total_score}
                         </span>
-                        <span className="text-gray-300 text-xs ml-1">
-                          {tx(`eşik ${threshold}`, `target ${threshold}`, `soglia ${threshold}`)}
-                        </span>
+                        <span className="text-gray-300 text-xs ml-0.5">/40</span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span
-                          className={`inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-full font-semibold ${
+                          title={tx(`Eşik ${threshold}`, `Target ${threshold}`, `Soglia ${threshold}`)}
+                          className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${
                             result.passed
                               ? 'bg-green-100 text-green-700'
                               : 'bg-red-100 text-red-700'
                           }`}
                         >
                           {result.passed
-                            ? <CheckCircle2 className="w-3.5 h-3.5" />
-                            : <XCircle className="w-3.5 h-3.5" />
-                          }
-                          {result.passed
                             ? tx('GEÇTİ', 'PASSED', 'SUPERATO')
                             : tx('KALDI', 'FAILED', 'NON SUPERATO')}
                         </span>
                       </td>
+                      {canSelectRows && (
+                        <td className="px-4 py-3 whitespace-nowrap hidden sm:table-cell">
+                          <span className="inline-block text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">
+                            {result.training_type
+                              ? result.training_type === 'pre'
+                                ? 'Pre'
+                                : 'Post'
+                              : tx('Sınav', 'Exam', 'Esame')}
+                          </span>
+                        </td>
+                      )}
                       <td className="px-4 py-3 whitespace-nowrap hidden md:table-cell text-gray-600">
                         {result.evaluator?.full_name || result.evaluator?.email || 'Natural Clinic'}
                       </td>
