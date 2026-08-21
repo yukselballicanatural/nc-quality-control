@@ -82,6 +82,14 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
     : <ChevronDown className="w-3.5 h-3.5 text-[#1B4332] inline ml-1" />
 }
 
+function useLiquidGlass() {
+  const [enabled, setEnabled] = useState(false)
+  useEffect(() => {
+    setEnabled(Boolean(document.querySelector('[data-liquid-glass="enabled"]')))
+  }, [])
+  return enabled
+}
+
 function getChannels(ev: EvaluationListItem): ChannelType[] {
   // The full set of selected channels lives in `channels`. Fall back to the
   // primary channel (+ any channel_checks) for legacy rows without it.
@@ -140,6 +148,8 @@ export function EvaluationsContent({
   sortBy: serverSortBy,
   sortDir: serverSortDir,
 }: Props) {
+  const isLiquidGlassUser = useLiquidGlass()
+  const liquidOwned = isLiquidGlassUser ? 'true' : undefined
   const { lang, t } = useLanguage()
   const tx = (tr: string, en: string, it: string) => textFor(lang, tr, en, it)
   const router = useRouter()
@@ -434,6 +444,14 @@ export function EvaluationsContent({
 
   // ── Derived ────────────────────────────────────────────────────
 
+  const deletePopupOpen = Boolean(deletingId || bulkDeleteOpen || (isLiquidGlassUser && deleteSuccess))
+  useEffect(() => {
+    if (!deletePopupOpen) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = previousOverflow }
+  }, [deletePopupOpen])
+
   const hasFilters =
     localSearch || filterChannel || filterStatus || filterResult || filterEvaluator || filterConsultant ||
     filterTeamLeader || filterStartDate || filterEndDate
@@ -446,25 +464,25 @@ export function EvaluationsContent({
     <div className="space-y-4">
       {deleteEvaluation && typeof document !== 'undefined' && createPortal(
         (
-        <div className="fixed inset-0 z-[100] bg-black/40">
-          <div className="fixed left-1/2 top-1/2 w-[calc(100vw-2rem)] max-w-md max-h-[calc(100dvh-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl bg-white shadow-2xl">
-            <div className="p-5">
+        <div className="nc-modal-backdrop nc-delete-backdrop fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4" data-liquid-owned={liquidOwned}>
+          <div className="nc-modal-panel nc-delete-dialog w-full max-w-[430px] overflow-hidden rounded-2xl bg-white shadow-2xl" data-liquid-owned={liquidOwned} data-liquid-glass={liquidOwned ? 'enabled' : undefined}>
+            <div className="nc-delete-body p-5">
               <div className="flex items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-500">
+                <div className="nc-delete-icon nc-delete-icon--danger flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-500">
                   <Trash2 className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-base font-bold text-gray-950">
+                  <h2 className="nc-delete-title text-base font-bold text-gray-950">
                     {tx('Değerlendirme silinsin mi?', 'Delete evaluation?', 'Eliminare la valutazione?')}
                   </h2>
-                  <p className="mt-1 text-sm leading-6 text-gray-500">
+                  <p className="nc-delete-copy mt-1 text-sm leading-6 text-gray-500">
                     {tx(
                       'Bu işlem geri alınamaz. Seçili değerlendirme sistemden kalıcı olarak silinecek.',
                       'This cannot be undone. The selected evaluation will be permanently removed.',
                       'Questa azione non può essere annullata. La valutazione selezionata sarà eliminata definitivamente.'
                     )}
                   </p>
-                  <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
+                  <div className="nc-delete-meta-card mt-4 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
                     <div className="truncate text-sm font-semibold text-gray-900">
                       {deleteEvaluation.consultant?.full_name ?? deleteEvaluation.consultant_name ?? deleteEvaluation.customer_name}
                     </div>
@@ -480,7 +498,7 @@ export function EvaluationsContent({
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4">
+            <div className="nc-delete-actions flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4">
               <button
                 type="button"
                 onClick={() => {
@@ -488,7 +506,7 @@ export function EvaluationsContent({
                   setDeleteError('')
                 }}
                 disabled={deleteLoading}
-                className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50"
+                className="nc-delete-cancel rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50"
               >
                 {tx('Vazgeç', 'Cancel', 'Annulla')}
               </button>
@@ -496,7 +514,7 @@ export function EvaluationsContent({
                 type="button"
                 onClick={() => handleDelete(deleteEvaluation.id)}
                 disabled={deleteLoading}
-                className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+                className="nc-delete-danger inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
               >
                 <Trash2 className="h-4 w-4" />
                 {deleteLoading ? tx('Siliniyor...', 'Deleting...', 'Eliminazione...') : tx('Evet, sil', 'Yes, delete', 'Sì, elimina')}
@@ -510,18 +528,18 @@ export function EvaluationsContent({
 
       {bulkDeleteOpen && typeof document !== 'undefined' && createPortal(
         (
-        <div className="fixed inset-0 z-[100] bg-black/40">
-          <div className="fixed left-1/2 top-1/2 w-[calc(100vw-2rem)] max-w-md max-h-[calc(100dvh-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl bg-white shadow-2xl">
-            <div className="p-5">
+        <div className="nc-modal-backdrop nc-delete-backdrop fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4" data-liquid-owned={liquidOwned}>
+          <div className="nc-modal-panel nc-delete-dialog w-full max-w-[430px] overflow-hidden rounded-2xl bg-white shadow-2xl" data-liquid-owned={liquidOwned} data-liquid-glass={liquidOwned ? 'enabled' : undefined}>
+            <div className="nc-delete-body p-5">
               <div className="flex items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-500">
+                <div className="nc-delete-icon nc-delete-icon--danger flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-500">
                   <Trash2 className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-base font-bold text-gray-950">
+                  <h2 className="nc-delete-title text-base font-bold text-gray-950">
                     {tx(`${selectedIds.size} değerlendirme silinsin mi?`, `Delete ${selectedIds.size} evaluations?`, `Eliminare ${selectedIds.size} valutazioni?`)}
                   </h2>
-                  <p className="mt-1 text-sm leading-6 text-gray-500">
+                  <p className="nc-delete-copy mt-1 text-sm leading-6 text-gray-500">
                     {tx(
                       'Bu işlem geri alınamaz. Seçili değerlendirmeler sistemden kalıcı olarak silinecek.',
                       'This cannot be undone. The selected evaluations will be permanently removed.',
@@ -529,14 +547,14 @@ export function EvaluationsContent({
                     )}
                   </p>
                   {bulkDeleteError && (
-                    <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
+                    <div className="nc-delete-error mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
                       {bulkDeleteError}
                     </div>
                   )}
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4">
+            <div className="nc-delete-actions flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4">
               <button
                 type="button"
                 onClick={() => {
@@ -544,7 +562,7 @@ export function EvaluationsContent({
                   setBulkDeleteError('')
                 }}
                 disabled={bulkDeleteLoading}
-                className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50"
+                className="nc-delete-cancel rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50"
               >
                 {tx('Vazgeç', 'Cancel', 'Annulla')}
               </button>
@@ -552,7 +570,7 @@ export function EvaluationsContent({
                 type="button"
                 onClick={handleBulkDelete}
                 disabled={bulkDeleteLoading}
-                className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+                className="nc-delete-danger inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
               >
                 <Trash2 className="h-4 w-4" />
                 {bulkDeleteLoading
@@ -566,7 +584,39 @@ export function EvaluationsContent({
         document.body
       )}
 
-      {deleteSuccess && (
+      {deleteSuccess && isLiquidGlassUser && typeof document !== 'undefined' && createPortal(
+        (
+        <div className="nc-modal-backdrop nc-delete-backdrop fixed inset-0 z-[110] flex items-center justify-center bg-black/40 p-4" data-liquid-owned={liquidOwned}>
+          <div className="nc-modal-panel nc-delete-dialog nc-delete-dialog--success w-full max-w-[430px] overflow-hidden rounded-2xl bg-white shadow-2xl" data-liquid-owned={liquidOwned} data-liquid-glass={liquidOwned ? 'enabled' : undefined}>
+            <div className="nc-delete-body flex items-start gap-3.5 p-5 pb-2">
+              <div className="nc-delete-icon nc-delete-icon--success flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="nc-delete-title text-base font-bold text-gray-950">
+                  {tx('Değerlendirme Silindi', 'Evaluation Deleted', 'Valutazione eliminata')}
+                </h2>
+                <p className="nc-delete-copy mt-1 text-sm leading-6 text-gray-500">
+                  <strong className="nc-delete-name nc-delete-name--success">{deleteSuccess}</strong>
+                </p>
+              </div>
+            </div>
+            <div className="nc-delete-actions flex items-center justify-end gap-2 px-5 pb-5 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteSuccess('')}
+                className="nc-delete-success rounded-xl px-4 py-2 text-sm font-semibold text-white"
+              >
+                {tx('Kapat', 'Close', 'Chiudi')}
+              </button>
+            </div>
+          </div>
+        </div>
+        ),
+        document.body
+      )}
+
+      {deleteSuccess && !isLiquidGlassUser && (
         <div className="fixed bottom-6 right-6 z-[110] flex items-center gap-3 rounded-2xl bg-[#1B4332] px-5 py-3.5 text-sm font-semibold text-white shadow-2xl shadow-[#1B4332]/30">
           <CheckCircle2 className="h-5 w-5 text-[#52B788]" />
           {deleteSuccess}

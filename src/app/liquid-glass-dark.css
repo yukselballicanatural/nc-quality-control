@@ -1346,6 +1346,148 @@ html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"][data-liquid-ow
 
 /* Body cells sit at the 12px body step; the sizing rules above only cover
    form controls. */
+html[data-theme="dark"] .nc-modal-backdrop[data-liquid-owned="true"].nc-delete-backdrop {
+  background:
+    radial-gradient(900px 520px at 54% 48%, rgba(13, 148, 136, .15), transparent 70%),
+    rgba(4, 9, 22, .50) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(132%) !important;
+  backdrop-filter: blur(28px) saturate(132%) !important;
+  z-index: 10020 !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog {
+  width: min(430px, calc(100vw - 32px)) !important;
+  min-height: 148px;
+  border: 1px solid rgba(255, 255, 255, .18) !important;
+  border-radius: 20px !important;
+  background: linear-gradient(145deg, rgba(26, 34, 54, .74), rgba(15, 23, 42, .56)) !important;
+  -webkit-backdrop-filter: blur(46px) saturate(176%) !important;
+  backdrop-filter: blur(46px) saturate(176%) !important;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, .42), 0 48px 130px -42px rgba(20, 184, 166, .25), inset 0 1px 0 rgba(255, 255, 255, .16) !important;
+  color: var(--d-ink) !important;
+  animation: ncDeleteInDark .36s var(--d-spring);
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-body {
+  padding: 22px 22px 8px !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-icon {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 14px !important;
+  border: 1px solid currentColor !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12) !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-icon--danger {
+  color: #fb7185 !important;
+  background: rgba(239, 68, 68, .16) !important;
+  border-color: rgba(248, 113, 113, .34) !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-icon--success {
+  color: #34d399 !important;
+  background: rgba(16, 185, 129, .16) !important;
+  border-color: rgba(52, 211, 153, .34) !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-title {
+  color: var(--d-ink) !important;
+  font-size: 14px !important;
+  line-height: 1.25 !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-copy {
+  margin-top: 8px !important;
+  color: #aab4c8 !important;
+  font-size: 12.5px !important;
+  line-height: 1.45 !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-name--success {
+  color: #34d399 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-meta-card {
+  margin-top: 12px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-meta-card div:first-child {
+  color: #fb7185 !important;
+  font-size: 12.5px !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-meta-card div:last-child {
+  color: #97a2b8 !important;
+  font-size: 11px !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-error {
+  border-color: rgba(248, 113, 113, .24) !important;
+  background: rgba(239, 68, 68, .12) !important;
+  color: #fca5a5 !important;
+  font-size: 12px !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-actions {
+  border-top: 0 !important;
+  padding: 8px 22px 20px !important;
+  gap: 9px !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-cancel,
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-danger,
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-success {
+  min-width: 64px !important;
+  height: 38px !important;
+  border-radius: 12px !important;
+  padding: 0 16px !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-cancel {
+  border: 1px solid rgba(255, 255, 255, .14) !important;
+  background: rgba(255, 255, 255, .10) !important;
+  color: #d9e2f2 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 8px 18px -16px rgba(0, 0, 0, .55) !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-danger {
+  border: 0 !important;
+  background: linear-gradient(150deg, #fb4b4b, #dc2626) !important;
+  color: #fff !important;
+  box-shadow: 0 12px 24px -12px rgba(220, 38, 38, .82), inset 0 1px 0 rgba(255, 255, 255, .22) !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-actions svg {
+  display: none !important;
+}
+
+html[data-theme="dark"] .nc-modal-panel[data-liquid-owned="true"].nc-delete-dialog .nc-delete-success {
+  border: 0 !important;
+  background: linear-gradient(150deg, #34c977, #16a34a) !important;
+  color: #fff !important;
+  box-shadow: 0 12px 24px -12px rgba(22, 163, 74, .78), inset 0 1px 0 rgba(255, 255, 255, .22) !important;
+}
+
+@keyframes ncDeleteInDark {
+  from { opacity: 0; transform: translateY(14px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 html[data-theme="dark"] [data-liquid-glass="enabled"] tbody td { font-size: 12px; }
 
 /* Header cells: one padding, one alignment rule, so the labels and their sort

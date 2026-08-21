@@ -248,7 +248,7 @@ export function TrainingExamResultsContent({
 
   // Lock background scrolling while any modal (view / edit / delete) is open,
   // so scrolling inside the popup never moves the page behind it.
-  const anyModalOpen = Boolean(viewResult || editResult || deletingId || bulkDeleteOpen)
+  const anyModalOpen = Boolean(viewResult || editResult || deletingId || bulkDeleteOpen || (isLiquidGlassUser && deleteSuccess))
   useEffect(() => {
     if (!anyModalOpen) return
     const prev = document.body.style.overflow
@@ -596,7 +596,38 @@ export function TrainingExamResultsContent({
 
   return (
     <div className="space-y-4">
-      {deleteSuccess && (
+      {deleteSuccess && isLiquidGlassUser && (
+        <Portal>
+        <div className="nc-modal-backdrop nc-delete-backdrop fixed inset-0 z-[110] flex items-center justify-center bg-black/40 p-4" data-liquid-owned={liquidOwned}>
+          <div className="nc-modal-panel nc-delete-dialog nc-delete-dialog--success w-full max-w-[430px] overflow-hidden rounded-2xl bg-white shadow-2xl" data-liquid-owned={liquidOwned} data-liquid-glass={liquidOwned ? 'enabled' : undefined}>
+            <div className="nc-delete-body flex items-start gap-3.5 p-5 pb-2">
+              <div className="nc-delete-icon nc-delete-icon--success flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="nc-delete-title text-base font-bold text-gray-950">
+                  {tx('Sınav Sonucu Silindi', 'Exam Result Deleted', 'Risultato esame eliminato')}
+                </h2>
+                <p className="nc-delete-copy mt-1 text-sm leading-6 text-gray-500">
+                  <strong className="nc-delete-name nc-delete-name--success">{deleteSuccess}</strong>
+                </p>
+              </div>
+            </div>
+            <div className="nc-delete-actions flex items-center justify-end gap-2 px-5 pb-5 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteSuccess('')}
+                className="nc-delete-success rounded-xl px-4 py-2 text-sm font-semibold text-white"
+              >
+                {tx('Kapat', 'Close', 'Chiudi')}
+              </button>
+            </div>
+          </div>
+        </div>
+        </Portal>
+      )}
+
+      {deleteSuccess && !isLiquidGlassUser && (
         <div className="fixed bottom-6 right-6 z-[110] flex items-center gap-3 rounded-2xl bg-[#1B4332] px-5 py-3.5 text-sm font-semibold text-white shadow-2xl shadow-[#1B4332]/30">
           <CheckCircle2 className="h-5 w-5 text-[#52B788]" />
           {deleteSuccess}
@@ -605,18 +636,18 @@ export function TrainingExamResultsContent({
 
       {bulkDeleteOpen && (
         <Portal>
-        <div className="nc-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" data-liquid-owned={liquidOwned}>
-          <div className="nc-modal-panel w-full max-w-md rounded-2xl bg-white shadow-2xl" data-liquid-owned={liquidOwned} data-liquid-glass={liquidOwned ? 'enabled' : undefined}>
-            <div className="p-5">
+        <div className="nc-modal-backdrop nc-delete-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" data-liquid-owned={liquidOwned}>
+          <div className="nc-modal-panel nc-delete-dialog w-full max-w-[430px] overflow-hidden rounded-2xl bg-white shadow-2xl" data-liquid-owned={liquidOwned} data-liquid-glass={liquidOwned ? 'enabled' : undefined}>
+            <div className="nc-delete-body p-5">
               <div className="flex items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-500">
+                <div className="nc-delete-icon nc-delete-icon--danger flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-500">
                   <Trash2 className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-base font-bold text-gray-950">
+                  <h2 className="nc-delete-title text-base font-bold text-gray-950">
                     {tx('Seçilen sınav sonuçları silinsin mi?', 'Delete selected exam results?', 'Eliminare i risultati esame selezionati?')}
                   </h2>
-                  <p className="mt-1 text-sm leading-6 text-gray-500">
+                  <p className="nc-delete-copy mt-1 text-sm leading-6 text-gray-500">
                     {tx(
                       `${selectedIds.size} kayıt sistemden kalıcı olarak silinecek. Bu işlem geri alınamaz.`,
                       `${selectedIds.size} records will be permanently removed. This cannot be undone.`,
@@ -624,14 +655,14 @@ export function TrainingExamResultsContent({
                     )}
                   </p>
                   {bulkDeleteError && (
-                    <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
+                    <div className="nc-delete-error mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
                       {bulkDeleteError}
                     </div>
                   )}
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4">
+            <div className="nc-delete-actions flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4">
               <button
                 type="button"
                 onClick={() => {
@@ -639,7 +670,7 @@ export function TrainingExamResultsContent({
                   setBulkDeleteError('')
                 }}
                 disabled={bulkDeleteLoading}
-                className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50"
+                className="nc-delete-cancel rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50"
               >
                 {tx('Vazgeç', 'Cancel', 'Annulla')}
               </button>
@@ -647,7 +678,7 @@ export function TrainingExamResultsContent({
                 type="button"
                 onClick={handleBulkDelete}
                 disabled={bulkDeleteLoading}
-                className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+                className="nc-delete-danger inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
               >
                 <Trash2 className="h-4 w-4" />
                 {bulkDeleteLoading ? tx('Siliniyor...', 'Deleting...', 'Eliminazione...') : tx('Evet, sil', 'Yes, delete', 'Sì, elimina')}
@@ -660,25 +691,25 @@ export function TrainingExamResultsContent({
 
       {deleteResult && (
         <Portal>
-        <div className="nc-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" data-liquid-owned={liquidOwned}>
-          <div className="nc-modal-panel w-full max-w-md rounded-2xl bg-white shadow-2xl" data-liquid-owned={liquidOwned} data-liquid-glass={liquidOwned ? 'enabled' : undefined}>
-            <div className="p-5">
+        <div className="nc-modal-backdrop nc-delete-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" data-liquid-owned={liquidOwned}>
+          <div className="nc-modal-panel nc-delete-dialog w-full max-w-[430px] overflow-hidden rounded-2xl bg-white shadow-2xl" data-liquid-owned={liquidOwned} data-liquid-glass={liquidOwned ? 'enabled' : undefined}>
+            <div className="nc-delete-body p-5">
               <div className="flex items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-500">
+                <div className="nc-delete-icon nc-delete-icon--danger flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-500">
                   <Trash2 className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-base font-bold text-gray-950">
+                  <h2 className="nc-delete-title text-base font-bold text-gray-950">
                     {tx('Sınav sonucu silinsin mi?', 'Delete exam result?', 'Eliminare il risultato esame?')}
                   </h2>
-                  <p className="mt-1 text-sm leading-6 text-gray-500">
+                  <p className="nc-delete-copy mt-1 text-sm leading-6 text-gray-500">
                     {tx(
                       'Bu işlem geri alınamaz. Seçili sınav sonucu sistemden kalıcı olarak silinecek.',
                       'This cannot be undone. The selected exam result will be permanently removed.',
                       'Questa azione non può essere annullata. Il risultato selezionato sarà eliminato definitivamente.'
                     )}
                   </p>
-                  <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
+                  <div className="nc-delete-meta-card mt-4 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
                     <div className="truncate text-sm font-semibold text-gray-900">
                       {getConsultantName(deleteResult)}
                     </div>
@@ -687,14 +718,14 @@ export function TrainingExamResultsContent({
                     </div>
                   </div>
                   {deleteError && (
-                    <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
+                    <div className="nc-delete-error mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
                       {deleteError}
                     </div>
                   )}
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4">
+            <div className="nc-delete-actions flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4">
               <button
                 type="button"
                 onClick={() => {
@@ -702,7 +733,7 @@ export function TrainingExamResultsContent({
                   setDeleteError('')
                 }}
                 disabled={deleteLoading}
-                className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50"
+                className="nc-delete-cancel rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50"
               >
                 {tx('Vazgeç', 'Cancel', 'Annulla')}
               </button>
@@ -710,7 +741,7 @@ export function TrainingExamResultsContent({
                 type="button"
                 onClick={() => handleDelete(deleteResult.id)}
                 disabled={deleteLoading}
-                className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+                className="nc-delete-danger inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
               >
                 <Trash2 className="h-4 w-4" />
                 {deleteLoading ? tx('Siliniyor...', 'Deleting...', 'Eliminazione...') : tx('Evet, sil', 'Yes, delete', 'Sì, elimina')}
